@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">Soukify</string>
+    
+    <!-- Settings Screen -->
+    <string name="profile_image">Profile Image</string>
+    <string name="user_name">Salma Barrak</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="account_settings">Account Settings</string>
+    <string name="notifications">Notifications</string>
+    <string name="privacy">Privacy</string>
+    <string name="help_support">Help &amp; Support</string>
+    <string name="about">About</string>
+    <string name="logout">Logout</string>
+    
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+</resources>

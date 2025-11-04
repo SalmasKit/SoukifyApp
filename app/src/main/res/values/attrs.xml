@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="SettingItemView">
+        <attr name="settingIcon" format="reference" />
+        <attr name="settingTitle" format="string" />
+        <attr name="showDivider" format="boolean" />
+        <attr name="showChevron" format="boolean" />
+    </declare-styleable>
+</resources>

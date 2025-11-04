@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Colors -->
+    <color name="colorPrimary">#E85F4C</color>    <!-- Orange (Primary) -->
+    <color name="colorPrimaryLight">#F5E5D8</color>  <!-- Light Beige -->
+    <color name="colorPrimaryLightVariant">#FBF1E8</color>  <!-- Lighter Beige -->
+    <color name="colorPrimaryDark">#D44A3A</color>    <!-- Darker Orange -->
+    
+    <!-- Background Colors -->
+    <color name="background">#FFFFFF</color>
+    <color name="surface">#FBF1E8</color>  <!-- Light Beige -->
+    
+    <!-- Text Colors -->
+    <color name="onPrimary">#FFFFFF</color>
+    <color name="onBackground">#212121</color>
+    <color name="onSurface">#212121</color>
+    <color name="text_secondary">#757575</color>
+    
+    <!-- Accent Colors -->
+    <color name="accent">#E85F4C</color>  <!-- Orange -->
+    <color name="accent_light">#F5E5D8</color>  <!-- Light Beige -->
+    
+    <!-- Bottom Navigation -->
+    <color name="bottom_nav_color">#E85F4C</color>
+    
+    <!-- Legacy Colors (Kept for compatibility) -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>
