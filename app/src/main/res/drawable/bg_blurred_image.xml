@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Original image with slightly reduced opacity -->
+    <item>
+        <bitmap
+            android:src="@drawable/background_image"
+            android:gravity="fill"
+            android:alpha="0.8"
+            android:scaleType="centerCrop" />
+    </item>
+    <!-- Semi-transparent white overlays for blur effect -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#99FFFFFF" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#B3FFFFFF" />
+        </shape>
+    </item>
+</layer-list>
