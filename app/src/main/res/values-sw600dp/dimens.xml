@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Spacing for sw600dp (tablets) -->
+    <dimen name="spacing_xs">6dp</dimen>
+    <dimen name="spacing_small">12dp</dimen>
+    <dimen name="spacing_medium">24dp</dimen>
+    <dimen name="spacing_large">32dp</dimen>
+    <dimen name="spacing_xl">40dp</dimen>
+
+    <!-- Text sizes -->
+    <dimen name="text_title">22sp</dimen>
+    <dimen name="text_subtitle">18sp</dimen>
+    <dimen name="text_body">16sp</dimen>
+
+    <!-- Avatars / images -->
+    <dimen name="profile_avatar_size">120dp</dimen>
+</resources>

@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_blurred_image"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="@dimen/spacing_medium">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -30,19 +30,19 @@
 
                 <de.hdodenhof.circleimageview.CircleImageView
                     android:id="@+id/profileImage"
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"
+                    android:layout_width="@dimen/profile_avatar_size"
+                    android:layout_height="@dimen/profile_avatar_size"
                     android:src="@drawable/ic_profile_placeholder"
                     android:contentDescription="@string/profile_image"
                     android:scaleType="centerCrop"
-                    android:padding="2dp"
+                    android:padding="@dimen/spacing_xs"
                     app:civ_border_width="2dp"
                     app:civ_border_color="@color/colorPrimary" />
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="80dp"
-                    android:layout_marginStart="16dp"
+                    android:layout_marginStart="@dimen/spacing_medium"
                     android:layout_weight="1"
                     android:gravity="center_vertical">
 
@@ -65,35 +65,39 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/user_name"
                                 android:textColor="@android:color/black"
-                                android:textSize="18sp"
+                                android:textSize="@dimen/text_title"
                                 android:textStyle="bold" />
 
                             <TextView
                                 android:id="@+id/userEmail"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
+                                android:layout_marginTop="@dimen/spacing_xs"
                                 android:text="user@example.com"
                                 android:textColor="@android:color/darker_gray"
-                                android:textSize="14sp" />
+                                android:textSize="@dimen/text_body" />
                         </LinearLayout>
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/editProfileButton"
                             style="@style/Widget.MaterialComponents.Button"
                             android:layout_width="wrap_content"
-                            android:layout_height="44dp"
-                            android:minWidth="100dp"
+                            android:layout_height="wrap_content"
+                            android:minWidth="80dp"
                             android:minHeight="0dp"
                             android:paddingStart="16dp"
                             android:paddingEnd="16dp"
-                            android:text="@string/edit_profile"
+                            android:paddingTop="12dp"
+                            android:paddingBottom="12dp"
+                            android:text="@string/open_shop_stacked"
                             android:textColor="@color/onPrimary"
-                            android:textSize="14sp"
+                            android:textSize="@dimen/text_body"
                             android:textAllCaps="false"
                             android:gravity="center"
+                            android:letterSpacing="0"
+                            android:lineSpacingExtra="2dp"
                             app:backgroundTint="@color/colorPrimary"
-                            app:cornerRadius="22dp"
+                            app:cornerRadius="20dp"
                             app:rippleColor="@color/colorPrimaryDark" />
                     </LinearLayout>
                 </LinearLayout>
@@ -117,7 +121,7 @@
                     android:id="@+id/accountSettings"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="@dimen/spacing_small"
                     app:settingIcon="@drawable/ic_person"
                     app:settingTitle="@string/account_settings"
                     app:showDivider="true"
@@ -190,17 +194,17 @@
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="24dp"
-                android:layout_marginEnd="16dp"
-                android:padding="12dp"
+                android:layout_marginStart="@dimen/spacing_medium"
+                android:layout_marginTop="@dimen/spacing_large"
+                android:layout_marginEnd="@dimen/spacing_medium"
+                android:padding="@dimen/spacing_small"
                 android:text="@string/logout"
                 android:textAlignment="textStart"
                 android:textColor="@color/colorPrimary"
-                android:textSize="16sp"
+                android:textSize="@dimen/text_subtitle"
                 app:icon="@drawable/ic_logout"
                 app:iconGravity="textStart"
-                app:iconPadding="8dp"
+                app:iconPadding="@dimen/spacing_small"
                 app:iconTint="@color/colorPrimary"
                 app:rippleColor="@color/colorPrimaryLight"
                 app:strokeColor="@color/colorPrimary"

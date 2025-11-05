@@ -22,13 +22,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/bottom_navigation"
-        android:fillViewport="true"
+        android:fillViewport="false"
         tools:ignore="UnknownId">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:gravity="top">
 
             <RelativeLayout
                 android:id="@+id/header_produits"
@@ -43,7 +44,7 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentStart="true"
                     android:layout_centerVertical="true"
-                    android:text="Products"
+                    android:text="@string/pageTitle"
                     android:textStyle="bold"
                     android:textSize="40sp"
                     android:textColor="#1A1A1A"
@@ -79,7 +80,7 @@
                         android:id="@+id/textView_ville"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Oujda, Morocco"
+                        android:text="@string/location"
                         android:textSize="15sp"
                         android:textColor="#1A1A1A"
                         android:textStyle="bold"/>
@@ -100,22 +101,29 @@
                 <EditText
                     android:id="@+id/search_input"
                     android:layout_width="0dp"
-                    android:layout_height="52dp"
+                    android:layout_height="40dp"
                     android:layout_weight="1"
                     android:background="@drawable/search_input_bg"
-                    android:hint="Search in ..."
+                    android:hint="@string/searchHint"
                     android:textColorHint="#A0A0A0"
-                    android:paddingStart="20dp"
-                    android:paddingEnd="20dp"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingTop="0dp"
+                    android:paddingBottom="0dp"
                     android:textSize="16sp"
-                    android:textColor="#1A1A1A"/>
+                    android:textColor="#1A1A1A"
+                    android:gravity="center_vertical|start"
+                    android:minHeight="0dp"
+                    android:includeFontPadding="false"
+                    android:inputType="text"
+                    android:layout_gravity="center_vertical"/>
 
                 <Button
                     android:id="@+id/btn_search"
                     android:layout_width="110dp"
                     android:layout_height="52dp"
                     android:backgroundTint="#E85F4C"
-                    android:text="Search"
+                    android:text="@string/buttonSearch"
                     android:textColor="#FFFFFF"
                     android:textSize="16sp"
                     android:textAllCaps="false"
@@ -127,15 +135,14 @@
             <HorizontalScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:scrollbars="none"
-                android:paddingStart="24dp"
-                android:paddingEnd="24dp"
-                android:paddingBottom="24dp">
+                android:scrollbars="none">
 
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp">
 
                     <!-- tapis -->
                     <LinearLayout
@@ -166,7 +173,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Tapestry"
+                            android:text="@string/tapestry"
                             android:textSize="13sp"
                             android:textColor="#1A1A1A"/>
                     </LinearLayout>
@@ -200,7 +207,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Food"
+                            android:text="@string/food"
                             android:textSize="13sp"
                             android:textColor="#1A1A1A"/>
                     </LinearLayout>
@@ -234,7 +241,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Pottery"
+                            android:text="@string/pottery"
                             android:textSize="13sp"
                             android:textColor="#1A1A1A"/>
                     </LinearLayout>
@@ -268,7 +275,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Natural Products"
+                            android:text="@string/naturalProducts"
                             android:textSize="13sp"
                             android:textColor="#1A1A1A"/>
                     </LinearLayout>
@@ -302,7 +309,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Jwellery"
+                            android:text="@string/jewellery"
                             android:textSize="13sp"
                             android:textColor="#1A1A1A"/>
                     </LinearLayout>
@@ -336,7 +343,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Metal"
+                            android:text="@string/metal"
                             android:textSize="13sp"
                             android:textColor="#1A1A1A"/>
                     </LinearLayout>
@@ -370,7 +377,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Painting"
+                            android:text="@string/paintings"
                             android:textSize="13sp"
                             android:textColor="#1A1A1A"/>
                     </LinearLayout>
@@ -397,14 +404,13 @@
                                 android:layout_height="match_parent"
                                 android:scaleType="centerCrop"
                                 android:background="#F5E6D8"
-                                app:srcCompat="@drawable/wood"
-                                app:tint="#654321"/>
+                                app:srcCompat="@drawable/wood"/>
                         </androidx.cardview.widget.CardView>
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Woodwork"
+                            android:text="@string/woodwork"
                             android:textSize="13sp"
                             android:textColor="#1A1A1A"/>
                     </LinearLayout>
@@ -419,7 +425,8 @@
                 android:paddingStart="24dp"
                 android:paddingEnd="24dp"
                 android:paddingBottom="24dp"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:paddingTop="24dp">
 
                 <Button
                     android:id="@+id/btn_promotions"
@@ -427,7 +434,7 @@
                     android:layout_height="44dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="12dp"
-                    android:text="Pro"
+                    android:text="@string/Pro"
                     android:textSize="14sp"
                     android:textAllCaps="false"
                     android:backgroundTint="#E85F4C"
@@ -439,7 +446,7 @@
                     android:layout_height="44dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="12dp"
-                    android:text="Type"
+                    android:text="@string/Type"
                     android:textSize="14sp"
                     android:textAllCaps="false"
                     android:backgroundTint="#E85F4C"
@@ -451,7 +458,7 @@
                     android:layout_height="44dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="12dp"
-                    android:text="Sort"
+                    android:text="@string/Sort"
                     android:textSize="14sp"
                     android:textAllCaps="false"
                     android:backgroundTint="#E85F4C"
@@ -462,7 +469,7 @@
                     android:layout_width="0dp"
                     android:layout_height="44dp"
                     android:layout_weight="1"
-                    android:text="Top"
+                    android:text="@string/Top"
                     android:textSize="14sp"
                     android:textAllCaps="false"
                     android:backgroundTint="#E85F4C"

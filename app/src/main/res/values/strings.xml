@@ -1,10 +1,28 @@
 <resources>
     <string name="app_name">Soukify</string>
-    
+    <!-- Search Screen -->
+    <string name="pageTitle">Products</string>
+    <string name="location">Oujda, Morocco</string>
+    <string name="searchHint">Search in ...</string>
+    <string name="buttonSearch">Search</string>
+    <string name="tapestry">Textile &amp; Tapestry</string>
+    <string name="food">Gourmet &amp; Local Foods</string>
+    <string name="pottery"> Pottery &amp; Ceramics</string>
+    <string name="naturalProducts">Natural Wellness Products</string>
+    <string name="jewellery">Jewelry &amp; Accessories</string>
+    <string name="metal">Metal &amp; Brass Crafts</string>
+    <string name="paintings">Painting &amp; Calligraphy</string>
+    <string name="woodwork"> Woodwork </string>
+    <string name="Pro">Pro</string>
+    <string name="Type">Type</string>
+    <string name="Sort">Sort</string>
+    <string name="Top">Top</string>
+
     <!-- Settings Screen -->
     <string name="profile_image">Profile Image</string>
     <string name="user_name">Salma Barrak</string>
     <string name="edit_profile">Open Shop</string>
+    <string name="open_shop_stacked">Open\nShop</string>
     <string name="account_settings">Account Settings</string>
     <string name="notifications">Notifications</string>
     <string name="privacy">Privacy</string>
