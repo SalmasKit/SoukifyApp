@@ -18,6 +18,8 @@ public class SettingItemView extends LinearLayout {
     private TextView title;
     private View divider;
     private ImageView chevron;
+    // The inner clickable row (first child in item_setting.xml)
+    private View clickableArea;
 
     public SettingItemView(Context context) {
         this(context, null);
@@ -41,6 +43,12 @@ public class SettingItemView extends LinearLayout {
         title = findViewById(R.id.title);
         divider = findViewById(R.id.divider);
         chevron = findViewById(R.id.chevron);
+        // item_setting.xml inflates a merge with a clickable LinearLayout as first child
+        if (getChildCount() > 0) {
+            clickableArea = getChildAt(0);
+        } else {
+            clickableArea = this;
+        }
 
         if (attrs != null) {
             TypedArray typedArray = context.obtainStyledAttributes(
@@ -86,6 +94,10 @@ public class SettingItemView extends LinearLayout {
     }
 
     public void setOnSettingClickListener(OnClickListener listener) {
-        setOnClickListener(listener);
+        if (clickableArea != null) {
+            clickableArea.setOnClickListener(listener);
+        } else {
+            setOnClickListener(listener);
+        }
     }
 }
