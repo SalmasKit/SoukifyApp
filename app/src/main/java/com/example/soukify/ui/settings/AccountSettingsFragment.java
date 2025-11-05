@@ -1,5 +1,9 @@
 package com.example.soukify.ui.settings;
 
+import android.app.Activity;
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,16 +13,28 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.appcompat.app.AlertDialog;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.example.soukify.databinding.FragmentAccountSettingsBinding;
+import android.provider.MediaStore;
 
 /**
  * Fragment for Account Settings where users can edit their profile info.
  */
 public class AccountSettingsFragment extends Fragment {
     private FragmentAccountSettingsBinding binding;
+    private final ActivityResultLauncher<Intent> pickImageLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    Uri uri = result.getData().getData();
+                    if (binding != null) {
+                        binding.profileImage.setImageURI(uri);
+                    }
+                }
+            });
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -27,12 +43,41 @@ public class AccountSettingsFragment extends Fragment {
         return binding.getRoot();
     }
 
+    private void showChangePhotoDialog() {
+        String[] items = new String[]{
+                getString(com.example.soukify.R.string.from_gallery),
+                getString(com.example.soukify.R.string.remove_photo)
+        };
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(com.example.soukify.R.string.choose_photo)
+                .setItems(items, (dialog, which) -> {
+                    if (which == 0) {
+                        openGallery();
+                    } else if (which == 1) {
+                        if (binding != null) {
+                            binding.profileImage.setImageResource(com.example.soukify.R.drawable.ic_profile_placeholder);
+                        }
+                    }
+                })
+                .show();
+    }
+
+    private void openGallery() {
+        try {
+            Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            intent.setType("image/*");
+            pickImageLauncher.launch(intent);
+        } catch (ActivityNotFoundException e) {
+            showToast(getString(com.example.soukify.R.string.no_gallery_app));
+        }
+    }
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
         // Click listeners
-        binding.changePhotoButton.setOnClickListener(v -> showToast("Change photo clicked"));
+        binding.changePhotoButton.setOnClickListener(v -> showChangePhotoDialog());
         binding.changePasswordButton.setOnClickListener(v -> showChangePassword());
         binding.saveButton.setOnClickListener(v -> saveChanges());
 

@@ -77,6 +77,12 @@
     <string name="view_faq">View FAQ</string>
     <string name="contact_support">Contact Support</string>
 
+    <!-- Change Photo -->
+    <string name="choose_photo">Choose photo</string>
+    <string name="from_gallery">Choose from Gallery</string>
+    <string name="remove_photo">Remove Photo</string>
+    <string name="no_gallery_app">No gallery app found</string>
+
     <!-- About -->
     <string name="app_version_placeholder">Version: %1$s</string>
     <string name="website">Website</string>
