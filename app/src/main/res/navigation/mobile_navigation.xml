@@ -40,6 +40,12 @@
         <action
             android:id="@+id/action_navigation_settings_to_navigation_privacy"
             app:destination="@id/navigation_privacy" />
+        <action
+            android:id="@+id/action_navigation_settings_to_navigation_help_support"
+            app:destination="@id/navigation_help_support" />
+        <action
+            android:id="@+id/action_navigation_settings_to_navigation_about"
+            app:destination="@id/navigation_about" />
     </fragment>
 
     <fragment
@@ -65,4 +71,16 @@
         android:name="com.example.soukify.ui.settings.PrivacyFragment"
         android:label="Privacy"
         tools:layout="@layout/fragment_privacy" />
+
+    <fragment
+        android:id="@+id/navigation_help_support"
+        android:name="com.example.soukify.ui.settings.HelpSupportFragment"
+        android:label="Help &amp; Support"
+        tools:layout="@layout/fragment_help_support" />
+
+    <fragment
+        android:id="@+id/navigation_about"
+        android:name="com.example.soukify.ui.settings.AboutFragment"
+        android:label="About"
+        tools:layout="@layout/fragment_about" />
 </navigation>

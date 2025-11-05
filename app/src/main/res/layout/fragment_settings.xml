@@ -133,6 +133,16 @@
                     app:showDivider="true"
                     app:showChevron="true" />
 
+                <!-- Appearance (Theme) -->
+                <com.example.soukify.view.SettingItemView
+                    android:id="@+id/themeAppearance"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:settingIcon="@drawable/ic_sun"
+                    app:settingTitle="@string/appearance"
+                    app:showDivider="true"
+                    app:showChevron="true" />
+
                 <!-- Language & Currency -->
                 <com.example.soukify.view.SettingItemView
                     android:id="@+id/languageCurrency"
