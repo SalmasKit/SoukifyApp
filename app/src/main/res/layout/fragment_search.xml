@@ -5,16 +5,8 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
-
-    <!-- ✅ Image de fond transparente -->
-    <ImageView
-        android:id="@+id/background_image"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:src="@drawable/background_image"
-        android:scaleType="centerCrop"
-        android:alpha="0.2" />
+    tools:context=".MainActivity"
+    android:background="@drawable/bg_blurred_image">
 
     <!-- Contenu principal -->
     <ScrollView
