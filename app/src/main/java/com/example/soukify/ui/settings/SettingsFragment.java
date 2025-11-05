@@ -42,24 +42,24 @@ public class SettingsFragment extends Fragment {
         binding.notifications.setOnSettingClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showToast("Notifications");
-                // TODO: Navigate to notifications screen
+                Navigation.findNavController(v)
+                        .navigate(R.id.action_navigation_settings_to_navigation_notifications);
             }
         });
 
         binding.languageCurrency.setOnSettingClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showToast("Language & Currency");
-                // TODO: Navigate to language & currency screen
+                Navigation.findNavController(v)
+                        .navigate(R.id.action_navigation_settings_to_navigation_language_currency);
             }
         });
 
         binding.privacy.setOnSettingClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showToast("Privacy");
-                // TODO: Navigate to privacy screen
+                Navigation.findNavController(v)
+                        .navigate(R.id.action_navigation_settings_to_navigation_privacy);
             }
         });
 
