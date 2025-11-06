@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity"
-    android:background="@drawable/bg_blurred_image">
+>
 
     <!-- Contenu principal -->
     <ScrollView
@@ -39,7 +39,7 @@
                     android:text="@string/pageTitle"
                     android:textStyle="bold"
                     android:textSize="40sp"
-                    android:textColor="#1A1A1A"
+                    android:textColor="?android:attr/textColorPrimary"
                     android:fontFamily="serif"
                     android:letterSpacing="-0.02"/>
 
@@ -74,7 +74,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/location"
                         android:textSize="15sp"
-                        android:textColor="#1A1A1A"
+                        android:textColor="?android:attr/textColorPrimary"
                         android:textStyle="bold"/>
                 </LinearLayout>
             </RelativeLayout>
@@ -103,7 +103,7 @@
                     android:paddingTop="0dp"
                     android:paddingBottom="0dp"
                     android:textSize="16sp"
-                    android:textColor="#1A1A1A"
+                    android:textColor="?android:attr/textColorPrimary"
                     android:gravity="center_vertical|start"
                     android:minHeight="0dp"
                     android:includeFontPadding="false"
@@ -167,7 +167,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/tapestry"
                             android:textSize="13sp"
-                            android:textColor="#1A1A1A"/>
+                            android:textColor="?android:attr/textColorPrimary"/>
                     </LinearLayout>
 
                     <!-- food-->
@@ -201,7 +201,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/food"
                             android:textSize="13sp"
-                            android:textColor="#1A1A1A"/>
+                            android:textColor="?android:attr/textColorPrimary"/>
                     </LinearLayout>
 
                     <!-- Potterie -->
@@ -235,7 +235,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/pottery"
                             android:textSize="13sp"
-                            android:textColor="#1A1A1A"/>
+                            android:textColor="?android:attr/textColorPrimary"/>
                     </LinearLayout>
 
                     <!-- herbs-->
@@ -269,7 +269,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/naturalProducts"
                             android:textSize="13sp"
-                            android:textColor="#1A1A1A"/>
+                            android:textColor="?android:attr/textColorPrimary"/>
                     </LinearLayout>
 
                     <!-- jwellery-->
@@ -303,7 +303,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/jewellery"
                             android:textSize="13sp"
-                            android:textColor="#1A1A1A"/>
+                            android:textColor="?android:attr/textColorPrimary"/>
                     </LinearLayout>
 
                     <!-- Metal-->
@@ -337,7 +337,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/metal"
                             android:textSize="13sp"
-                            android:textColor="#1A1A1A"/>
+                            android:textColor="?android:attr/textColorPrimary"/>
                     </LinearLayout>
 
                     <!-- drawing -->
@@ -371,7 +371,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/paintings"
                             android:textSize="13sp"
-                            android:textColor="#1A1A1A"/>
+                            android:textColor="?android:attr/textColorPrimary"/>
                     </LinearLayout>
 
                     <!-- Wood -->
@@ -404,7 +404,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/woodwork"
                             android:textSize="13sp"
-                            android:textColor="#1A1A1A"/>
+                            android:textColor="?android:attr/textColorPrimary"/>
                     </LinearLayout>
 
                 </LinearLayout>

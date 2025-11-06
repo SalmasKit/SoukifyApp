@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Text Colors for Dark Theme -->
+    <color name="onBackground">#FFFFFF</color>  <!-- White text on dark background -->
+    <color name="onSurface">#FFFFFF</color>    <!-- White text on surface -->
+    <color name="text_secondary">#B3FFFFFF</color>  <!-- Slightly transparent white for secondary text -->
+    
+    <!-- Background Colors for Dark Theme -->
+    <color name="background">#121212</color>  <!-- Dark background -->
+    <color name="surface">#1E1E1E</color>    <!-- Slightly lighter surface -->
+    
+    <!-- Accent Colors (can be the same as light theme) -->
+    <color name="accent">#E85F4C</color>  <!-- Orange -->
+    <color name="accent_light">#F5E5D8</color>  <!-- Light Beige -->
+    
+    <!-- Bottom Navigation -->
+    <color name="bottom_nav_color">#1E1E1E</color>
+    
+    <!-- Legacy Colors -->
+    <color name="black">#FFFFFFFF</color>  <!-- Black becomes white in dark mode -->
+    <color name="white">#121212</color>    <!-- White becomes dark in dark mode -->
+</resources>

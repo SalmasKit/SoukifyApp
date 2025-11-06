@@ -12,8 +12,8 @@
         <item name="colorOnSecondary">@color/onBackground</item>
         
         <!-- Background colors -->
-        <item name="android:windowBackground">@color/background</item>
-        <item name="android:colorBackground">@color/background</item>
+        <item name="android:windowBackground">@drawable/bg_blurred_image</item>
+        <item name="android:colorBackground">@android:color/transparent</item>
         <item name="android:colorBackgroundFloating">@color/surface</item>
         
         <!-- Text colors -->

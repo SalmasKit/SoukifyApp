@@ -12,14 +12,16 @@
         <item name="colorOnSecondary">@color/onBackground</item>
         
         <!-- Background colors -->
-        <item name="android:windowBackground">@color/black</item>
-        <item name="android:colorBackground">@color/black</item>
-        <item name="android:colorBackgroundFloating">@color/black</item>
+        <item name="android:windowBackground">@drawable/bg_blurred_image_dark</item>
+        <item name="android:colorBackground">@android:color/transparent</item>
+        <item name="android:colorBackgroundFloating">#2D2D2D</item>
         
         <!-- Text colors -->
-        <item name="android:textColor">@color/onPrimary</item>
-        <item name="android:textColorPrimary">@color/onPrimary</item>
-        <item name="android:textColorSecondary">@color/onPrimary</item>
+        <item name="android:textColor">@color/onBackground</item>
+        <item name="android:textColorPrimary">@color/onBackground</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+        <item name="android:textColorHint">#80FFFFFF</item>
+        <item name="android:textColorTertiary">#B3FFFFFF</item>
         
         <!-- Status bar -->
         <item name="android:statusBarColor">@android:color/transparent</item>
