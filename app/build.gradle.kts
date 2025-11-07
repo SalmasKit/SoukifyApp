@@ -42,8 +42,13 @@ dependencies {
     implementation(libs.lifecycle.viewmodel.ktx)
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
-    implementation("de.hdodenhof:circleimageview:3.1.0") // CircleImageView
+    implementation("de.hdodenhof:circleimageview:3.1.0")
+    // Room
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation(libs.room.runtime)
+    annotationProcessor("androidx.room:room-compiler:2.6.1")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    annotationProcessor(libs.room.compiler)
 }
