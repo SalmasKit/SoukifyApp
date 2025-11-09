@@ -4,8 +4,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -14,12 +14,21 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.example.soukify.R;
+import com.exemple.soukify.data.entities.Product;
+import com.exemple.soukify.data.dao.ProductDao;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class SearchFragment extends Fragment {
 
     private EditText searchInput;
-    private Button btnSearch, btnPromotions, btnObjectType, btnSortBy, btnTopRated;
     private TextView textViewVille;
+    private LinearLayout layoutProducts;
+
+    private LinearLayout catTapis, catFood, catPotterie, catHerbs, catJwellery, catMetal, catDraws, catWood;
+
+    private ProductDao productRepository;
 
     @Nullable
     @Override
@@ -27,33 +36,71 @@ public class SearchFragment extends Fragment {
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
-        // Lie le fragment au layout XML
         View view = inflater.inflate(R.layout.fragment_search, container, false);
 
-        // Récupération des vues depuis le fragment
+        // Recherche et ville
         searchInput = view.findViewById(R.id.search_input);
-        btnSearch = view.findViewById(R.id.btn_search);
-        btnPromotions = view.findViewById(R.id.btn_promotions);
-        btnObjectType = view.findViewById(R.id.btn_object_type);
-        btnSortBy = view.findViewById(R.id.btn_sort_by);
-        btnTopRated = view.findViewById(R.id.btn_top_rated);
         textViewVille = view.findViewById(R.id.textView_ville);
 
-        // Exemple : clic sur "Search"
-        btnSearch.setOnClickListener(v -> {
-            String query = searchInput.getText().toString();
-            Toast.makeText(getActivity(), "Recherche : " + query, Toast.LENGTH_SHORT).show();
-        });
+        // Layout pour afficher les produits
+        layoutProducts = view.findViewById(R.id.layout_products);
 
-        // Exemple : clic sur les boutons de filtres
-        btnPromotions.setOnClickListener(v -> Toast.makeText(getActivity(), "Pro clicked", Toast.LENGTH_SHORT).show());
-        btnObjectType.setOnClickListener(v -> Toast.makeText(getActivity(), "Type clicked", Toast.LENGTH_SHORT).show());
-        btnSortBy.setOnClickListener(v -> Toast.makeText(getActivity(), "Sort clicked", Toast.LENGTH_SHORT).show());
-        btnTopRated.setOnClickListener(v -> Toast.makeText(getActivity(), "Top clicked", Toast.LENGTH_SHORT).show());
+        // Catégories
+        catTapis = view.findViewById(R.id.cat_tapis);
+        catFood = view.findViewById(R.id.cat_food);
+        catPotterie = view.findViewById(R.id.cat_potterie);
+        catHerbs = view.findViewById(R.id.cat_herbs);
+        catJwellery = view.findViewById(R.id.cat_jwellery);
+        catMetal = view.findViewById(R.id.cat_metal);
+        catDraws = view.findViewById(R.id.cat_draws);
+        catWood = view.findViewById(R.id.cat_wood);
 
-        // Exemple : clic sur la ville
-        textViewVille.setOnClickListener(v -> Toast.makeText(getActivity(), "Ville clicked", Toast.LENGTH_SHORT).show());
+        // Simuler un repository (ou tu peux utiliser ta base SQLite)
+        productRepository = new ProductDao(getContext());
+
+        // Ajouter les clics sur les catégories
+        setCategoryClick(catTapis, "tapis");
+        setCategoryClick(catFood, "food");
+        setCategoryClick(catPotterie, "potterie");
+        setCategoryClick(catHerbs, "herbs");
+        setCategoryClick(catJwellery, "jwellery");
+        setCategoryClick(catMetal, "metal");
+        setCategoryClick(catDraws, "draws");
+        setCategoryClick(catWood, "wood");
 
         return view;
     }
+
+    private void setCategoryClick(LinearLayout categoryLayout, String type) {
+        categoryLayout.setOnClickListener(v -> {
+            Toast.makeText(getActivity(), "Catégorie: " + type, Toast.LENGTH_SHORT).show();
+            displayProductsByType(type);
+        });
+    }
+
+    private void displayProductsByType(String type) {
+        // Récupérer tous les produits
+        List<Product> allProducts = productRepository.getAllProducts();
+
+        // Filtrer selon le type
+        List<Product> filtered = allProducts.stream()
+                .filter(p -> p.getType().equalsIgnoreCase(type))
+                .collect(Collectors.toList());
+
+        // Vider l'ancien layout
+        layoutProducts.removeAllViews();
+
+        // Ajouter dynamiquement les produits filtrés
+        for (Product product : filtered) {
+            View productView = LayoutInflater.from(getContext()).inflate(R.layout.item_product_card, layoutProducts, false);
+
+            // Ici, tu peux lier les images, noms, notes etc.
+            // Exemple :
+            // ImageView img = productView.findViewById(R.id.product_img);
+            // img.setImageResource(product.getImageResId());
+
+            layoutProducts.addView(productView);
+        }
+    }
 }
+
