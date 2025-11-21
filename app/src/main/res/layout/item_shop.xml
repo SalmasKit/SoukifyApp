@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/item_shop_layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="?attr/selectableItemBackground"
+    android:descendantFocusability="blocksDescendants">
+
+    <!-- Image de la boutique -->
+    <ImageView
+        android:id="@+id/shop_image"
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_launcher_background" />
+
+    <!-- Nom de la boutique -->
+    <TextView
+        android:id="@+id/shop_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nom de la boutique"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#000000"
+        android:paddingTop="8dp" />
+
+    <!-- Catégorie -->
+    <TextView
+        android:id="@+id/shop_category"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Catégorie"
+        android:textSize="14sp"
+        android:textColor="#000000"
+        android:paddingTop="4dp" />
+
+    <!-- Localisation -->
+    <TextView
+        android:id="@+id/shop_location"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Localisation"
+        android:textSize="14sp"
+        android:textColor="#000000"
+        android:paddingTop="2dp" />
+
+    <!-- Actions -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="8dp">
+
+        <!-- Favoris -->
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/btn_favorite"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:padding="8dp"
+            android:background="@android:color/transparent"
+            android:scaleType="centerInside"
+            android:src="@drawable/star_outline"
+            android:contentDescription="Favorite"
+            android:focusable="false"
+            android:focusableInTouchMode="false" />
+
+        <!-- Like -->
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/btn_like"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="16dp"
+            android:padding="8dp"
+            android:background="@android:color/transparent"
+            android:scaleType="centerInside"
+            android:src="@drawable/like_outline"
+            android:contentDescription="Like"
+            android:focusable="false"
+            android:focusableInTouchMode="false" />
+
+        <!-- Nombre de likes -->
+        <TextView
+            android:id="@+id/likes_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:textSize="14sp"
+            android:layout_gravity="center_vertical"
+            android:paddingStart="8dp"
+            android:textColor="#000000" />
+    </LinearLayout>
+
+</LinearLayout>
+
+
+

@@ -5,17 +5,14 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity"
->
+    tools:context=".MainActivity">
 
     <!-- Contenu principal -->
     <ScrollView
         android:id="@+id/scroll_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/bottom_navigation"
-        android:fillViewport="false"
-        tools:ignore="UnknownId">
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -78,7 +75,6 @@
                         android:textStyle="bold"/>
                 </LinearLayout>
             </RelativeLayout>
-
 
             <!-- Barre de recherche -->
             <LinearLayout
@@ -409,6 +405,7 @@
 
                 </LinearLayout>
             </HorizontalScrollView>
+
             <!-- Filtres -->
             <LinearLayout
                 android:layout_width="match_parent"
@@ -468,226 +465,24 @@
                     android:textColor="#FFFFFF"/>
             </LinearLayout>
 
-
-
-            <!-- Liste des produits -->
-            <LinearLayout
-                android:id="@+id/layout_products"
+            <!-- RecyclerView pour les boutiques -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_products"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
                 android:paddingStart="24dp"
                 android:paddingEnd="24dp"
-                android:paddingBottom="90dp">
+                android:paddingBottom="90dp"/>
 
-                <!-- Produit 1: Mohammed Potterie -->
-                <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="20dp"
-                    app:cardCornerRadius="20dp"
-                    app:cardElevation="2dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground">
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <ImageView
-                            android:id="@+id/product_img_1"
-                            android:layout_width="match_parent"
-                            android:layout_height="240dp"
-                            android:scaleType="centerCrop"
-                            app:srcCompat="@drawable/potterie"/>
-
-                        <!-- Info overlay -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_alignBottom="@id/product_img_1"
-                            android:orientation="vertical"
-                            android:background="#E85F4C"
-                            android:padding="16dp">
-
-                            <RelativeLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content">
-
-                                <LinearLayout
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_alignParentStart="true"
-                                    android:orientation="vertical">
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="Mohammed Pottery"
-                                        android:textSize="19sp"
-                                        android:textStyle="bold"
-                                        android:textColor="#FFFFFF"/>
-
-                                    <LinearLayout
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:orientation="horizontal"
-                                        android:layout_marginTop="6dp"
-                                        android:gravity="center_vertical">
-
-                                        <ImageView
-                                            android:layout_width="16dp"
-                                            android:layout_height="16dp"
-                                            app:tint="#FFFFFF"
-                                            android:layout_marginEnd="4dp"/>
-
-                                        <TextView
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:text="90%"
-                                            android:textSize="14sp"
-                                            android:textStyle="bold"
-                                            android:textColor="#FFFFFF"
-                                            android:layout_marginEnd="4dp"/>
-
-                                        <TextView
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:text="(404)"
-                                            android:textSize="13sp"
-                                            android:textColor="#D0D0D0"
-                                            android:layout_marginEnd="8dp"/>
-
-                                        <TextView
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:text=", Oujda , Andalous."
-                                            android:textSize="13sp"
-                                            android:textColor="#D0D0D0"/>
-                                    </LinearLayout>
-                                </LinearLayout>
-
-                                <ImageView
-                                    android:layout_width="32dp"
-                                    android:layout_height="32dp"
-                                    android:layout_alignParentEnd="true"
-                                    android:layout_centerVertical="true"
-                                    android:src="@drawable/star"
-                                    app:tint="#FFFFFF"
-                                    android:clickable="true"
-                                    android:focusable="true"
-                                    android:padding="4dp"/>
-                            </RelativeLayout>
-                        </LinearLayout>
-                    </RelativeLayout>
-                </androidx.cardview.widget.CardView>
-
-                <!-- Produit 2: Épices -->
-                <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="20dp"
-                    app:cardCornerRadius="20dp"
-                    app:cardElevation="2dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground">
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <ImageView
-                            android:id="@+id/product_img_2"
-                            android:layout_width="match_parent"
-                            android:layout_height="240dp"
-                            android:scaleType="centerCrop"
-                            app:srcCompat="@drawable/epices"/>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_alignBottom="@id/product_img_2"
-                            android:orientation="vertical"
-                            android:background="#E85F4C"
-                            android:padding="16dp">
-
-                            <RelativeLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content">
-
-                                <LinearLayout
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_alignParentStart="true"
-                                    android:orientation="vertical">
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="Épices Traditionnelles"
-                                        android:textSize="19sp"
-                                        android:textStyle="bold"
-                                        android:textColor="#FFFFFF"/>
-
-                                    <LinearLayout
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:orientation="horizontal"
-                                        android:layout_marginTop="6dp"
-                                        android:gravity="center_vertical">
-
-                                        <ImageView
-                                            android:layout_width="16dp"
-                                            android:layout_height="16dp"
-                                            app:tint="#FFFFFF"
-                                            android:layout_marginEnd="4dp"/>
-
-                                        <TextView
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:text="95%"
-                                            android:textSize="14sp"
-                                            android:textStyle="bold"
-                                            android:textColor="#FFFFFF"
-                                            android:layout_marginEnd="4dp"/>
-
-                                        <TextView
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:text="(678)"
-                                            android:textSize="13sp"
-                                            android:textColor="#D0D0D0"
-                                            android:layout_marginEnd="8dp"/>
-
-                                        <TextView
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:text=", Marrakech."
-                                            android:textSize="13sp"
-                                            android:textColor="#D0D0D0"/>
-                                    </LinearLayout>
-                                </LinearLayout>
-
-                                <ImageView
-                                    android:layout_width="32dp"
-                                    android:layout_height="32dp"
-                                    android:layout_alignParentEnd="true"
-                                    android:layout_centerVertical="true"
-                                    android:src="@drawable/star"
-                                    app:tint="#FFFFFF"
-                                    android:clickable="true"
-                                    android:focusable="true"
-                                    android:padding="4dp"/>
-                            </RelativeLayout>
-                        </LinearLayout>
-                    </RelativeLayout>
-                </androidx.cardview.widget.CardView>
-
-            </LinearLayout>
+            <!-- ProgressBar centré -->
+            <ProgressBar
+                android:id="@+id/progress_bar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone"/>
 
         </LinearLayout>
     </ScrollView>
-
 </RelativeLayout>
+

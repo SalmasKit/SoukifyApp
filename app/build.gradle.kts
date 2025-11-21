@@ -43,12 +43,20 @@ dependencies {
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
     implementation("de.hdodenhof:circleimageview:3.1.0")
+
     // Room
     implementation("androidx.room:room-runtime:2.6.1")
     implementation(libs.room.runtime)
     annotationProcessor("androidx.room:room-compiler:2.6.1")
+    annotationProcessor(libs.room.compiler)
+
+    // Glide
+    implementation("com.github.bumptech.glide:glide:4.15.1")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.15.1")
+
+    // Tests
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-    annotationProcessor(libs.room.compiler)
 }
+
