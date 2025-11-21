@@ -1,4 +1,4 @@
-/*package com.example.soukify.ui.search;
+package com.example.soukify.ui.search;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -56,7 +56,7 @@ public class SearchFragment extends Fragment {
         catWood = view.findViewById(R.id.cat_wood);
 
         // Simuler un repository (ou tu peux utiliser ta base SQLite)
-       // productRepository = new ProductDao(getContext());
+        productRepository = new ProductDao(getContext());
 
         // Ajouter les clics sur les catégories
         setCategoryClick(catTapis, "tapis");
@@ -80,27 +80,27 @@ public class SearchFragment extends Fragment {
 
     private void displayProductsByType(String type) {
         // Récupérer tous les produits
-       // List<Product> allProducts = productRepository.getAllProducts();
+        List<Product> allProducts = productRepository.getAllProducts();
 
         // Filtrer selon le type
-       // List<Product> filtered = allProducts.stream()
-         //       .filter(p -> p.getType().equalsIgnoreCase(type))
-           //     .collect(Collectors.toList());
+        List<Product> filtered = allProducts.stream()
+                .filter(p -> p.getType().equalsIgnoreCase(type))
+                .collect(Collectors.toList());
 
         // Vider l'ancien layout
-      //  layoutProducts.removeAllViews();
+        layoutProducts.removeAllViews();
 
         // Ajouter dynamiquement les produits filtrés
-       // for (Product product : filtered) {
-         //   View productView = LayoutInflater.from(getContext()).inflate(R.layout.item_product_card, layoutProducts, false);
+        for (Product product : filtered) {
+            View productView = LayoutInflater.from(getContext()).inflate(R.layout.item_product_card, layoutProducts, false);
 
             // Ici, tu peux lier les images, noms, notes etc.
             // Exemple :
             // ImageView img = productView.findViewById(R.id.product_img);
             // img.setImageResource(product.getImageResId());
 
-           // layoutProducts.addView(productView);
-    //    }
-  //  }
-//}*/
+            layoutProducts.addView(productView);
+        }
+    }
+}
 
