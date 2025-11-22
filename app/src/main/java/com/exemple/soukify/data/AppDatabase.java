@@ -6,21 +6,21 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import com.exemple.soukify.data.entities.*;
 import com.exemple.soukify.data.dao.*;
+import com.exemple.soukify.data.dao.ProvinceDao;
+import com.exemple.soukify.data.dao.UserDao;
+import com.exemple.soukify.data.entities.Province;
+import com.exemple.soukify.data.entities.User;
 
-/**
- * Classe AppDatabase pour Room
- */
 @Database(
-        entities = {User.class, Province.class, Shop.class}, // toutes les entités
-        version = 1,
+        entities = {User.class, Province.class /* ajoute toutes tes entités */},
+        version = 4,
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
 
-    // DAO
     public abstract UserDao userDao();
     public abstract ProvinceDao provinceDao();
-    public abstract ShopDao shopDao(); // DAO Shop ajouté
+    // ajoute les autres DAO ici
 
     private static volatile AppDatabase INSTANCE;
 
@@ -31,10 +31,9 @@ public abstract class AppDatabase extends RoomDatabase {
                     INSTANCE = Room.databaseBuilder(
                                     context.getApplicationContext(),
                                     AppDatabase.class,
-                                    "marketplace.db"
+                                    "soukify.db"
                             )
-                            .fallbackToDestructiveMigration() // réinitialise la db si version change
-                            .allowMainThreadQueries() // uniquement pour test / prototype
+                            .fallbackToDestructiveMigration()
                             .build();
                 }
             }

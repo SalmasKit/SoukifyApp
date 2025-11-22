@@ -29,13 +29,13 @@
     <string name="help_support">Help &amp; Support</string>
     <string name="about">About</string>
     <string name="logout">Logout</string>
-    
+
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
     <string name="language_and_currency">Language &amp; Currency</string>
     <string name="appearance">Appearance</string>
-    
+
     <!-- Account Settings -->
     <string name="change_photo">Change Photo</string>
     <string name="personal_information">Personal Information</string>
@@ -80,7 +80,7 @@
     <string name="clear_app_data_desc">This will clear cached files and preferences. You may need to sign in again.</string>
     <string name="clear">Clear</string>
     <string name="data_cleared">App data cleared</string>
-    
+
     <!-- Logout Dialog -->
     <string name="logout_confirm_title">Log out</string>
     <string name="logout_confirm_message">Are you sure you want to log out?</string>

@@ -19,9 +19,9 @@ public interface UserDao {
     @Delete
     void delete(User user);
 
-    @Query("SELECT * FROM users WHERE email = :email LIMIT 1")
-    User findByEmail(String email);
+    //@Query("SELECT * FROM users WHERE email = :email LIMIT 1")
+    //User findByEmail(String email);
 
-    @Query("SELECT * FROM users ORDER BY created_at DESC")
-    List<User> getAllUsers();
+    //@Query("SELECT * FROM users ORDER BY created_at DESC")
+    //List<User> getAllUsers();
 }

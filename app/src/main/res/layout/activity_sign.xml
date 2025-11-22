@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="@drawable/loginimg"
+    tools:context=".ui.sign.SignActivity">
+    <androidx.cardview.widget.CardView
+        android:layout_width="300dp"
+        android:layout_height="440dp"
+        android:layout_marginTop="60dp"
+        app:cardCornerRadius="30dp"
+        app:cardElevation="20dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#80FFFFFF"
+            android:orientation="vertical"
+            android:padding="24dp">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Sign Up"
+                android:gravity="center"
+                android:fontFamily="@font/dancingscript"
+                android:textStyle="bold"
+                android:textSize="40dp">
+            </TextView>
+            <EditText
+                android:id="@+id/username"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:hint="username"
+                android:layout_marginTop="30dp"
+                android:paddingLeft="10dp"
+                android:textSize="15dp"
+                android:background="@drawable/rounded"
+                ></EditText>
+            <EditText
+                android:id="@+id/password"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:hint="password"
+                android:paddingLeft="10dp"
+                android:textSize="15dp"
+                android:layout_marginTop="30dp"
+                android:background="@drawable/rounded"
+                ></EditText>
+            <EditText
+                android:id="@+id/confirm"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:hint="confirm"
+                android:paddingLeft="10dp"
+                android:textSize="15dp"
+                android:layout_marginTop="30dp"
+                android:background="@drawable/rounded"
+                ></EditText>
+            <EditText
+                android:id="@+id/phone"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:hint="phone"
+                android:paddingLeft="10dp"
+                android:textSize="15dp"
+                android:layout_marginTop="30dp"
+                android:background="@drawable/rounded"
+                ></EditText>
+            <Button
+                android:id="@+id/signbtn"
+                android:layout_width="match_parent"
+                android:layout_marginTop="20dp"
+                android:layout_height="35dp"
+
+                android:background="@drawable/rounded"
+                android:text="sign up"></Button>
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+</LinearLayout>
