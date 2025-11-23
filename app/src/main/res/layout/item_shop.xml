@@ -38,7 +38,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentStart="true"
                 android:layout_centerVertical="true"
-                android:layout_toStartOf="@+id/btn_favorite"
+                android:layout_toStartOf="@+id/actions_container"
                 android:text="Mohammed Pottery"
                 android:textSize="16sp"
                 android:textStyle="bold"
@@ -46,21 +46,55 @@
                 android:maxLines="2"
                 android:ellipsize="end" />
 
-            <!-- Favoris (étoile) -->
-            <androidx.appcompat.widget.AppCompatImageButton
-                android:id="@+id/btn_favorite"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+            <!-- Conteneur pour Like et Favoris -->
+            <LinearLayout
+                android:id="@+id/actions_container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
-                android:padding="8dp"
-                android:background="@android:color/transparent"
-                android:scaleType="centerInside"
-                android:src="@drawable/star_outline"
-                android:contentDescription="Favorite"
-                android:focusable="false"
-                android:focusableInTouchMode="false"
-                android:tint="#FFFFFF" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <!-- Like -->
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/btn_like"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:padding="8dp"
+                    android:background="@android:color/transparent"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/like_outline"
+                    android:contentDescription="Like"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:tint="#FFFFFF" />
+
+                <!-- Nombre de likes -->
+                <TextView
+                    android:id="@+id/likes_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textSize="14sp"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="8dp"
+                    android:textColor="#FFFFFF" />
+
+                <!-- Favoris (étoile) -->
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/btn_favorite"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:padding="8dp"
+                    android:background="@android:color/transparent"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/star_outline"
+                    android:contentDescription="Favorite"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:tint="#FFFFFF" />
+            </LinearLayout>
         </RelativeLayout>
 
         <!-- Informations supplémentaires -->
@@ -88,40 +122,7 @@
                 android:layout_height="wrap_content"
                 android:text="Localisation"
                 android:textSize="13sp"
-                android:textColor="#666666"
-                android:paddingBottom="8dp" />
-
-            <!-- Actions (Like) -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <!-- Like -->
-                <androidx.appcompat.widget.AppCompatImageButton
-                    android:id="@+id/btn_like"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:padding="8dp"
-                    android:background="@android:color/transparent"
-                    android:scaleType="centerInside"
-                    android:src="@drawable/like_outline"
-                    android:contentDescription="Like"
-                    android:focusable="false"
-                    android:focusableInTouchMode="false" />
-
-                <!-- Nombre de likes -->
-                <TextView
-                    android:id="@+id/likes_count"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0"
-                    android:textSize="14sp"
-                    android:layout_gravity="center_vertical"
-                    android:paddingStart="4dp"
-                    android:textColor="#000000" />
-            </LinearLayout>
+                android:textColor="#666666" />
         </LinearLayout>
     </LinearLayout>
 
