@@ -3,7 +3,6 @@ package com.example.soukify.ui.sign;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -11,8 +10,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.soukify.R;
-import com.exemple.soukify.data.AppDatabase;
-import com.exemple.soukify.data.entities.User;
+import com.example.soukify.data.AppDatabase;
+import com.example.soukify.data.entities.User;
 import com.example.soukify.utils.PasswordHash;
 import com.example.soukify.utils.ValidationUtils;
 

@@ -1,10 +1,10 @@
-package com.exemple.soukify.data.dao;
+package com.example.soukify.data.dao;
 
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.Update;
 import androidx.room.Query;
-import com.exemple.soukify.data.entities.UserSetting;
+import com.example.soukify.data.entities.UserSetting;
 
 @Dao
 public interface UserSettingDao {

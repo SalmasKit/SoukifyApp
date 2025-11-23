@@ -1,17 +1,18 @@
-package com.exemple.soukify.data.dao;
+package com.example.soukify.data.dao;
 
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.Query;
 import androidx.room.Update;
 import androidx.room.Delete;
-import com.exemple.soukify.data.entities.User;
+import com.example.soukify.data.entities.User;
 import java.util.List;
 
 @Dao
 public interface UserDao {
     @Insert
-    void insert(User user);
+     long insert(User user);
+
 
     @Update
     void update(User user);
@@ -24,4 +25,13 @@ public interface UserDao {
 
     @Query("SELECT * FROM users ORDER BY created_at DESC")
     List<User> getAllUsers();
+    
+    @Query("SELECT * FROM users WHERE phone_number = :phone LIMIT 1")
+    User getUserByPhone(String phone);
+    
+    @Query("SELECT * FROM users WHERE full_name = :username LIMIT 1")
+    User getUserByUsername(String username);
+    
+    @Query("SELECT * FROM users WHERE user_id = :userId LIMIT 1")
+    User getUserById(int userId);
 }

@@ -1,11 +1,11 @@
-package com.exemple.soukify.data.dao;
+package com.example.soukify.data.dao;
 
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.Update;
 import androidx.room.Delete;
 import androidx.room.Query;
-import com.exemple.soukify.data.entities.Product;
+import com.example.soukify.data.entities.Product;
 import java.util.List;
 
 @Dao
@@ -39,4 +39,3 @@ public interface ProductDao {
     @Query("SELECT * FROM products WHERE type_id = :typeId ORDER BY created_at DESC")
     List<Product> getProductsByType(int typeId);
 }
-

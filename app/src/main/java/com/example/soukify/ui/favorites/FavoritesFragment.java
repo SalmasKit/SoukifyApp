@@ -1,6 +1,9 @@
 package com.example.soukify.ui.favorites;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,9 +18,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.soukify.R;
 import com.example.soukify.ui.search.ShopAdapter;
-import com.exemple.soukify.data.AppDatabase;
-import com.exemple.soukify.data.dao.ShopDao;
-import com.exemple.soukify.data.entities.Shop;
+import com.example.soukify.data.AppDatabase;
+import com.example.soukify.data.dao.ShopDao;
+import com.example.soukify.data.entities.Shop;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,19 +38,31 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-
         View view = inflater.inflate(R.layout.fragment_favorites, container, false);
 
-        recyclerViewFavorites = view.findViewById(R.id.recycler_favorites);
-        progressBar = view.findViewById(R.id.progress_bar_favorites);
+        try {
+            // Initialize views
+            recyclerViewFavorites = view.findViewById(R.id.recycler_favorites);
+            progressBar = view.findViewById(R.id.progress_bar_favorites);
 
-        recyclerViewFavorites.setLayoutManager(new LinearLayoutManager(getContext()));
-        shopAdapter = new ShopAdapter(getContext(), favoriteShops, this);
-        recyclerViewFavorites.setAdapter(shopAdapter);
+            // Setup RecyclerView
+            recyclerViewFavorites.setLayoutManager(new LinearLayoutManager(getContext()));
+            shopAdapter = new ShopAdapter(getContext(), favoriteShops, this);
+            recyclerViewFavorites.setAdapter(shopAdapter);
 
-        shopDao = AppDatabase.getInstance(getContext()).shopDao();
-
-        loadFavoriteShops();
+            // Initialize database
+            if (getContext() != null) {
+                shopDao = AppDatabase.getInstance(getContext()).shopDao();
+                loadFavoriteShops();
+            } else {
+                Log.e("FavoritesFragment", "Context is null in onCreateView");
+            }
+        } catch (Exception e) {
+            Log.e("FavoritesFragment", "Error in onCreateView", e);
+            if (getActivity() != null) {
+                Toast.makeText(getActivity(), "Error initializing favorites", Toast.LENGTH_SHORT).show();
+            }
+        }
 
         return view;
     }
@@ -55,62 +70,149 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
     @Override
     public void onResume() {
         super.onResume();
-        loadFavoriteShops(); // Recharge la liste à jour à chaque affichage du fragment
+        loadFavoriteShops();
     }
 
     private void loadFavoriteShops() {
-        showLoading(true);
-        new Thread(() -> {
-            List<Shop> allShops = shopDao.getAllShops();
-            List<Shop> filteredFavorites = new ArrayList<>();
-            for (Shop shop : allShops) {
-                if (shop.isFavorite()) filteredFavorites.add(shop);
-            }
+        if (getActivity() == null || getContext() == null) {
+            Log.e("FavoritesFragment", "Activity or context is null in loadFavoriteShops");
+            return;
+        }
 
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> {
-                    favoriteShops.clear();
-                    favoriteShops.addAll(filteredFavorites);
-                    shopAdapter.notifyDataSetChanged();
-                    showLoading(false);
+        showLoading(true);
+        Log.d("FavoritesFragment", "Loading favorite shops...");
+
+        new Thread(() -> {
+            try {
+                // Get all shops from database
+                List<Shop> allShops;
+                try {
+                    allShops = shopDao.getAllShops();
+                    Log.d("FavoritesFragment", "Total shops in database: " + allShops.size());
+                } catch (Exception e) {
+                    Log.e("FavoritesFragment", "Error reading from database", e);
+                    showError("Error loading favorites");
+                    return;
+                }
+
+                // Filter favorites
+                List<Shop> filteredFavorites = new ArrayList<>();
+                for (Shop shop : allShops) {
+                    if (shop.isFavorite()) {
+                        filteredFavorites.add(shop);
+                    }
+                }
+                Log.d("FavoritesFragment", "Found " + filteredFavorites.size() + " favorite shops");
+
+                // Update UI on main thread
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    try {
+                        favoriteShops.clear();
+                        favoriteShops.addAll(filteredFavorites);
+                        shopAdapter.notifyDataSetChanged();
+                        showLoading(false);
+
+                        if (filteredFavorites.isEmpty()) {
+                            Toast.makeText(getContext(), "No favorite shops found", Toast.LENGTH_SHORT).show();
+                        }
+                    } catch (Exception e) {
+                        Log.e("FavoritesFragment", "Error updating UI", e);
+                        showError("Error displaying favorites");
+                    }
                 });
+
+            } catch (Exception e) {
+                Log.e("FavoritesFragment", "Unexpected error", e);
+                showError("An error occurred");
             }
         }).start();
     }
 
-    private void showLoading(boolean show) {
-        progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
-        recyclerViewFavorites.setVisibility(show ? View.GONE : View.VISIBLE);
+    @Override
+    public void onFavoriteClick(Shop shop, int position) {
+        // Update UI immediately for better responsiveness
+        boolean newFavoriteState = !shop.isFavorite();
+        shop.setFavorite(newFavoriteState);
+        shopAdapter.notifyItemChanged(position);
+
+        // Update in database on background thread
+        new Thread(() -> {
+            try {
+                shopDao.update(shop);
+                
+                // If removed from favorites, update the list
+                if (!newFavoriteState && getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        favoriteShops.remove(position);
+                        shopAdapter.notifyItemRemoved(position);
+                        Toast.makeText(getContext(), "Removed from favorites", Toast.LENGTH_SHORT).show();
+                    });
+                }
+            } catch (Exception e) {
+                Log.e("FavoritesFragment", "Error updating favorite status", e);
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        // Revert UI changes if update fails
+                        shop.setFavorite(!newFavoriteState);
+                        shopAdapter.notifyItemChanged(position);
+                        Toast.makeText(getContext(), "Error updating favorite", Toast.LENGTH_SHORT).show();
+                    });
+                }
+            }
+        }).start();
+    }
+
+    @Override
+    public void onLikeClick(Shop shop, int position) {
+        // Update UI immediately
+        boolean newLikedState = !shop.isLiked();
+        int newLikesCount = newLikedState ? shop.getLikesCount() + 1 : shop.getLikesCount() - 1;
+        
+        shop.setLiked(newLikedState);
+        shop.setLikesCount(newLikesCount);
+        shopAdapter.notifyItemChanged(position);
+
+        // Update in database on background thread
+        new Thread(() -> {
+            try {
+                shopDao.update(shop);
+            } catch (Exception e) {
+                Log.e("FavoritesFragment", "Error updating like status", e);
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        // Revert UI changes if update fails
+                        shop.setLiked(!newLikedState);
+                        shop.setLikesCount(newLikedState ? shop.getLikesCount() - 1 : shop.getLikesCount() + 1);
+                        shopAdapter.notifyItemChanged(position);
+                        Toast.makeText(getContext(), "Error updating like", Toast.LENGTH_SHORT).show();
+                    });
+                }
+            }
+        }).start();
     }
 
     @Override
     public void onShopClick(Shop shop, int position) {
-        Toast.makeText(getContext(), "Boutique sélectionnée : " + shop.getName(), Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onFavoriteClick(Shop shop, int position) {
-        // Mettre à jour la base Room (dans un thread séparé)
-        new Thread(() -> shopDao.update(shop)).start();
-
-        // Si retiré des favoris, supprimer de la liste locale
-        if (!shop.isFavorite()) {
-            favoriteShops.remove(position);
-            shopAdapter.notifyItemRemoved(position);
+        if (getContext() != null) {
+            Toast.makeText(getContext(), "Selected: " + shop.getName(), Toast.LENGTH_SHORT).show();
         }
     }
 
+    private void showLoading(boolean show) {
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+                recyclerViewFavorites.setVisibility(show ? View.GONE : View.VISIBLE);
+            });
+        }
+    }
 
-    @Override
-    public void onLikeClick(Shop shop, int position) {
-        shop.setLiked(!shop.isLiked());
-        if (shop.isLiked()) shop.setLikesCount(shop.getLikesCount() + 1);
-        else shop.setLikesCount(shop.getLikesCount() - 1);
-
-        // Mettre à jour dans Room
-        new Thread(() -> shopDao.update(shop)).start();
-
-        shopAdapter.notifyItemChanged(position);
+    private void showError(String message) {
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                showLoading(false);
+                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+            });
+        }
     }
 }
-

@@ -1,6 +1,8 @@
 package com.example.soukify.ui.search;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -8,10 +10,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -21,9 +21,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.soukify.R;
-import com.exemple.soukify.data.AppDatabase;
-import com.exemple.soukify.data.dao.ShopDao;
-import com.exemple.soukify.data.entities.Shop;
+import com.example.soukify.data.AppDatabase;
+import com.example.soukify.data.dao.ShopDao;
+import com.example.soukify.data.entities.Shop;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -97,29 +97,45 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
     private void loadShopsFromRoomWithTestData() {
         showLoading(true);
         new Thread(() -> {
-            if (shopDao.getAllShops().isEmpty()) {
-                shopDao.insert(new Shop("ext1", "La Potterie de Safae", "POTTERIE", 5, 120, "Oujda", "", false, System.currentTimeMillis(), 0, 0, 0));
-                shopDao.insert(new Shop("ext2", "Épices Traditionnelles", "FOOD", 4, 95, "Marrakech", "", true, System.currentTimeMillis(), 0, 0, 0));
-                shopDao.insert(new Shop("ext3", "Tapis du Maroc", "TAPIS", 5, 80, "Fès", "", false, System.currentTimeMillis(), 0, 0, 0));
-            }
+            try {
+                // Check if we need to insert test data
+                if (shopDao.getAllShops().isEmpty()) {
+                    try {
+                        shopDao.insert(new Shop("ext1", "La Potterie de Safae", "POTTERIE", 5, 120, "Oujda", "", false, System.currentTimeMillis(), 0, 0, 0));
+                        shopDao.insert(new Shop("ext2", "Épices Traditionnelles", "FOOD", 4, 95, "Marrakech", "", true, System.currentTimeMillis(), 0, 0, 0));
+                        shopDao.insert(new Shop("ext3", "Tapis du Maroc", "TAPIS", 5, 80, "Fès", "", false, System.currentTimeMillis(), 0, 0, 0));
+                    } catch (Exception e) {
+                        showError("Erreur lors de l'ajout des données de test");
+                        return;
+                    }
+                }
 
-            List<Shop> shopsFromDb = shopDao.getAllShops();
+                // Get shops from database
+                List<Shop> shopsFromDb = shopDao.getAllShops();
 
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> {
+                // Update UI on main thread
+                new Handler(Looper.getMainLooper()).post(() -> {
                     allShops.clear();
                     allShops.addAll(shopsFromDb);
-
                     filteredShops.clear();
                     filteredShops.addAll(allShops);
-
                     shopAdapter.notifyDataSetChanged();
                     showLoading(false);
-
                     Toast.makeText(getContext(), allShops.size() + " boutique(s) chargée(s)", Toast.LENGTH_SHORT).show();
                 });
+            } catch (Exception e) {
+                showError("Erreur lors du chargement des boutiques: " + e.getMessage());
             }
         }).start();
+    }
+
+    private void showError(String message) {
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                showLoading(false);
+                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+            });
+        }
     }
 
     private void showLoading(boolean show) {
@@ -129,21 +145,45 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
 
     @Override
     public void onFavoriteClick(Shop shop, int position) {
-        // Ne PAS inverser shop.isFavorite ici
-        new Thread(() -> shopDao.update(shop)).start();
+        new Thread(() -> {
+            try {
+                shopDao.update(shop);
+                // No need to update UI here as the Shop object is already updated
+            } catch (Exception e) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() ->
+                            Toast.makeText(getContext(), "Erreur lors de la mise à jour des favoris", Toast.LENGTH_SHORT).show()
+                    );
+                }
+            }
+        }).start();
 
-        // Juste mettre à jour l’UI si nécessaire
+        // Update UI immediately for better responsiveness
         shopAdapter.notifyItemChanged(position);
     }
+
     @Override
     public void onLikeClick(Shop shop, int position) {
+        // Update UI immediately for better responsiveness
+        boolean wasLiked = shop.isLiked();
+        shop.setLiked(!wasLiked);
+        shop.setLikesCount(wasLiked ? shop.getLikesCount() - 1 : shop.getLikesCount() + 1);
+        shopAdapter.notifyItemChanged(position);
+        
+        // Update in database
         new Thread(() -> {
-            shop.setLiked(!shop.isLiked());
-            if (shop.isLiked()) shop.setLikesCount(shop.getLikesCount() + 1);
-            else shop.setLikesCount(shop.getLikesCount() - 1);
-            shopDao.update(shop); // mettre à jour Room
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> shopAdapter.notifyItemChanged(position));
+            try {
+                shopDao.update(shop);
+            } catch (Exception e) {
+                // Revert UI changes if update fails
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        shop.setLiked(wasLiked);
+                        shop.setLikesCount(wasLiked ? shop.getLikesCount() + 1 : shop.getLikesCount() - 1);
+                        shopAdapter.notifyItemChanged(position);
+                        Toast.makeText(getContext(), "Erreur lors de la mise à jour du like", Toast.LENGTH_SHORT).show();
+                    });
+                }
             }
         }).start();
     }

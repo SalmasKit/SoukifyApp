@@ -1,4 +1,4 @@
-package com.exemple.soukify.data.entities;
+package com.example.soukify.data.entities;
 
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
@@ -27,14 +27,14 @@ public class Shop {
 
     // Colonnes ajoutées
     private int userId;
-    private int provinceId;
+    private int regionId;
     private int cityId;
 
     public Shop(String ext1, String laPotterieDeSafae, String potterie, int rating, int reviews, String oujda, String imageUrl, boolean hasPromotion, long createdAt, boolean b, boolean b1, int cityId) {}
 
     public Shop(String id, String name, String category, int rating, int reviews,
                 String location, String imageUrl, boolean hasPromotion, long createdAt,
-                int userId, int provinceId, int cityId) {
+                int userId, int regionId, int cityId) {
 
         this.id = id;
         this.name = name;
@@ -46,7 +46,7 @@ public class Shop {
         this.hasPromotion = hasPromotion;
         this.createdAt = createdAt;
         this.userId = userId;
-        this.provinceId = provinceId;
+        this.regionId = regionId;
         this.cityId = cityId;
     }
 
@@ -97,10 +97,9 @@ public class Shop {
     public int getUserId() { return userId; }
     public void setUserId(int userId) { this.userId = userId; }
 
-    public int getProvinceId() { return provinceId; }
-    public void setProvinceId(int provinceId) { this.provinceId = provinceId; }
+    public int getRegionId() { return regionId; }
+    public void setRegionId(int regionId) { this.regionId = regionId; }
 
     public int getCityId() { return cityId; }
     public void setCityId(int cityId) { this.cityId = cityId; }
 }
-

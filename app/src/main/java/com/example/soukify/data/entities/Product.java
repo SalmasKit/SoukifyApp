@@ -1,4 +1,4 @@
-package com.exemple.soukify.data.entities;
+package com.example.soukify.data.entities;
 
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
@@ -42,4 +42,3 @@ public class Product {
         }
     }
 }
-

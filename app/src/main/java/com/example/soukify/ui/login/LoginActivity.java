@@ -12,7 +12,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.soukify.R;
-import com.example.soukify.ui.home.HomeActivity;
+import com.example.soukify.MainActivity;
 import com.example.soukify.ui.sign.SignActivity;
 import com.example.soukify.utils.PasswordHash;
 
@@ -51,7 +51,7 @@ public class LoginActivity extends AppCompatActivity {
             public void onClick(View v) {
                String edittext=uselog.getText().toString();
                String edittext1=passlog.getText().toString();
-                Intent intenhome=new Intent(LoginActivity.this, HomeActivity.class);
+                Intent intenhome=new Intent(LoginActivity.this, MainActivity.class);
                 startActivity(intenhome);
                 Toast.makeText(LoginActivity.this,"hello"+ edittext+ edittext1,Toast.LENGTH_LONG).show();
             }

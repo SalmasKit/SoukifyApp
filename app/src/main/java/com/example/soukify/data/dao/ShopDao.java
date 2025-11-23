@@ -1,4 +1,4 @@
-package com.exemple.soukify.data.dao;
+package com.example.soukify.data.dao;
 
 import androidx.room.Dao;
 import androidx.room.Insert;
@@ -6,7 +6,7 @@ import androidx.room.Update;
 import androidx.room.Delete;
 import androidx.room.Query;
 
-import com.exemple.soukify.data.entities.Shop;
+import com.example.soukify.data.entities.Shop;
 
 import java.util.List;
 
@@ -37,9 +37,9 @@ public interface ShopDao {
     @Query("SELECT * FROM shops WHERE userId = :userId ORDER BY createdAt DESC")
     List<Shop> getShopsByUser(int userId);
 
-    // Récupérer toutes les boutiques dans une province
-    @Query("SELECT * FROM shops WHERE provinceId = :provinceId ORDER BY createdAt DESC")
-    List<Shop> getShopsByProvince(int provinceId);
+    // Récupérer toutes les boutiques dans une region
+    @Query("SELECT * FROM shops WHERE regionId = :regionId ORDER BY createdAt DESC")
+    List<Shop> getShopsByregion(int regionId);
 
     // Récupérer toutes les boutiques dans une ville
     @Query("SELECT * FROM shops WHERE cityId = :cityId ORDER BY createdAt DESC")

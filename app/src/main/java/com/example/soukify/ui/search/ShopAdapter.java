@@ -12,7 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.soukify.R;
-import com.exemple.soukify.data.entities.Shop;
+import com.example.soukify.data.entities.Shop;
 import com.bumptech.glide.Glide;
 
 import java.util.List;
