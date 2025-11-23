@@ -10,12 +10,11 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.example.soukify.R;
+import com.example.soukify.ui.home.HomeActivity;
 import com.example.soukify.ui.sign.SignActivity;
+import com.example.soukify.utils.PasswordHash;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -35,9 +34,9 @@ public class LoginActivity extends AppCompatActivity {
         loginbtn=findViewById(R.id.logine);
         uselog=findViewById(R.id.user);
         passlog=findViewById(R.id.passwd);
-       // Intent intent = getIntent();
-       // String username= intent.getStringExtra("username");
-       // String password=intent.getStringExtra("password");
+         Intent intent = getIntent();
+         String username= intent.getStringExtra("username");
+         String password=intent.getStringExtra("password");
         signupbtn1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -45,28 +44,35 @@ public class LoginActivity extends AppCompatActivity {
                 startActivity(intentsign);
             }
         });
-        /*loginbtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(LoginActivity.this,"le boutton est clicke",Toast.LENGTH_LONG).show();
-            }
-        });*/
+       loginbtn.setOnClickListener(new View.OnClickListener() {
 
-        /*loginbtn.setOnClickListener(new View.OnClickListener() {
+
+           @Override
+            public void onClick(View v) {
+               String edittext=uselog.getText().toString();
+               String edittext1=passlog.getText().toString();
+                Intent intenhome=new Intent(LoginActivity.this, HomeActivity.class);
+                startActivity(intenhome);
+                Toast.makeText(LoginActivity.this,"hello"+ edittext+ edittext1,Toast.LENGTH_LONG).show();
+            }
+        });
+
+   /*  loginbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(uselog.getText().toString().equals(username) && passlog.getText().toString().equals(password)){
-                    Intent intenhome=new Intent(LoginActivity.this,.class);
+                    Intent intenhome=new Intent(LoginActivity.this, HomeActivity.class);
                     startActivity(intenhome);
-                    Toast.makeText(LoginActivity.this,"hello",Toast.LENGTH_LONG).show();
+                    Toast.makeText(LoginActivity.this,"hello"+uselog.getText().toString(),Toast.LENGTH_LONG).show();
                 }
                 else{
                     Toast.makeText(LoginActivity.this,"il ya un problem",Toast.LENGTH_LONG).show();
                 }
             }
-        });
 
+        });*/
 
+/*
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);

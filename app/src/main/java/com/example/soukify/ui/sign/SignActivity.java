@@ -112,21 +112,16 @@ public class SignActivity extends AppCompatActivity {
             // Hachage du mot de passe
             String hashed = PasswordHash.hashPassword(password);
 
-            // Création utilisateur et insertion
-            try {
-                User newUser = new User();
-                newUser.full_name = fullName;
-                newUser.password_hash = hashed;
-                newUser.phone_number = phone;
+                try {
+                    User newUser = new User();
+                    newUser.full_name = fullName;
+                    newUser.password_hash = hashed;
+                    newUser.phone_number = phone;
+                    db.userDao().insert(newUser);
 
-                db.userDao().insert(newUser);
-
-                Toast.makeText(SignActivity.this, "Utilisateur ajouté avec succès ", Toast.LENGTH_SHORT).show();
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                Toast.makeText(SignActivity.this, "Erreur lors de l’ajout de l’utilisateur", Toast.LENGTH_SHORT).show();
-            }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
         });
     }
