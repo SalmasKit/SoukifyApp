@@ -9,16 +9,17 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import com.example.soukify.databinding.FragmentLanguageCurrencyBinding;
-
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.Button;
+import android.widget.Toast;
+import com.example.soukify.R;
 public class LanguageCurrencyFragment extends Fragment {
-    private FragmentLanguageCurrencyBinding binding;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        binding = FragmentLanguageCurrencyBinding.inflate(inflater, container, false);
-        return binding.getRoot();
+        return inflater.inflate(R.layout.fragment_language_currency, container, false);
     }
 
     @Override
@@ -27,33 +28,55 @@ public class LanguageCurrencyFragment extends Fragment {
 
         // Populate dropdowns from arrays
         ArrayAdapter<CharSequence> langAdapter = ArrayAdapter.createFromResource(requireContext(),
-                com.example.soukify.R.array.supported_languages, android.R.layout.simple_list_item_1);
-        binding.languageDropdown.setAdapter(langAdapter);
+                R.array.supported_languages, android.R.layout.simple_list_item_1);
+        AutoCompleteTextView languageDropdown = view.findViewById(R.id.languageDropdown);
+        languageDropdown.setAdapter(langAdapter);
 
         ArrayAdapter<CharSequence> currAdapter = ArrayAdapter.createFromResource(requireContext(),
-                com.example.soukify.R.array.supported_currencies, android.R.layout.simple_list_item_1);
-        binding.currencyDropdown.setAdapter(currAdapter);
+                R.array.supported_currencies, android.R.layout.simple_list_item_1);
+        AutoCompleteTextView currencyDropdown = view.findViewById(R.id.currencyDropdown);
+        currencyDropdown.setAdapter(currAdapter);
 
         // TODO: Load saved selections (persisted values)
         // For now, default to English and MAD
-        binding.languageDropdown.setText(langAdapter.getItem(1), false); // English
-        binding.currencyDropdown.setText(currAdapter.getItem(0), false); // MAD
+        if (langAdapter.getCount() > 1) {
+            languageDropdown.setText(langAdapter.getItem(1), false); // English
+        }
+        if (currAdapter.getCount() > 0) {
+            currencyDropdown.setText(currAdapter.getItem(0), false); // MAD
+        }
 
         // Device language toggle disables manual language selection
-        binding.switchDeviceLanguage.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            binding.languageLayout.setEnabled(!isChecked);
-            binding.languageDropdown.setEnabled(!isChecked);
-        });
+        com.google.android.material.switchmaterial.SwitchMaterial switchDeviceLanguage = view.findViewById(R.id.switchDeviceLanguage);
+        android.view.ViewGroup languageLayout = view.findViewById(R.id.languageLayout);
+        if (switchDeviceLanguage != null && languageLayout != null && languageDropdown != null) {
+            switchDeviceLanguage.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                languageLayout.setEnabled(!isChecked);
+                languageDropdown.setEnabled(!isChecked);
+            });
+        }
 
         // No preview: nothing to update on currency change
 
-        binding.saveLangCurrButton.setOnClickListener(v -> save());
+        Button saveLangCurrButton = view.findViewById(R.id.saveLangCurrButton);
+        if (saveLangCurrButton != null) {
+            saveLangCurrButton.setOnClickListener(v -> save(view));
+        }
     }
 
-    private void save() {
-        boolean useDeviceLang = binding.switchDeviceLanguage.isChecked();
-        String lang = useDeviceLang ? "Device" : (binding.languageDropdown.getText() != null ? binding.languageDropdown.getText().toString() : "");
-        String curr = binding.currencyDropdown.getText() != null ? binding.currencyDropdown.getText().toString() : "";
+    private void save(View view) {
+        com.google.android.material.switchmaterial.SwitchMaterial switchDeviceLanguage = view.findViewById(R.id.switchDeviceLanguage);
+        AutoCompleteTextView languageDropdown = view.findViewById(R.id.languageDropdown);
+        AutoCompleteTextView currencyDropdown = view.findViewById(R.id.currencyDropdown);
+        
+        if (switchDeviceLanguage == null || languageDropdown == null || currencyDropdown == null) {
+            Toast.makeText(requireContext(), "Error: Unable to save settings", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        boolean useDeviceLang = switchDeviceLanguage.isChecked();
+        String lang = useDeviceLang ? "Device" : (languageDropdown.getText() != null ? languageDropdown.getText().toString() : "");
+        String curr = currencyDropdown.getText() != null ? currencyDropdown.getText().toString() : "";
         if ((!useDeviceLang && lang.isEmpty()) || curr.isEmpty()) {
             Toast.makeText(requireContext(), "Please select both language and currency", Toast.LENGTH_SHORT).show();
             return;
@@ -68,6 +91,5 @@ public class LanguageCurrencyFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        binding = null;
     }
 }

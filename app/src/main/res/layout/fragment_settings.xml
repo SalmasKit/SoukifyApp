@@ -25,7 +25,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:paddingBottom="10dp">
+                android:paddingBottom="10dp"
+                android:paddingLeft="14dp">
 
                 <de.hdodenhof.circleimageview.CircleImageView
                     android:id="@+id/profileImage"
@@ -43,14 +44,15 @@
                     android:layout_height="80dp"
                     android:layout_marginStart="@dimen/spacing_medium"
                     android:layout_weight="1"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    android:paddingTop="20dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
+                        android:baselineAligned="false"
                         android:gravity="center_vertical"
-                        android:baselineAligned="false">
+                        android:orientation="horizontal">
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -60,7 +62,7 @@
 
                             <TextView
                                 android:id="@+id/userName"
-                                android:layout_width="wrap_content"
+                                android:layout_width="239dp"
                                 android:layout_height="wrap_content"
                                 android:text="@string/user_name"
                                 android:textColor="?android:attr/textColorPrimary"
@@ -69,7 +71,7 @@
 
                             <TextView
                                 android:id="@+id/userEmail"
-                                android:layout_width="wrap_content"
+                                android:layout_width="243dp"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="@dimen/spacing_xs"
                                 android:text="bksalma26@gmail.com"
@@ -77,27 +79,6 @@
                                 android:textSize="@dimen/text_body" />
                         </LinearLayout>
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/editProfileButton"
-                            style="@style/Widget.MaterialComponents.Button"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:minWidth="80dp"
-                            android:minHeight="0dp"
-                            android:paddingStart="16dp"
-                            android:paddingEnd="16dp"
-                            android:paddingTop="12dp"
-                            android:paddingBottom="12dp"
-                            android:text="@string/open_shop_stacked"
-                            android:textColor="@color/onPrimary"
-                            android:textSize="@dimen/text_body"
-                            android:textAllCaps="false"
-                            android:gravity="center"
-                            android:letterSpacing="0"
-                            android:lineSpacingExtra="2dp"
-                            app:backgroundTint="@color/colorPrimary"
-                            app:cornerRadius="20dp"
-                            app:rippleColor="@color/colorPrimaryDark" />
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
@@ -183,9 +164,22 @@
                     android:layout_height="wrap_content"
                     app:settingIcon="@drawable/ic_info"
                     app:settingTitle="@string/about"
-                    app:showDivider="false"
+                    app:showDivider="true"
                     app:showChevron="true" />
             </LinearLayout>
+
+            <!-- Open Shop Button -->
+            <com.example.soukify.ui.settings.SettingItemView
+                android:id="@+id/openShopButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_large"
+                app:settingIcon="@drawable/ic_store"
+                app:settingTitle="@string/open_shop"
+                app:settingTitleTextColor="@color/colorPrimary"
+                app:settingIconTint="@color/colorPrimary"
+                app:showDivider="false"
+                app:showChevron="true"/>
 
             <!-- Logout Button -->
             <com.google.android.material.button.MaterialButton
@@ -194,7 +188,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/spacing_medium"
-                android:layout_marginTop="@dimen/spacing_large"
+                android:layout_marginTop="@dimen/spacing_medium"
                 android:layout_marginEnd="@dimen/spacing_medium"
                 android:padding="@dimen/spacing_small"
                 android:text="@string/logout"

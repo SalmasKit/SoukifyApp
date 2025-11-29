@@ -10,16 +10,17 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import com.example.soukify.databinding.FragmentAboutBinding;
+import android.widget.Button;
+import android.widget.TextView;
+
+import com.example.soukify.R;
 
 public class AboutFragment extends Fragment {
-    private FragmentAboutBinding binding;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        binding = FragmentAboutBinding.inflate(inflater, container, false);
-        return binding.getRoot();
+        return inflater.inflate(R.layout.fragment_about, container, false);
     }
 
     @Override
@@ -27,13 +28,19 @@ public class AboutFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         // Set version text
-        binding.versionText.setText(getString(com.example.soukify.R.string.app_version_placeholder,
+        TextView versionText = view.findViewById(R.id.versionText);
+        versionText.setText(getString(com.example.soukify.R.string.app_version_placeholder,
                 getAppVersion()));
 
-        binding.privacyButton.setOnClickListener(v -> openUrl("https://example.com/privacy"));
-        binding.termsButton.setOnClickListener(v -> openUrl("https://example.com/terms"));
-        binding.rateButton.setOnClickListener(v -> rateApp());
-        binding.shareButton.setOnClickListener(v -> shareApp());
+        Button privacyButton = view.findViewById(R.id.privacyButton);
+        Button termsButton = view.findViewById(R.id.termsButton);
+        Button rateButton = view.findViewById(R.id.rateButton);
+        Button shareButton = view.findViewById(R.id.shareButton);
+        
+        privacyButton.setOnClickListener(v -> openUrl("https://example.com/privacy"));
+        termsButton.setOnClickListener(v -> openUrl("https://example.com/terms"));
+        rateButton.setOnClickListener(v -> rateApp());
+        shareButton.setOnClickListener(v -> shareApp());
     }
 
     private String getAppVersion() {
@@ -72,6 +79,5 @@ public class AboutFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        binding = null;
     }
 }

@@ -11,17 +11,16 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import com.example.soukify.databinding.FragmentPrivacyBinding;
+import android.widget.Button;
+import android.widget.Toast;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-
+import com.example.soukify.R;
 public class PrivacyFragment extends Fragment {
-    private FragmentPrivacyBinding binding;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        binding = FragmentPrivacyBinding.inflate(inflater, container, false);
-        return binding.getRoot();
+        return inflater.inflate(R.layout.fragment_privacy, container, false);
     }
 
     @Override
@@ -30,8 +29,11 @@ public class PrivacyFragment extends Fragment {
 
         // TODO: Load existing privacy preferences
 
-        binding.openAppSettingsButton.setOnClickListener(v -> openAppSettings());
-        binding.clearDataButton.setOnClickListener(v -> confirmClearData());
+        Button openAppSettingsButton = view.findViewById(R.id.openAppSettingsButton);
+        Button clearDataButton = view.findViewById(R.id.clearDataButton);
+        
+        openAppSettingsButton.setOnClickListener(v -> openAppSettings());
+        clearDataButton.setOnClickListener(v -> confirmClearData());
     }
 
     private void openAppSettings() {
@@ -67,6 +69,5 @@ public class PrivacyFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        binding = null;
     }
 }

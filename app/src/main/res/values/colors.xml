@@ -15,6 +15,10 @@
     <color name="onBackground">#212121</color>
     <color name="onSurface">#212121</color>
     <color name="text_secondary">#757575</color>
+    <color name="text_primary">#212121</color>
+    
+    <!-- Status Colors -->
+    <color name="error_color">#D32F2F</color>
     
     <!-- Accent Colors -->
     <color name="accent">#E85F4C</color>  <!-- Orange -->

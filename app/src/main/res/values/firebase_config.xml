@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Firebase Configuration -->
+    <!-- Add your Firebase configuration values here -->
+    <!-- These will be populated when you add google-services.json -->
+    
+    <!-- Firebase Storage Rules Reference -->
+    <string name="firebase_storage_rule_reference">firebase.storage.rules</string>
+    
+    <!-- Firebase Firestore Rules Reference -->
+    <string name="firebase_firestore_rule_reference">firebase.firestore.rules</string>
+    
+    <!-- Firebase Authentication Providers -->
+    <string-array name="firebase_auth_providers">
+        <item>Email/Password</item>
+        <item>Google</item>
+        <item>Phone</item>
+    </string-array>
+</resources>

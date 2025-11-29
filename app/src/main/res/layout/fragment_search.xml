@@ -300,7 +300,7 @@
                                 android:layout_height="match_parent"
                                 android:scaleType="centerCrop"
                                 android:background="#F5E6D8"
-                                app:srcCompat="@drawable/jwellery"/>
+                                app:srcCompat="@drawable/jewellery"/>
                         </androidx.cardview.widget.CardView>
 
                         <TextView

@@ -36,11 +36,12 @@
                 android:id="@+id/user"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
-                android:hint="username"
+                android:hint="email"
                 android:layout_marginTop="30dp"
                 android:paddingLeft="10dp"
                 android:textSize="15dp"
                 android:background="@drawable/rounded"
+                android:inputType="textEmailAddress"
                 ></EditText>
             <EditText
                 android:id="@+id/passwd"

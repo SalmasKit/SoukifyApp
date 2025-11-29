@@ -1,5 +1,32 @@
 <resources>
     <string name="app_name">Soukify</string>
+    
+    <!-- Common Messages -->
+    <string name="please_enter_email_and_password">Please enter email and password</string>
+    <string name="please_enter_valid_email">Please enter a valid email address</string>
+    <string name="login_successful">Login successful!</string>
+    <string name="all_fields_required">All fields are required</string>
+    <string name="signup_successful">Inscription Succeed!</string>
+    <string name="error_prefix">Error: %1$s</string>
+    <string name="all_fields_obligatory">All fields are required</string>
+    <string name="invalid_email">Invalid Email</string>
+    <string name="passwords_do_not_match_fr">The two passwords do not match</string>
+    
+    <!-- Shop Messages -->
+    <string name="shop_cleared_database">Shop cleared from database</string>
+    <string name="location_ids_invalid">Location IDs invalid</string>
+    <string name="location_not_specified">Location not specified</string>
+    <string name="location_unavailable">Location unavailable</string>
+    <string name="created_just_now">Created: Just now</string>
+    <string name="unknown_location">Unknown location</string>
+    <string name="unknown_region">Unknown region</string>
+    <string name="cover_photo_removed">Cover photo removed</string>
+    <string name="storage_permission_required">Storage permission required to load shop images</string>
+    <string name="please_login_to_access_shop">Please login to access your shop</string>
+    <string name="cover_image_updated">Cover image updated successfully</string>
+    <string name="image_selection_cancelled">Image selection cancelled</string>
+    <string name="debug_shop_fragment_called">Debug: ShopFragment showCreateShopDialog called</string>
+    
     <!-- Search Screen -->
     <string name="pageTitle">Products</string>
     <string name="location">Oujda, Morocco</string>
@@ -23,6 +50,7 @@
     <string name="user_name">Salma Barrak</string>
     <string name="edit_profile">Open Shop</string>
     <string name="open_shop_stacked">Open\nShop</string>
+    <string name="open_shop">Open Shop</string>
     <string name="account_settings">Account Settings</string>
     <string name="notifications">Notifications</string>
     <string name="privacy">Privacy</string>
@@ -119,4 +147,44 @@
     <string name="password_too_short">Password must be at least 6 characters</string>
     <string name="passwords_do_not_match">Passwords do not match</string>
     <string name="password_updated">Password updated</string>
+
+    <!--Shop-->
+    <string name="shop_banner">My Shop</string>
+    <string name="add_product">Add Product</string>
+    <string name="no_shop_icon">No Shop Icon</string>
+    <string name="no_shop_title">No Shop Yet</string>
+    <string name="no_shop_subtitle">Create your shop to start selling</string>
+    <string name="action_create_shop">Create Shop</string>
+    
+    <!-- Shop Home -->
+    <string name="add_cover_image">Add Cover Image</string>
+    <string name="clear_shop">Clear Shop</string>
+    <string name="shop_information">Shop Information</string>
+    <string name="products">Products</string>
+    
+    <!-- Item Shop -->
+    <string name="shop_name_placeholder">Mohammed Pottery</string>
+    <string name="rating_placeholder">4.5</string>
+    <string name="reviews_placeholder">(120 avis)</string>
+    <string name="promo_label"> PROMO</string>
+    <string name="category_label">Catégorie</string>
+    <string name="location_label">Localisation</string>
+    <string name="phone_placeholder"> +212 600-000-000</string>
+    
+    <!-- Product Card -->
+    <string name="product_name_placeholder">Product Name</string>
+    <string name="product_type_placeholder">Product Type</string>
+    <string name="product_description_placeholder">Product description...</string>
+    <string name="product_price_placeholder">0.00 MAD</string>
+    
+    <!-- Error Messages -->
+    <string name="error_updating_user_profile">Error updating user profile</string>
+    <string name="profile_update_success">Profile updated successfully</string>
+    <string name="please_fill_required_fields">Please fill in required fields</string>
+    <string name="error_updating_profile">Error updating profile</string>
+    <string name="confirm_email_change">Confirm Email Change</string>
+    <string name="confirm_email_change_message">To change your email, please enter your current password for security.</string>
+    <string name="current_password_hint">Current Password</string>
+    <string name="enter_current_password">Enter your current password</string>
+    <string name="password_required">Password required</string>
 </resources>

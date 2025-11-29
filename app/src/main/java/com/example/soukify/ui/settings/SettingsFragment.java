@@ -1,31 +1,103 @@
 package com.example.soukify.ui.settings;
 
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
+
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import androidx.appcompat.app.AppCompatDelegate;
 import com.example.soukify.R;
-import com.example.soukify.databinding.FragmentSettingsBinding;
+import com.example.soukify.ui.settings.SettingItemView;
+import de.hdodenhof.circleimageview.CircleImageView;
 
-/**
- * Fragment that displays the app settings and handles user interactions with setting items.
- */
 public class SettingsFragment extends Fragment {
-    // View binding instance
-    private FragmentSettingsBinding binding;
+    
+    private static final int REQUEST_READ_EXTERNAL_STORAGE = 100;
+    private SettingsViewModel settingsViewModel;
+    private int currentThemeIndex;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        // Inflate the layout for this fragment using View Binding
-        binding = FragmentSettingsBinding.inflate(inflater, container, false);
-        return binding.getRoot();
+        return inflater.inflate(R.layout.fragment_settings, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        
+        settingsViewModel = new ViewModelProvider(this).get(SettingsViewModel.class);
+        
+        currentThemeIndex = getSavedThemeIndex();
+        settingsViewModel.setThemeIndex(currentThemeIndex);
+        
+        displayUserInfo(view);
+        observeViewModel();
+        
+        SettingItemView accountSettings = view.findViewById(R.id.accountSettings);
+        accountSettings.setOnSettingClickListener(v -> 
+            Navigation.findNavController(v).navigate(R.id.action_navigation_settings_to_navigation_account_settings));
+
+        SettingItemView notifications = view.findViewById(R.id.notifications);
+        notifications.setOnSettingClickListener(v -> 
+            Navigation.findNavController(v).navigate(R.id.action_navigation_settings_to_navigation_notifications));
+
+        SettingItemView languageCurrency = view.findViewById(R.id.languageCurrency);
+        languageCurrency.setOnSettingClickListener(v -> 
+            Navigation.findNavController(v).navigate(R.id.action_navigation_settings_to_navigation_language_currency));
+
+        SettingItemView themeAppearance = view.findViewById(R.id.themeAppearance);
+        themeAppearance.setOnSettingClickListener(v -> showThemeDialog());
+
+        SettingItemView privacy = view.findViewById(R.id.privacy);
+        privacy.setOnSettingClickListener(v -> 
+            Navigation.findNavController(v).navigate(R.id.action_navigation_settings_to_navigation_privacy));
+
+        SettingItemView helpSupport = view.findViewById(R.id.helpSupport);
+        helpSupport.setOnSettingClickListener(v -> 
+            Navigation.findNavController(v).navigate(R.id.action_navigation_settings_to_navigation_help_support));
+
+        SettingItemView about = view.findViewById(R.id.about);
+        about.setOnSettingClickListener(v -> 
+            Navigation.findNavController(v).navigate(R.id.action_navigation_settings_to_navigation_about));
+
+        Button logoutButton = view.findViewById(R.id.logoutButton);
+        logoutButton.setOnClickListener(v -> {
+            new MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.logout_confirm_title)
+                    .setMessage(R.string.logout_confirm_message)
+                    .setNegativeButton(R.string.cancel, (d, w) -> d.dismiss())
+                    .setPositiveButton(R.string.logout, (d, w) -> {
+                        settingsViewModel.logout();
+                        performLogout();
+                    })
+                    .show();
+        });
+
+        SettingItemView openShopButton = view.findViewById(R.id.openShopButton);
+        openShopButton.setEnabled(false);
+        openShopButton.setOnSettingClickListener(v -> {
+            Log.d("SettingsFragment", "Open Shop button clicked!");
+            Navigation.findNavController(v).navigate(R.id.action_navigation_settings_to_navigation_shop);
+        });
+        
+        Log.d("SettingsFragment", "SettingsFragment onViewCreated completed");
     }
 
     private void showThemeDialog() {
@@ -35,32 +107,14 @@ public class SettingsFragment extends Fragment {
                 getString(R.string.theme_dark)
         };
 
-        int checked = getSavedThemeIndex();
-
         new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.appearance)
-                .setSingleChoiceItems(items, checked, (dialog, which) -> {
-                    applyTheme(which);
-                    saveThemeIndex(which);
+                .setSingleChoiceItems(items, currentThemeIndex, (dialog, which) -> {
+                    settingsViewModel.setThemeIndex(which);
                     dialog.dismiss();
                 })
                 .setNegativeButton(R.string.cancel, (d, w) -> d.dismiss())
                 .show();
-    }
-
-    private void applyTheme(int index) {
-        switch (index) {
-            case 1:
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-                break;
-            case 2:
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-                break;
-            case 0:
-            default:
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
-                break;
-        }
     }
 
     private int getSavedThemeIndex() {
@@ -73,112 +127,135 @@ public class SettingsFragment extends Fragment {
         prefs.edit().putInt("theme_index", index).apply();
     }
 
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    private void displayUserInfo(View view) {
+        TextView userNameTextView = view.findViewById(R.id.userName);
+        TextView userEmailTextView = view.findViewById(R.id.userEmail);
+        CircleImageView profileImageView = view.findViewById(R.id.profileImage);
         
-        // Set up click listeners for each setting item
-        binding.accountSettings.setOnSettingClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Navigation.findNavController(v)
-                        .navigate(R.id.action_navigation_settings_to_navigation_account_settings);
-            }
-        });
-
-        binding.notifications.setOnSettingClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Navigation.findNavController(v)
-                        .navigate(R.id.action_navigation_settings_to_navigation_notifications);
-            }
-        });
-
-        binding.languageCurrency.setOnSettingClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Navigation.findNavController(v)
-                        .navigate(R.id.action_navigation_settings_to_navigation_language_currency);
-            }
-        });
-
-        // Appearance (Theme)
-        binding.themeAppearance.setOnSettingClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showThemeDialog();
-            }
-        });
-
-        binding.privacy.setOnSettingClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Navigation.findNavController(v)
-                        .navigate(R.id.action_navigation_settings_to_navigation_privacy);
-            }
-        });
-
-        binding.helpSupport.setOnSettingClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Navigation.findNavController(v)
-                        .navigate(R.id.action_navigation_settings_to_navigation_help_support);
-            }
-        });
-
-        binding.about.setOnSettingClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Navigation.findNavController(v)
-                        .navigate(R.id.action_navigation_settings_to_navigation_about);
-            }
-        });
-
-        binding.logoutButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new MaterialAlertDialogBuilder(requireContext())
-                        .setTitle(R.string.logout_confirm_title)
-                        .setMessage(R.string.logout_confirm_message)
-                        .setNegativeButton(R.string.cancel, (d, w) -> d.dismiss())
-                        .setPositiveButton(R.string.logout, (d, w) -> performLogout())
-                        .show();
-            }
-        });
-    }
-
-    /**
-     * Helper method to show toast messages
-     * @param message The message to display in the toast
-     */
-    private void showToast(String message) {
-        if (getContext() != null) {
-            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+        if (settingsViewModel.isLoggedIn()) {
+            // Set initial values from SessionRepository
+            String userName = settingsViewModel.getUserName();
+            String userEmail = settingsViewModel.getUserEmail();
+            
+            userNameTextView.setText(userName != null && !userName.isEmpty() ? userName : "User");
+            userEmailTextView.setText(userEmail != null && !userEmail.isEmpty() ? userEmail : "");
+            
+            // Observe currentUser LiveData for real-time updates
+            settingsViewModel.getCurrentUser().observe(getViewLifecycleOwner(), user -> {
+                Log.d("SettingsFragment", "User observer called: " + (user != null ? user.getFullName() : "null"));
+                if (user != null) {
+                    // Update UI with latest user data from Firebase
+                    userNameTextView.setText(user.getFullName() != null && !user.getFullName().isEmpty() ? user.getFullName() : "User");
+                    userEmailTextView.setText(user.getEmail() != null && !user.getEmail().isEmpty() ? user.getEmail() : "");
+                    
+                    // Load profile image if available
+                    if (user.getProfileImage() != null && !user.getProfileImage().isEmpty()) {
+                        loadProfileImage(user.getProfileImage(), profileImageView);
+                    } else {
+                        Log.d("SettingsFragment", "No profile image found, using placeholder");
+                        profileImageView.setImageResource(R.drawable.ic_profile_placeholder);
+                    }
+                } else {
+                    // Fallback to SessionRepository if no user data
+                    userNameTextView.setText(settingsViewModel.getUserName() != null && !settingsViewModel.getUserName().isEmpty() ? settingsViewModel.getUserName() : "User");
+                    userEmailTextView.setText(settingsViewModel.getUserEmail() != null && !settingsViewModel.getUserEmail().isEmpty() ? settingsViewModel.getUserEmail() : "");
+                    profileImageView.setImageResource(R.drawable.ic_profile_placeholder);
+                }
+            });
+        } else {
+            userNameTextView.setText("");
+            userEmailTextView.setText("");
+            profileImageView.setImageResource(R.drawable.ic_profile_placeholder);
         }
     }
 
-    private void performLogout() {
-        // TODO: Clear auth/session state if applicable (e.g., FirebaseAuth.getInstance().signOut())
-        try {
-            // Clear app task and restart launcher activity
-            android.content.Intent launchIntent = requireContext().getPackageManager()
-                    .getLaunchIntentForPackage(requireContext().getPackageName());
-            if (launchIntent != null) {
-                launchIntent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(launchIntent);
-            } else {
-                requireActivity().finishAffinity();
+    private void observeViewModel() {
+        settingsViewModel.getThemeIndex().observe(getViewLifecycleOwner(), themeIndex -> {
+            currentThemeIndex = themeIndex;
+            saveThemeIndex(themeIndex);
+        });
+        
+        settingsViewModel.getCurrentUserId().observe(getViewLifecycleOwner(), userId -> {
+            if (getView() != null) {
+                displayUserInfo(getView());
             }
+        });
+    }
+    
+    private void performLogout() {
+        try {
+            Intent intent = new Intent(requireContext(), com.example.soukify.ui.login.LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            requireActivity().finish();
         } catch (Exception e) {
             showToast("Logged out");
             requireActivity().finishAffinity();
         }
     }
 
+    private void loadProfileImage(String imageUri, CircleImageView profileImageView) {
+        try {
+            Log.d("SettingsFragment", "Loading profile image: " + imageUri);
+            
+            if (imageUri == null || imageUri.isEmpty()) {
+                profileImageView.setImageResource(R.drawable.ic_profile_placeholder);
+                return;
+            }
+            
+            android.net.Uri uri = android.net.Uri.parse(imageUri);
+            
+            if (uri.getScheme().equals("file")) {
+                profileImageView.setImageURI(uri);
+            } else if (uri.getScheme().equals("content")) {
+                if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE) 
+                        == PackageManager.PERMISSION_GRANTED) {
+                    profileImageView.setImageURI(uri);
+                } else {
+                    requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 
+                            REQUEST_READ_EXTERNAL_STORAGE);
+                    profileImageView.setImageResource(R.drawable.ic_profile_placeholder);
+                }
+            } else {
+                profileImageView.setImageResource(R.drawable.ic_profile_placeholder);
+            }
+        } catch (Exception e) {
+            Log.e("SettingsFragment", "Error loading profile image", e);
+            profileImageView.setImageResource(R.drawable.ic_profile_placeholder);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_READ_EXTERNAL_STORAGE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (getView() != null) {
+                    displayUserInfo(getView());
+                }
+            } else {
+                showToast("Storage permission required to load profile images");
+            }
+        }
+    }
+
+    private void showToast(String message) {
+        if (getContext() != null) {
+            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (settingsViewModel != null) {
+            settingsViewModel.refreshCurrentUser();
+        }
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // Clear the binding when the view is destroyed to prevent memory leaks
-        binding = null;
+        settingsViewModel = null;
     }
 }

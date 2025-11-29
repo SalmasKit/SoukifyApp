@@ -11,7 +11,7 @@
     tools:context=".ui.sign.SignActivity">
     <androidx.cardview.widget.CardView
         android:layout_width="300dp"
-        android:layout_height="440dp"
+        android:layout_height="500dp"
         android:layout_marginTop="60dp"
         app:cardCornerRadius="30dp"
         app:cardElevation="20dp">
@@ -40,6 +40,7 @@
                 android:paddingLeft="10dp"
                 android:textSize="15dp"
                 android:background="@drawable/rounded"
+                android:inputType="textPersonName"
                 ></EditText>
             <EditText
                 android:id="@+id/password"
@@ -50,6 +51,7 @@
                 android:textSize="15dp"
                 android:layout_marginTop="30dp"
                 android:background="@drawable/rounded"
+                android:inputType="textPassword"
                 ></EditText>
             <EditText
                 android:id="@+id/confirm"
@@ -60,6 +62,7 @@
                 android:textSize="15dp"
                 android:layout_marginTop="30dp"
                 android:background="@drawable/rounded"
+                android:inputType="textPassword"
                 ></EditText>
             <EditText
                 android:id="@+id/phone"
@@ -70,13 +73,24 @@
                 android:textSize="15dp"
                 android:layout_marginTop="30dp"
                 android:background="@drawable/rounded"
+                android:inputType="phone"
+                ></EditText>
+            <EditText
+                android:id="@+id/email"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:hint="email"
+                android:paddingLeft="10dp"
+                android:textSize="15dp"
+                android:layout_marginTop="30dp"
+                android:background="@drawable/rounded"
+                android:inputType="textEmailAddress"
                 ></EditText>
             <Button
                 android:id="@+id/signbtn"
                 android:layout_width="match_parent"
                 android:layout_marginTop="20dp"
                 android:layout_height="35dp"
-
                 android:background="@drawable/rounded"
                 android:text="sign up"></Button>
         </LinearLayout>

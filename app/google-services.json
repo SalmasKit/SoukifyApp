@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1018315867996",
+    "project_id": "soukify-e091c",
+    "storage_bucket": "soukify-e091c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1018315867996:android:abc6df57f99e9aac1a2399",
+        "android_client_info": {
+          "package_name": "com.example.soukify"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC2AJZg3XK9_HcYYbjWxctyjWyWAVj14nY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

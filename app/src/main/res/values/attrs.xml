@@ -5,5 +5,7 @@
         <attr name="settingTitle" format="string" />
         <attr name="showDivider" format="boolean" />
         <attr name="showChevron" format="boolean" />
+        <attr name="settingTitleTextColor" format="color" />
+        <attr name="settingIconTint" format="color" />
     </declare-styleable>
 </resources>

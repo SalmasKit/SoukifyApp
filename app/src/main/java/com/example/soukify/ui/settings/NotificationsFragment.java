@@ -12,21 +12,22 @@ import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.provider.Settings;
 import java.util.Calendar;
-import com.example.soukify.databinding.FragmentNotificationsBinding;
-
+import android.widget.Button;
+import android.widget.Switch;
+import android.widget.TextView;
+import android.widget.Toast;
+import com.example.soukify.R;
 /**
  * Fragment to manage notification preferences.
  */
 public class NotificationsFragment extends Fragment {
-    private FragmentNotificationsBinding binding;
     private int quietStartHour = 22, quietStartMinute = 0;
     private int quietEndHour = 7, quietEndMinute = 0;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        binding = FragmentNotificationsBinding.inflate(inflater, container, false);
-        return binding.getRoot();
+        return inflater.inflate(R.layout.fragment_notifications, container, false);
     }
 
     @Override
@@ -36,25 +37,37 @@ public class NotificationsFragment extends Fragment {
         // TODO: Load existing notification preferences
 
         // Quiet hours default labels
-        updateQuietLabels();
+        updateQuietLabels(view);
 
-        binding.pickStartButton.setOnClickListener(v -> showTimePicker(true));
-        binding.pickEndButton.setOnClickListener(v -> showTimePicker(false));
-
-        binding.openSystemSettingsButton.setOnClickListener(v -> openSystemNotificationSettings());
-
-        binding.saveNotifButton.setOnClickListener(v -> savePreferences());
+        Button pickStartButton = view.findViewById(R.id.pickStartButton);
+        Button pickEndButton = view.findViewById(R.id.pickEndButton);
+        Button openSystemSettingsButton = view.findViewById(R.id.openSystemSettingsButton);
+        Button saveNotifButton = view.findViewById(R.id.saveNotifButton);
+        
+        pickStartButton.setOnClickListener(v -> showTimePicker(view, true));
+        pickEndButton.setOnClickListener(v -> showTimePicker(view, false));
+        openSystemSettingsButton.setOnClickListener(v -> openSystemNotificationSettings());
+        saveNotifButton.setOnClickListener(v -> savePreferences(view));
     }
 
-    private void savePreferences() {
-        boolean push = binding.switchPush.isChecked();
-        boolean email = binding.switchEmail.isChecked();
-        boolean sms = binding.switchSms.isChecked();
-        boolean sound = binding.switchSound.isChecked();
-        boolean vibrate = binding.switchVibrate.isChecked();
-        boolean order = binding.switchOrderUpdates.isChecked();
-        boolean promos = binding.switchPromotions.isChecked();
-        boolean app = binding.switchAppUpdates.isChecked();
+    private void savePreferences(View view) {
+        Switch switchPush = view.findViewById(R.id.switchPush);
+        Switch switchEmail = view.findViewById(R.id.switchEmail);
+        Switch switchSms = view.findViewById(R.id.switchSms);
+        Switch switchSound = view.findViewById(R.id.switchSound);
+        Switch switchVibrate = view.findViewById(R.id.switchVibrate);
+        Switch switchOrderUpdates = view.findViewById(R.id.switchOrderUpdates);
+        Switch switchPromotions = view.findViewById(R.id.switchPromotions);
+        Switch switchAppUpdates = view.findViewById(R.id.switchAppUpdates);
+        
+        boolean push = switchPush.isChecked();
+        boolean email = switchEmail.isChecked();
+        boolean sms = switchSms.isChecked();
+        boolean sound = switchSound.isChecked();
+        boolean vibrate = switchVibrate.isChecked();
+        boolean order = switchOrderUpdates.isChecked();
+        boolean promos = switchPromotions.isChecked();
+        boolean app = switchAppUpdates.isChecked();
 
         // TODO: Persist preferences to storage/server
         showToast("Notification preferences saved");
@@ -67,11 +80,11 @@ public class NotificationsFragment extends Fragment {
         }
     }
 
-    private void showTimePicker(boolean isStart) {
+    private void showTimePicker(View view, boolean isStart) {
         Calendar cal = Calendar.getInstance();
         int hour = isStart ? quietStartHour : quietEndHour;
         int minute = isStart ? quietStartMinute : quietEndMinute;
-        TimePickerDialog dialog = new TimePickerDialog(requireContext(), (view, h, m) -> {
+        TimePickerDialog dialog = new TimePickerDialog(requireContext(), (timePickerView, h, m) -> {
             if (isStart) {
                 quietStartHour = h;
                 quietStartMinute = m;
@@ -79,14 +92,16 @@ public class NotificationsFragment extends Fragment {
                 quietEndHour = h;
                 quietEndMinute = m;
             }
-            updateQuietLabels();
+            updateQuietLabels(view);
         }, hour, minute, true);
         dialog.show();
     }
 
-    private void updateQuietLabels() {
-        binding.quietStartText.setText(formatTime(quietStartHour, quietStartMinute));
-        binding.quietEndText.setText(formatTime(quietEndHour, quietEndMinute));
+    private void updateQuietLabels(View view) {
+        TextView quietStartText = view.findViewById(R.id.quietStartText);
+        TextView quietEndText = view.findViewById(R.id.quietEndText);
+        quietStartText.setText(formatTime(quietStartHour, quietStartMinute));
+        quietEndText.setText(formatTime(quietEndHour, quietEndMinute));
     }
 
     private String formatTime(int h, int m) {
@@ -107,6 +122,5 @@ public class NotificationsFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        binding = null;
     }
 }

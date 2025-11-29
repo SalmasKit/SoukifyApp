@@ -11,24 +11,29 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import com.example.soukify.databinding.FragmentHelpSupportBinding;
+import android.widget.Button;
+import android.widget.Toast;
+
+import com.example.soukify.R;
+
 
 public class HelpSupportFragment extends Fragment {
-    private FragmentHelpSupportBinding binding;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        binding = FragmentHelpSupportBinding.inflate(inflater, container, false);
-        return binding.getRoot();
+        return inflater.inflate(R.layout.fragment_help_support, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        binding.faqButton.setOnClickListener(v -> openFaq());
-        binding.contactSupportButton.setOnClickListener(v -> contactSupport());
+        Button faqButton = view.findViewById(R.id.faqButton);
+        Button contactSupportButton = view.findViewById(R.id.contactSupportButton);
+        
+        faqButton.setOnClickListener(v -> openFaq());
+        contactSupportButton.setOnClickListener(v -> contactSupport());
     }
 
     private void openFaq() {
@@ -62,6 +67,5 @@ public class HelpSupportFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        binding = null;
     }
 }

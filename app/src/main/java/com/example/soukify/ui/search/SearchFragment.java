@@ -21,9 +21,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.soukify.R;
-import com.example.soukify.data.AppDatabase;
-import com.example.soukify.data.dao.ShopDao;
-import com.example.soukify.data.entities.Shop;
+import com.example.soukify.data.remote.FirebaseManager;
+import com.example.soukify.data.remote.firebase.FirebaseShopService;
+import com.example.soukify.data.repositories.FavoritesRepository;
+import com.example.soukify.data.models.ShopModel;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,11 +43,13 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
     private Button btnPromotions, btnObjectType, btnSortBy, btnTopRated;
 
     private ShopAdapter shopAdapter;
-    private List<Shop> allShops = new ArrayList<>();
-    private List<Shop> filteredShops = new ArrayList<>();
+    private List<ShopModel> allShops = new ArrayList<>();
+    private List<ShopModel> filteredShops = new ArrayList<>();
     private String selectedCategory = "ALL";
 
-    private ShopDao shopDao;
+    private FirebaseShopService shopService;
+    private FavoritesRepository favoritesRepository;
+    private List<String> favoriteShopIds = new ArrayList<>();
 
     @Nullable
     @Override
@@ -54,8 +58,10 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
 
         View view = inflater.inflate(R.layout.fragment_search, container, false);
 
-        // Initialiser Room
-        shopDao = AppDatabase.getInstance(getContext()).shopDao();
+        // Initialiser Firebase
+        FirebaseManager firebaseManager = FirebaseManager.getInstance(requireActivity().getApplication());
+        shopService = new FirebaseShopService(firebaseManager.getFirestore());
+        favoritesRepository = new FavoritesRepository(requireActivity().getApplication());
 
         initViews(view);
         setupRecyclerView();
@@ -63,7 +69,8 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
         setupSearchListener();
         setupFilterListeners();
 
-        loadShopsFromRoomWithTestData();
+        loadShopsFromFirebase();
+        loadFavorites();
 
         return view;
     }
@@ -94,39 +101,89 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
         recyclerViewShops.setAdapter(shopAdapter);
     }
 
-    private void loadShopsFromRoomWithTestData() {
+    private void loadShopsFromFirebase() {
         showLoading(true);
-        new Thread(() -> {
-            try {
-                // Check if we need to insert test data
-                if (shopDao.getAllShops().isEmpty()) {
-                    try {
-                        shopDao.insert(new Shop("ext1", "La Potterie de Safae", "POTTERIE", 5, 120, "Oujda", "", false, System.currentTimeMillis(), 0, 0, 0));
-                        shopDao.insert(new Shop("ext2", "Épices Traditionnelles", "FOOD", 4, 95, "Marrakech", "", true, System.currentTimeMillis(), 0, 0, 0));
-                        shopDao.insert(new Shop("ext3", "Tapis du Maroc", "TAPIS", 5, 80, "Fès", "", false, System.currentTimeMillis(), 0, 0, 0));
-                    } catch (Exception e) {
-                        showError("Erreur lors de l'ajout des données de test");
-                        return;
-                    }
-                }
-
-                // Get shops from database
-                List<Shop> shopsFromDb = shopDao.getAllShops();
-
-                // Update UI on main thread
-                new Handler(Looper.getMainLooper()).post(() -> {
+        
+        shopService.getAllShops().get()
+                .addOnSuccessListener(querySnapshot -> {
                     allShops.clear();
-                    allShops.addAll(shopsFromDb);
                     filteredShops.clear();
+                    
+                    for (QueryDocumentSnapshot document : querySnapshot) {
+                        // Handle both old (Long) and new (String) createdAt formats
+                        ShopModel shop = new ShopModel();
+                        shop.setShopId(document.getId());
+                        
+                        // Set basic fields
+                        if (document.contains("name")) {
+                            shop.setName(document.getString("name"));
+                        }
+                        if (document.contains("category")) {
+                            shop.setCategory(document.getString("category"));
+                        }
+                        if (document.contains("location")) {
+                            shop.setLocation(document.getString("location"));
+                        }
+                        if (document.contains("imageUrl")) {
+                            String imageUrl = document.getString("imageUrl");
+                            shop.setImageUrl(imageUrl);
+                            android.util.Log.d("SearchFragment", "Shop: " + shop.getName() + ", imageUrl: " + imageUrl);
+                        } else {
+                            android.util.Log.d("SearchFragment", "Shop: " + shop.getName() + " has no imageUrl field");
+                        }
+                        if (document.contains("userId")) {
+                            shop.setUserId(document.getString("userId"));
+                        }
+                        if (document.contains("phone")) {
+                            shop.setPhone(document.getString("phone"));
+                        }
+                        if (document.contains("email")) {
+                            shop.setEmail(document.getString("email"));
+                        }
+                        if (document.contains("address")) {
+                            shop.setAddress(document.getString("address"));
+                        }
+                        if (document.contains("regionId")) {
+                            shop.setRegionId(document.getString("regionId"));
+                        }
+                        if (document.contains("cityId")) {
+                            shop.setCityId(document.getString("cityId"));
+                        }
+                        
+                        // Handle createdAt - convert Long to String if needed
+                        if (document.contains("createdAt")) {
+                            Object createdAtValue = document.get("createdAt");
+                            if (createdAtValue instanceof Long) {
+                                // Convert old timestamp to formatted string
+                                Long timestamp = (Long) createdAtValue;
+                                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault());
+                                shop.setCreatedAt(sdf.format(new java.util.Date(timestamp)));
+                            } else if (createdAtValue instanceof String) {
+                                // Use new string format directly
+                                shop.setCreatedAt((String) createdAtValue);
+                            }
+                        }
+                        
+                        allShops.add(shop);
+                    }
+                    
+                    // Debug logging
+                    android.util.Log.d("SearchFragment", "Loaded " + allShops.size() + " shops from Firebase");
+                    
+                    // Force all shops to start as non-favorite since favorites aren't loading
+                    for (ShopModel shop : allShops) {
+                        shop.setFavorite(false);
+                        android.util.Log.d("SearchFragment", "Set " + shop.getName() + " favorite to false");
+                    }
+                    
                     filteredShops.addAll(allShops);
                     shopAdapter.notifyDataSetChanged();
                     showLoading(false);
                     Toast.makeText(getContext(), allShops.size() + " boutique(s) chargée(s)", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    showError("Erreur lors du chargement des boutiques: " + e.getMessage());
                 });
-            } catch (Exception e) {
-                showError("Erreur lors du chargement des boutiques: " + e.getMessage());
-            }
-        }).start();
     }
 
     private void showError(String message) {
@@ -138,58 +195,132 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
         }
     }
 
+    private void loadFavorites() {
+        android.util.Log.d("SearchFragment", "Starting to load favorites...");
+        
+        // Check if user is authenticated
+        if (!FirebaseManager.getInstance(requireActivity().getApplication()).isUserLoggedIn()) {
+            android.util.Log.d("SearchFragment", "User not authenticated - cannot load favorites");
+            return;
+        }
+        
+        favoritesRepository.loadFavoriteShops();
+        favoritesRepository.getFavoriteShops().observe(getViewLifecycleOwner(), favoriteShops -> {
+            android.util.Log.d("SearchFragment", "Favorites observer triggered with " + favoriteShops.size() + " shops");
+            favoriteShopIds.clear();
+            for (ShopModel shop : favoriteShops) {
+                favoriteShopIds.add(shop.getShopId());
+            }
+            // Debug logging
+            android.util.Log.d("SearchFragment", "Loaded " + favoriteShopIds.size() + " favorite shops: " + favoriteShopIds.toString());
+            // Update favorite status for all shops
+            updateFavoriteStatusForShops();
+        });
+        
+        // Also observe errors
+        favoritesRepository.getErrorMessage().observe(getViewLifecycleOwner(), errorMessage -> {
+            if (errorMessage != null) {
+                android.util.Log.e("SearchFragment", "Favorites error: " + errorMessage);
+            }
+        });
+    }
+
+    private void updateFavoriteStatusForShops() {
+        android.util.Log.d("SearchFragment", "Updating favorite status for " + allShops.size() + " shops...");
+        for (ShopModel shop : allShops) {
+            boolean isFavorite = favoriteShopIds.contains(shop.getShopId());
+            shop.setFavorite(isFavorite);
+            android.util.Log.d("SearchFragment", "Shop: " + shop.getName() + " -> Favorite: " + isFavorite + " (ID: " + shop.getShopId() + ")");
+        }
+        
+        // Also update filtered shops
+        for (ShopModel shop : filteredShops) {
+            boolean isFavorite = favoriteShopIds.contains(shop.getShopId());
+            shop.setFavorite(isFavorite);
+            android.util.Log.d("SearchFragment", "Filtered shop: " + shop.getName() + " -> Favorite: " + isFavorite);
+        }
+        
+        shopAdapter.notifyDataSetChanged();
+        android.util.Log.d("SearchFragment", "Favorite status updated and adapter notified");
+        
+        // Verify the status after update
+        for (int i = 0; i < filteredShops.size(); i++) {
+            ShopModel shop = filteredShops.get(i);
+            android.util.Log.d("SearchFragment", "After notify - Shop " + i + ": " + shop.getName() + " -> Favorite: " + shop.isFavorite());
+        }
+    }
+
     private void showLoading(boolean show) {
         progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
         recyclerViewShops.setVisibility(show ? View.GONE : View.VISIBLE);
     }
 
     @Override
-    public void onFavoriteClick(Shop shop, int position) {
-        new Thread(() -> {
-            try {
-                shopDao.update(shop);
-                // No need to update UI here as the Shop object is already updated
-            } catch (Exception e) {
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() ->
-                            Toast.makeText(getContext(), "Erreur lors de la mise à jour des favoris", Toast.LENGTH_SHORT).show()
-                    );
-                }
-            }
-        }).start();
-
-        // Update UI immediately for better responsiveness
+    public void onFavoriteClick(ShopModel shop, int position) {
+        // Debug logging - check actual shop object
+        android.util.Log.d("SearchFragment", "Favorite clicked - Shop: " + shop.getName() + 
+                          ", Current favorite status: " + shop.isFavorite() + 
+                          ", Shop object hash: " + shop.hashCode());
+        
+        // Also check the adapter's version
+        ShopModel adapterShop = filteredShops.get(position);
+        android.util.Log.d("SearchFragment", "Adapter shop - Favorite: " + adapterShop.isFavorite() + 
+                          ", Hash: " + adapterShop.hashCode());
+        
+        // Toggle favorite status
+        boolean wasFavorite = shop.isFavorite();
+        boolean newFavoriteState = !wasFavorite;
+        shop.setFavorite(newFavoriteState);
+        
+        // Also update the adapter's list
+        adapterShop.setFavorite(newFavoriteState);
+        
+        // Update UI immediately
         shopAdapter.notifyItemChanged(position);
+        
+        // Update favorite status in Firebase using new repository
+        favoritesRepository.toggleFavorite(shop);
+        
+        // Show success message
+        if (newFavoriteState) {
+            Toast.makeText(getContext(), shop.getName() + " ajouté aux favoris", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getContext(), shop.getName() + " retiré des favoris", Toast.LENGTH_SHORT).show();
+        }
+        
+        android.util.Log.d("SearchFragment", "Favorite toggled - New status: " + newFavoriteState);
     }
 
     @Override
-    public void onLikeClick(Shop shop, int position) {
+    public void onLikeClick(ShopModel shop, int position) {
         // Update UI immediately for better responsiveness
         boolean wasLiked = shop.isLiked();
-        shop.setLiked(!wasLiked);
+        boolean newLikedState = !wasLiked;
+        shop.setLiked(newLikedState);
         shop.setLikesCount(wasLiked ? shop.getLikesCount() - 1 : shop.getLikesCount() + 1);
         shopAdapter.notifyItemChanged(position);
         
-        // Update in database
-        new Thread(() -> {
-            try {
-                shopDao.update(shop);
-            } catch (Exception e) {
-                // Revert UI changes if update fails
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        shop.setLiked(wasLiked);
-                        shop.setLikesCount(wasLiked ? shop.getLikesCount() + 1 : shop.getLikesCount() - 1);
-                        shopAdapter.notifyItemChanged(position);
-                        Toast.makeText(getContext(), "Erreur lors de la mise à jour du like", Toast.LENGTH_SHORT).show();
-                    });
-                }
-            }
-        }).start();
+        // Update like count in Firebase (not favorite)
+        shopService.updateShop(shop.getShopId(), shop)
+                .addOnSuccessListener(aVoid -> {
+                    // Already updated UI
+                    if (newLikedState) {
+                        Toast.makeText(getContext(), shop.getName() + " ajouté aux favoris", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getContext(), shop.getName() + " retiré des favoris", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    // Revert UI changes if update fails
+                    shop.setLiked(wasLiked);
+                    shop.setLikesCount(wasLiked ? shop.getLikesCount() + 1 : shop.getLikesCount() - 1);
+                    shopAdapter.notifyItemChanged(position);
+                    Toast.makeText(getContext(), "Erreur lors de la mise à jour du favori", Toast.LENGTH_SHORT).show();
+                });
     }
 
     @Override
-    public void onShopClick(Shop shop, int position) {
+    public void onShopClick(ShopModel shop, int position) {
         Toast.makeText(getContext(), "Boutique sélectionnée : " + shop.getName(), Toast.LENGTH_SHORT).show();
     }
 
@@ -209,7 +340,7 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
         if (categoryView == null) return;
         selectedCategory = category;
         filteredShops.clear();
-        for (Shop shop : allShops) {
+        for (ShopModel shop : allShops) {
             if (shop.getCategory().equalsIgnoreCase(category)) filteredShops.add(shop);
         }
         shopAdapter.notifyDataSetChanged();
@@ -256,7 +387,7 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
             if (query.isEmpty()) filteredShops.addAll(allShops);
             else {
                 String lowerQuery = query.toLowerCase();
-                for (Shop shop : allShops) {
+                for (ShopModel shop : allShops) {
                     if (shop.getName().toLowerCase().contains(lowerQuery) ||
                             shop.getCategory().toLowerCase().contains(lowerQuery) ||
                             shop.getLocation().toLowerCase().contains(lowerQuery)) {
@@ -279,7 +410,7 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
 
     private void filterByPromotions() {
         filteredShops.clear();
-        for (Shop shop : allShops) if (shop.isHasPromotion()) filteredShops.add(shop);
+        for (ShopModel shop : allShops) if (shop.isHasPromotion()) filteredShops.add(shop);
         shopAdapter.notifyDataSetChanged();
         Toast.makeText(getContext(), filteredShops.size() + " boutique(s) en promotion", Toast.LENGTH_SHORT).show();
     }
@@ -294,7 +425,7 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
     }
 
     private void sortByDateDescending() {
-        Collections.sort(filteredShops, (s1, s2) -> Long.compare(s2.getCreatedAt(), s1.getCreatedAt()));
+        Collections.sort(filteredShops, (s1, s2) -> s2.getCreatedAt().compareTo(s1.getCreatedAt()));
         shopAdapter.notifyDataSetChanged();
         Toast.makeText(getContext(), "Trié par : Récent", Toast.LENGTH_SHORT).show();
     }
