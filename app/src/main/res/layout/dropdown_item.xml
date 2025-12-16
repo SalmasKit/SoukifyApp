@@ -1,28 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/dropdown_text"
     android:layout_width="match_parent"
-    android:layout_height="40dp"
-    android:orientation="horizontal"
-    android:gravity="center_vertical"
-    android:padding="8dp"
-    android:background="@drawable/dropdown_item_background">
-
-    <ImageView
-        android:layout_width="16dp"
-        android:layout_height="16dp"
-        android:src="@android:drawable/ic_menu_mylocation"
-        android:tint="#FF6B35"
-        android:layout_marginEnd="8dp" />
-
-    <TextView
-        android:id="@+id/dropdown_text"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:textSize="14sp"
-        android:textColor="#2C3E50"
-        android:fontFamily="sans-serif"
-        android:maxLines="1"
-        android:ellipsize="end" />
-
-</LinearLayout>
+    android:layout_height="wrap_content"
+    android:padding="16dp"
+    android:textSize="16sp"
+    android:textColor="@color/text_primary"
+    android:background="@drawable/spinner_dropdown_item_background"
+    android:gravity="center_vertical" />

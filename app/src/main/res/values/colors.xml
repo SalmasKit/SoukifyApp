@@ -9,6 +9,8 @@
     <!-- Background Colors -->
     <color name="background">#FFFFFF</color>
     <color name="surface">#FBF1E8</color>  <!-- Light Beige -->
+    <color name="background_light">#F8F8F8</color>  <!-- Light gray for day selector background -->
+    <color name="divider_color">#E0E0E0</color>  <!-- Light gray for borders -->
     
     <!-- Text Colors -->
     <color name="onPrimary">#FFFFFF</color>
@@ -19,6 +21,7 @@
     
     <!-- Status Colors -->
     <color name="error_color">#D32F2F</color>
+    <color name="success_green">#4CAF50</color>
     
     <!-- Accent Colors -->
     <color name="accent">#E85F4C</color>  <!-- Orange -->

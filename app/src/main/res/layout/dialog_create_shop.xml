@@ -127,14 +127,15 @@
 
             <!-- Category Field -->
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/EnhancedInput"
+                style="@style/EnhancedSpinner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:hint="Category"
                 android:minHeight="60dp"
                 app:startIconDrawable="@drawable/ic_category_grid_24"
-                app:startIconTint="@color/colorPrimary">
+                app:startIconTint="@color/colorPrimary"
+                app:endIconMode="dropdown_menu">
 
                 <AutoCompleteTextView
                     android:id="@+id/etShopCategory"
@@ -144,19 +145,22 @@
                     android:focusable="true"
                     android:focusableInTouchMode="true"
                     android:padding="16dp"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:dropDownVerticalOffset="0dp"
+                    android:dropDownHeight="200dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Region Field -->
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/EnhancedInput"
+                style="@style/EnhancedSpinner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:hint="Region"
                 android:minHeight="60dp"
                 app:startIconDrawable="@drawable/ic_place_24dp"
-                app:startIconTint="@color/colorPrimary">
+                app:startIconTint="@color/colorPrimary"
+                app:endIconMode="dropdown_menu">
 
                 <AutoCompleteTextView
                     android:id="@+id/etShopRegion"
@@ -166,19 +170,22 @@
                     android:focusable="true"
                     android:focusableInTouchMode="true"
                     android:padding="16dp"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:dropDownVerticalOffset="0dp"
+                    android:dropDownHeight="200dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- City Field -->
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/EnhancedInput"
+                style="@style/EnhancedSpinner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:hint="City"
                 android:minHeight="60dp"
                 app:startIconDrawable="@drawable/ic_location_city_24dp"
-                app:startIconTint="@color/colorPrimary">
+                app:startIconTint="@color/colorPrimary"
+                app:endIconMode="dropdown_menu">
 
                 <AutoCompleteTextView
                     android:id="@+id/etShopCity"
@@ -188,13 +195,15 @@
                     android:focusable="true"
                     android:focusableInTouchMode="true"
                     android:padding="16dp"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:dropDownVerticalOffset="0dp"
+                    android:dropDownHeight="200dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/EnhancedInput"
-                android:hint="Exact Address"
-                app:placeholderText="Street, Neighborhood, City..."
+                android:hint="Address"
+                app:placeholderText="Street, Neighborhood, Landmarks... (Optional)"
                 app:startIconDrawable="@drawable/ic_baseline_map_24"
                 app:startIconTint="@color/colorPrimary">
 
@@ -204,6 +213,54 @@
                     android:layout_height="wrap_content"
                     android:inputType="textPostalAddress"
                     android:maxLines="3" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Working Hours Selector -->
+            <include layout="@layout/working_hours_basic" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/EnhancedInput"
+                android:hint="Instagram"
+                app:placeholderText="@username (Optional)"
+                app:startIconDrawable="@drawable/ic_instagram_24dp"
+                app:startIconTint="@color/colorPrimary">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etShopInstagram"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:maxLines="1" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/EnhancedInput"
+                android:hint="Facebook"
+                app:placeholderText="Page name or URL (Optional)"
+                app:startIconDrawable="@drawable/ic_facebook_24dp"
+                app:startIconTint="@color/colorPrimary">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etShopFacebook"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:maxLines="2" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/EnhancedInput"
+                android:hint="Website"
+                app:placeholderText="https://example.com (Optional)"
+                app:startIconDrawable="@drawable/ic_website_24dp"
+                app:startIconTint="@color/colorPrimary">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etShopWebsite"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textUri"
+                    android:maxLines="2" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Buttons -->

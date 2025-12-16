@@ -7,15 +7,21 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import android.widget.Button;
-import android.widget.TextView;
 
 import com.example.soukify.R;
 
 public class AboutFragment extends Fragment {
+
+    private LinearLayout privacyHeader, termsHeader, privacyDetails, termsDetails;
+    private TextView privacyContent, termsContent;
+    private ImageView privacyIcon, termsIcon;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -32,15 +38,58 @@ public class AboutFragment extends Fragment {
         versionText.setText(getString(com.example.soukify.R.string.app_version_placeholder,
                 getAppVersion()));
 
-        Button privacyButton = view.findViewById(R.id.privacyButton);
-        Button termsButton = view.findViewById(R.id.termsButton);
-        Button rateButton = view.findViewById(R.id.rateButton);
-        Button shareButton = view.findViewById(R.id.shareButton);
+        // Initialize expandable sections
+        initExpandableSections(view);
+        setupClickListeners();
         
-        privacyButton.setOnClickListener(v -> openUrl("https://example.com/privacy"));
-        termsButton.setOnClickListener(v -> openUrl("https://example.com/terms"));
+        // Rate and Share buttons
+        View rateButton = view.findViewById(R.id.rateButton);
+        View shareButton = view.findViewById(R.id.shareButton);
+        
         rateButton.setOnClickListener(v -> rateApp());
         shareButton.setOnClickListener(v -> shareApp());
+    }
+
+    private void initExpandableSections(View view) {
+        // Privacy Policy section
+        privacyHeader = view.findViewById(R.id.privacyHeader);
+        privacyContent = view.findViewById(R.id.privacyContent);
+        privacyDetails = view.findViewById(R.id.privacyDetails);
+        privacyIcon = view.findViewById(R.id.privacyIcon);
+
+        // Terms of Service section
+        termsHeader = view.findViewById(R.id.termsHeader);
+        termsContent = view.findViewById(R.id.termsContent);
+        termsDetails = view.findViewById(R.id.termsDetails);
+        termsIcon = view.findViewById(R.id.termsIcon);
+    }
+
+    private void setupClickListeners() {
+        privacyHeader.setOnClickListener(v -> toggleSection("privacy"));
+        termsHeader.setOnClickListener(v -> toggleSection("terms"));
+    }
+
+    private void toggleSection(String section) {
+        switch (section) {
+            case "privacy":
+                toggleVisibility(privacyContent, privacyDetails, privacyIcon);
+                break;
+            case "terms":
+                toggleVisibility(termsContent, termsDetails, termsIcon);
+                break;
+        }
+    }
+
+    private void toggleVisibility(TextView contentView, LinearLayout detailsView, ImageView iconView) {
+        if (contentView.getVisibility() == View.GONE) {
+            contentView.setVisibility(View.VISIBLE);
+            detailsView.setVisibility(View.VISIBLE);
+            iconView.setImageResource(R.drawable.ic_expand_less);
+        } else {
+            contentView.setVisibility(View.GONE);
+            detailsView.setVisibility(View.GONE);
+            iconView.setImageResource(R.drawable.ic_expand_more);
+        }
     }
 
     private String getAppVersion() {
@@ -50,12 +99,6 @@ public class AboutFragment extends Fragment {
         } catch (Exception e) {
             return "unknown";
         }
-    }
-
-    private void openUrl(String url) {
-        try {
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
-        } catch (Exception ignored) {}
     }
 
     private void rateApp() {

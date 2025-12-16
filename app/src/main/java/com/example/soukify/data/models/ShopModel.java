@@ -12,6 +12,7 @@ public class ShopModel {
     private String shopId;
     private String name;
     private String category;
+    private String description;
     private double rating;
     private int reviews;
     private String location;
@@ -19,7 +20,6 @@ public class ShopModel {
     private boolean favorite;
     private boolean liked;
     private int likesCount;
-    private boolean hasProducts;
     private String searchableName;
     private String createdAt;
     private String phone;
@@ -30,6 +30,11 @@ public class ShopModel {
     private String cityId;
     private boolean hasPromotion;
     private int searchCount;
+    private String workingHours;
+    private String workingDays;
+    private String instagram;
+    private String facebook;
+    private String website;
     
     // Date formatter for consistent date format
     private static final String DATE_FORMAT = "dd/MM/yyyy HH:mm";
@@ -39,7 +44,6 @@ public class ShopModel {
         this.favorite = false;
         this.liked = false;
         this.likesCount = 0;
-        this.hasProducts = false;
         this.rating = 0.0;
         this.reviews = 0;
     }
@@ -54,7 +58,6 @@ public class ShopModel {
         this.favorite = false;
         this.liked = false;
         this.likesCount = 0;
-        this.hasProducts = false;
         this.searchableName = name.toLowerCase();
         this.createdAt = formatCurrentDate();
     }
@@ -75,9 +78,13 @@ public class ShopModel {
         this.favorite = false;
         this.liked = false;
         this.likesCount = 0;
-        this.hasProducts = false;
         this.searchableName = name.toLowerCase();
         this.createdAt = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault()).format(new Date());
+        this.workingHours = "";
+        this.workingDays = "";
+        this.instagram = "";
+        this.facebook = "";
+        this.website = "";
     }
     
     public ShopModel(String shopId, String userId, String name, String category, String phone, String email, String address, String location, String imageUrl, String regionId, String cityId) {
@@ -97,9 +104,13 @@ public class ShopModel {
         this.favorite = false;
         this.liked = false;
         this.likesCount = 0;
-        this.hasProducts = false;
         this.searchableName = name.toLowerCase();
         this.createdAt = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault()).format(new Date());
+        this.workingHours = "";
+        this.workingDays = "";
+        this.instagram = "";
+        this.facebook = "";
+        this.website = "";
     }
     
     // Helper method to format current date consistently
@@ -132,6 +143,14 @@ public class ShopModel {
     
     public void setCategory(String category) {
         this.category = category;
+    }
+    
+    public String getDescription() {
+        return description;
+    }
+    
+    public void setDescription(String description) {
+        this.description = description;
     }
     
     public double getRating() {
@@ -190,14 +209,6 @@ public class ShopModel {
         this.likesCount = likesCount;
     }
     
-    public boolean isHasProducts() {
-        return hasProducts;
-    }
-    
-    public void setHasProducts(boolean hasProducts) {
-        this.hasProducts = hasProducts;
-    }
-    
     public String getSearchableName() {
         return searchableName;
     }
@@ -212,6 +223,19 @@ public class ShopModel {
     
     public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
+    }
+    
+    public long getCreatedAtTimestamp() {
+        if (createdAt == null || createdAt.isEmpty()) {
+            return System.currentTimeMillis();
+        }
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault());
+            Date date = sdf.parse(createdAt);
+            return date != null ? date.getTime() : System.currentTimeMillis();
+        } catch (Exception e) {
+            return System.currentTimeMillis();
+        }
     }
     
     public String getPhone() {
@@ -276,5 +300,45 @@ public class ShopModel {
     
     public void setSearchCount(int searchCount) {
         this.searchCount = searchCount;
+    }
+    
+    public String getWorkingHours() {
+        return workingHours;
+    }
+    
+    public void setWorkingHours(String workingHours) {
+        this.workingHours = workingHours;
+    }
+    
+    public String getWorkingDays() {
+        return workingDays;
+    }
+    
+    public void setWorkingDays(String workingDays) {
+        this.workingDays = workingDays;
+    }
+    
+    public String getInstagram() {
+        return instagram;
+    }
+    
+    public void setInstagram(String instagram) {
+        this.instagram = instagram;
+    }
+    
+    public String getFacebook() {
+        return facebook;
+    }
+    
+    public void setFacebook(String facebook) {
+        this.facebook = facebook;
+    }
+    
+    public String getWebsite() {
+        return website;
+    }
+    
+    public void setWebsite(String website) {
+        this.website = website;
     }
 }

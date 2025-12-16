@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.lifecycle.Observer;
 
 import com.example.soukify.data.repositories.SessionRepository;
 import com.example.soukify.data.repositories.UserRepository;
@@ -32,9 +33,31 @@ public class SettingsViewModel extends AndroidViewModel {
         super(application);
         sessionRepository = SessionRepository.getInstance(application);
         userRepository = new UserRepository(application);
-        // Initialize with default values
         themeIndex.setValue(0);
+        
+        setupUserRepositoryObservers();
         loadCurrentUser();
+    }
+    
+    private void setupUserRepositoryObservers() {
+        userRepository.getCurrentUser().observeForever(user -> {
+            if (user != null) {
+                currentUser.postValue(user);
+                android.util.Log.d("SettingsViewModel", "User data updated: " + user.getEmail());
+                android.util.Log.d("SettingsViewModel", "Profile image: " + user.getProfileImage());
+            }
+        });
+        
+        userRepository.getIsLoading().observeForever(loading -> {
+            isLoading.postValue(loading);
+        });
+        
+        userRepository.getErrorMessage().observeForever(error -> {
+            if (error != null && !error.isEmpty()) {
+                operationResult.postValue(error);
+                android.util.Log.d("SettingsViewModel", "Operation result: " + error);
+            }
+        });
     }
     
     public LiveData<Integer> getThemeIndex() {
@@ -83,8 +106,6 @@ public class SettingsViewModel extends AndroidViewModel {
         sessionRepository.logout();
     }
     
-    // Account Profile Management Methods
-    
     public LiveData<UserModel> getCurrentUser() {
         return currentUser;
     }
@@ -98,217 +119,169 @@ public class SettingsViewModel extends AndroidViewModel {
     }
     
     public void refreshCurrentUser() {
+        android.util.Log.d("SettingsViewModel", "Refreshing user profile");
         loadCurrentUser();
     }
     
     private void loadCurrentUser() {
-        isLoading.setValue(true);
-        
-        // Use Firebase UserRepository to load current user
+        android.util.Log.d("SettingsViewModel", "Loading user profile");
         userRepository.loadUserProfile();
-        
-        // Observe the result
-        userRepository.getCurrentUser().observeForever(user -> {
-            if (user != null) {
-                currentUser.postValue(user);
-                operationResult.postValue("User data loaded");
-            } else {
-                currentUser.postValue(null);
-                operationResult.postValue("No user data found");
-            }
-            isLoading.postValue(false);
-        });
-        
-        userRepository.getErrorMessage().observeForever(error -> {
-            if (error != null) {
-                operationResult.postValue(error);
-                isLoading.postValue(false);
-            }
-        });
     }
     
     public void updateUserProfile(String name, String email, String phone) {
-        isLoading.setValue(true);
+        android.util.Log.d("SettingsViewModel", "Updating user profile - Name: " + name + ", Email: " + email + ", Phone: " + phone);
+        
         operationResult.setValue(null);
         
         UserModel user = currentUser.getValue();
         if (user == null) {
             operationResult.postValue("No user data available");
-            isLoading.postValue(false);
             return;
         }
         
-        // Validate email
         if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             operationResult.postValue("Invalid email format");
-            isLoading.postValue(false);
             return;
         }
         
-        // Update user data
-        user.setFullName(name);
-        user.setEmail(email);
-        user.setPhoneNumber(phone);
+        UserModel updatedUser = new UserModel(name, email, phone, user.getPasswordHash());
+        updatedUser.setUserId(user.getUserId());
+        updatedUser.setProfileImage(user.getProfileImage());
         
-        // Use Firebase UserRepository to update profile
-        userRepository.updateProfile(user);
-        
-        // Observe the result
-        userRepository.getErrorMessage().observeForever(error -> {
-            if (error != null) {
-                operationResult.postValue(error);
-                isLoading.postValue(false);
-            }
-        });
-        
-        userRepository.getIsLoading().observeForever(loading -> {
-            if (!loading) {
-                // Refresh user data after update
-                loadCurrentUser();
-            }
-        });
+        userRepository.updateProfile(updatedUser);
     }
     
     /**
      * Updates user profile with email change (requires password for re-authentication)
+     * This will send a verification email to the new address
+     * Email will only be updated in Firestore after user clicks verification link
      */
     public void updateUserProfileWithEmail(String name, String email, String phone, String password) {
-        isLoading.setValue(true);
+        android.util.Log.d("SettingsViewModel", "Updating user profile with email change");
+        android.util.Log.d("SettingsViewModel", "New email: " + email + " (verification required)");
+        
         operationResult.setValue(null);
         
         UserModel user = currentUser.getValue();
         if (user == null) {
             operationResult.postValue("No user data available");
-            isLoading.postValue(false);
             return;
         }
         
-        // Validate email
         if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             operationResult.postValue("Invalid email format");
-            isLoading.postValue(false);
             return;
         }
         
-        // Update user data
-        user.setFullName(name);
-        user.setEmail(email);
-        user.setPhoneNumber(phone);
+        if (password == null || password.trim().isEmpty()) {
+            operationResult.postValue("Password is required to change email");
+            return;
+        }
         
-        // Use Firebase UserRepository to update profile with email change
-        userRepository.updateProfileWithEmail(user, email, password);
-        android.util.Log.d("SettingsViewModel", "Called updateProfileWithEmail");
+        if (password.length() < 6) {
+            operationResult.postValue("Password must be at least 6 characters");
+            return;
+        }
         
-        // Observe the result
-        userRepository.getErrorMessage().observeForever(error -> {
-            if (error != null) {
-                android.util.Log.e("SettingsViewModel", "Error from UserRepository: " + error);
-                operationResult.postValue(error);
-                isLoading.postValue(false);
-            }
-        });
+        UserModel updatedUser = new UserModel(name, email, phone, user.getPasswordHash());
+        updatedUser.setUserId(user.getUserId());
+        updatedUser.setProfileImage(user.getProfileImage());
         
-        userRepository.getIsLoading().observeForever(loading -> {
-            if (!loading) {
-                android.util.Log.d("SettingsViewModel", "Loading completed, refreshing user data");
-                // Refresh user data after update
-                loadCurrentUser();
-            }
-        });
+        android.util.Log.d("SettingsViewModel", "Profile image being sent: " + user.getProfileImage());
         
-        // Also observe success
-        userRepository.getCurrentUser().observeForever(updatedUser -> {
-            if (updatedUser != null && updatedUser.getEmail().equals(email)) {
-                android.util.Log.d("SettingsViewModel", "Email update successful: " + updatedUser.getEmail());
-                operationResult.postValue("Profile updated successfully!");
-                isLoading.postValue(false);
-            }
-        });
+        userRepository.updateProfileWithEmail(updatedUser, email, password);
+    }
+    
+    /**
+     * Complete email change after user has clicked verification link
+     * This syncs the verified email from Firebase Auth to Firestore
+     * Should be called automatically when user returns to app after verification
+     */
+    public void completeEmailChange() {
+        android.util.Log.d("SettingsViewModel", "Completing email change process");
+        operationResult.setValue(null);
+        userRepository.completeEmailChange();
     }
     
     public void updateUserPassword(String currentPassword, String newPassword) {
-        isLoading.setValue(true);
+        android.util.Log.d("SettingsViewModel", "Updating user password");
+        
         operationResult.setValue(null);
         
-        // Validate new password
-        if (newPassword.length() < 6) {
-            operationResult.postValue("Password must be at least 6 characters");
-            isLoading.postValue(false);
+        if (currentPassword == null || currentPassword.trim().isEmpty()) {
+            operationResult.postValue("Current password is required");
             return;
         }
         
-        // Firebase handles password updates differently - use reset password
-        UserModel user = currentUser.getValue();
-        if (user != null && user.getEmail() != null) {
-            userRepository.resetPassword(user.getEmail());
-            
-            userRepository.getErrorMessage().observeForever(error -> {
-                if (error != null) {
-                    operationResult.postValue("Password reset failed: " + error);
-                    isLoading.postValue(false);
-                }
-            });
-            
-            operationResult.postValue("Password reset email sent");
-            isLoading.postValue(false);
-        } else {
-            operationResult.postValue("No user email available");
-            isLoading.postValue(false);
+        if (newPassword == null || newPassword.length() < 6) {
+            operationResult.postValue("New password must be at least 6 characters");
+            return;
         }
+        
+        userRepository.updatePassword(currentPassword, newPassword);
     }
     
     public void updateProfileImage(String imageUri) {
-        isLoading.setValue(true);
+        android.util.Log.d("SettingsViewModel", "Updating profile image");
+        
         operationResult.setValue(null);
         
         UserModel user = currentUser.getValue();
         if (user == null) {
             operationResult.postValue("No user data available");
-            isLoading.postValue(false);
             return;
         }
         
         Log.d("SettingsViewModel", "Updating profile image for user " + user.getUserId() + " with URI: " + imageUri);
         
-        // Copy image to internal storage for persistence
-        String copiedImageUri = imageUri;
         if (imageUri != null && !imageUri.isEmpty()) {
-            String fileName = ImageUtils.createUniqueFileName("profile", user.getUserId().hashCode(), 0);
-            copiedImageUri = ImageUtils.copyImageToInternalStorage(getApplication(), Uri.parse(imageUri), "profile", fileName);
-            
-            if (copiedImageUri == null) {
-                operationResult.postValue("Failed to copy image to internal storage");
-                isLoading.postValue(false);
-                return;
-            }
-            
-            // Delete old image if it exists
+            // Upload to Firebase Storage
+            ImageUtils.uploadImageToFirebaseStorage(getApplication(), Uri.parse(imageUri), "profile", user.getUserId())
+                .addOnSuccessListener(uri -> {
+                    Log.d("SettingsViewModel", "Profile image uploaded to Firebase Storage: " + uri.toString());
+                    
+                    // Delete old image from Firebase Storage if it exists
+                    if (user.getProfileImage() != null && !user.getProfileImage().isEmpty()) {
+                        ImageUtils.deleteImageFromFirebaseStorage("profile", user.getUserId());
+                    }
+                    
+                    UserModel updatedUser = new UserModel(
+                        user.getFullName(),
+                        user.getEmail(),
+                        user.getPhoneNumber(),
+                        user.getPasswordHash()
+                    );
+                    updatedUser.setUserId(user.getUserId());
+                    updatedUser.setProfileImage(uri.toString());
+                    
+                    userRepository.updateProfile(updatedUser);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("SettingsViewModel", "Failed to upload profile image to Firebase Storage", e);
+                    operationResult.postValue("Failed to upload image: " + e.getMessage());
+                });
+        } else {
+            // No image provided, clear existing image
             if (user.getProfileImage() != null && !user.getProfileImage().isEmpty()) {
-                ImageUtils.deleteImageFromInternalStorage(getApplication(), user.getProfileImage());
+                ImageUtils.deleteImageFromFirebaseStorage("profile", user.getUserId());
             }
             
-            Log.d("SettingsViewModel", "Image copied to internal storage: " + copiedImageUri);
+            UserModel updatedUser = new UserModel(
+                user.getFullName(),
+                user.getEmail(),
+                user.getPhoneNumber(),
+                user.getPasswordHash()
+            );
+            updatedUser.setUserId(user.getUserId());
+            updatedUser.setProfileImage(null);
+            
+            userRepository.updateProfile(updatedUser);
         }
-        
-        // Update user profile image
-        user.setProfileImage(copiedImageUri);
-        
-        // Use Firebase UserRepository to update profile
-        userRepository.updateProfile(user);
-        
-        // Observe the result
-        userRepository.getErrorMessage().observeForever(error -> {
-            if (error != null) {
-                operationResult.postValue("Error updating profile image: " + error);
-                isLoading.postValue(false);
-            }
-        });
-        
-        userRepository.getIsLoading().observeForever(loading -> {
-            if (!loading) {
-                operationResult.postValue("Profile image updated");
-                isLoading.postValue(false);
-            }
-        });
+    }
+    
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        android.util.Log.d("SettingsViewModel", "ViewModel cleared");
     }
 }

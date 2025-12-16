@@ -1,0 +1,473 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Working Hours"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        android:layout_marginBottom="12dp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxHeight="300dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Monday -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp"
+                android:padding="8dp"
+                android:background="@drawable/day_selector_background">
+
+                <CheckBox
+                    android:id="@+id/cbMonday"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="12dp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Monday"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_primary" />
+
+                <LinearLayout
+                    android:id="@+id/llMondayHours"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:visibility="gone">
+
+                    <EditText
+                        android:id="@+id/etMondayFrom"
+                        android:layout_width="60dp"
+                        android:layout_height="36dp"
+                        android:hint="From"
+                        android:textSize="12sp"
+                        android:inputType="time"
+                        android:background="@drawable/time_input_background"
+                        android:padding="4dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" - "
+                        android:layout_marginHorizontal="8dp"
+                        android:textColor="@color/text_secondary" />
+
+                    <EditText
+                        android:id="@+id/etMondayTo"
+                        android:layout_width="60dp"
+                        android:layout_height="36dp"
+                        android:hint="To"
+                        android:textSize="12sp"
+                        android:inputType="time"
+                        android:background="@drawable/time_input_background"
+                        android:padding="4dp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Tuesday -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp"
+                android:padding="8dp"
+                android:background="@drawable/day_selector_background">
+
+                <CheckBox
+                    android:id="@+id/cbTuesday"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="12dp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Tuesday"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_primary" />
+
+                <LinearLayout
+                    android:id="@+id/llTuesdayHours"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:visibility="gone">
+
+                    <EditText
+                        android:id="@+id/etTuesdayFrom"
+                        android:layout_width="60dp"
+                        android:layout_height="36dp"
+                        android:hint="From"
+                        android:textSize="12sp"
+                        android:inputType="time"
+                        android:background="@drawable/time_input_background"
+                        android:padding="4dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" - "
+                        android:layout_marginHorizontal="8dp"
+                        android:textColor="@color/text_secondary" />
+
+                    <EditText
+                        android:id="@+id/etTuesdayTo"
+                        android:layout_width="60dp"
+                        android:layout_height="36dp"
+                        android:hint="To"
+                        android:textSize="12sp"
+                        android:inputType="time"
+                        android:background="@drawable/time_input_background"
+                        android:padding="4dp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Wednesday -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp"
+                android:padding="8dp"
+                android:background="@drawable/day_selector_background">
+
+                <CheckBox
+                    android:id="@+id/cbWednesday"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="12dp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Wednesday"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_primary" />
+
+                <LinearLayout
+                    android:id="@+id/llWednesdayHours"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:visibility="gone">
+
+                    <EditText
+                        android:id="@+id/etWednesdayFrom"
+                        android:layout_width="60dp"
+                        android:layout_height="36dp"
+                        android:hint="From"
+                        android:textSize="12sp"
+                        android:inputType="time"
+                        android:background="@drawable/time_input_background"
+                        android:padding="4dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" - "
+                        android:layout_marginHorizontal="8dp"
+                        android:textColor="@color/text_secondary" />
+
+                    <EditText
+                        android:id="@+id/etWednesdayTo"
+                        android:layout_width="60dp"
+                        android:layout_height="36dp"
+                        android:hint="To"
+                        android:textSize="12sp"
+                        android:inputType="time"
+                        android:background="@drawable/time_input_background"
+                        android:padding="4dp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Thursday -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp"
+                android:padding="8dp"
+                android:background="@drawable/day_selector_background">
+
+                <CheckBox
+                    android:id="@+id/cbThursday"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="12dp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Thursday"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_primary" />
+
+                <LinearLayout
+                    android:id="@+id/llThursdayHours"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:visibility="gone">
+
+                    <EditText
+                        android:id="@+id/etThursdayFrom"
+                        android:layout_width="60dp"
+                        android:layout_height="36dp"
+                        android:hint="From"
+                        android:textSize="12sp"
+                        android:inputType="time"
+                        android:background="@drawable/time_input_background"
+                        android:padding="4dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" - "
+                        android:layout_marginHorizontal="8dp"
+                        android:textColor="@color/text_secondary" />
+
+                    <EditText
+                        android:id="@+id/etThursdayTo"
+                        android:layout_width="60dp"
+                        android:layout_height="36dp"
+                        android:hint="To"
+                        android:textSize="12sp"
+                        android:inputType="time"
+                        android:background="@drawable/time_input_background"
+                        android:padding="4dp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Friday -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp"
+                android:padding="8dp"
+                android:background="@drawable/day_selector_background">
+
+                <CheckBox
+                    android:id="@+id/cbFriday"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="12dp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Friday"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_primary" />
+
+                <LinearLayout
+                    android:id="@+id/llFridayHours"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:visibility="gone">
+
+                    <EditText
+                        android:id="@+id/etFridayFrom"
+                        android:layout_width="60dp"
+                        android:layout_height="36dp"
+                        android:hint="From"
+                        android:textSize="12sp"
+                        android:inputType="time"
+                        android:background="@drawable/time_input_background"
+                        android:padding="4dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" - "
+                        android:layout_marginHorizontal="8dp"
+                        android:textColor="@color/text_secondary" />
+
+                    <EditText
+                        android:id="@+id/etFridayTo"
+                        android:layout_width="60dp"
+                        android:layout_height="36dp"
+                        android:hint="To"
+                        android:textSize="12sp"
+                        android:inputType="time"
+                        android:background="@drawable/time_input_background"
+                        android:padding="4dp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Saturday -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp"
+                android:padding="8dp"
+                android:background="@drawable/day_selector_background">
+
+                <CheckBox
+                    android:id="@+id/cbSaturday"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="12dp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Saturday"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_primary" />
+
+                <LinearLayout
+                    android:id="@+id/llSaturdayHours"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:visibility="gone">
+
+                    <EditText
+                        android:id="@+id/etSaturdayFrom"
+                        android:layout_width="60dp"
+                        android:layout_height="36dp"
+                        android:hint="From"
+                        android:textSize="12sp"
+                        android:inputType="time"
+                        android:background="@drawable/time_input_background"
+                        android:padding="4dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" - "
+                        android:layout_marginHorizontal="8dp"
+                        android:textColor="@color/text_secondary" />
+
+                    <EditText
+                        android:id="@+id/etSaturdayTo"
+                        android:layout_width="60dp"
+                        android:layout_height="36dp"
+                        android:hint="To"
+                        android:textSize="12sp"
+                        android:inputType="time"
+                        android:background="@drawable/time_input_background"
+                        android:padding="4dp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Sunday -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp"
+                android:padding="8dp"
+                android:background="@drawable/day_selector_background">
+
+                <CheckBox
+                    android:id="@+id/cbSunday"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="12dp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Sunday"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_primary" />
+
+                <LinearLayout
+                    android:id="@+id/llSundayHours"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:visibility="gone">
+
+                    <EditText
+                        android:id="@+id/etSundayFrom"
+                        android:layout_width="60dp"
+                        android:layout_height="36dp"
+                        android:hint="From"
+                        android:textSize="12sp"
+                        android:inputType="time"
+                        android:background="@drawable/time_input_background"
+                        android:padding="4dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" - "
+                        android:layout_marginHorizontal="8dp"
+                        android:textColor="@color/text_secondary" />
+
+                    <EditText
+                        android:id="@+id/etSundayTo"
+                        android:layout_width="60dp"
+                        android:layout_height="36dp"
+                        android:hint="To"
+                        android:textSize="12sp"
+                        android:inputType="time"
+                        android:background="@drawable/time_input_background"
+                        android:padding="4dp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</LinearLayout>

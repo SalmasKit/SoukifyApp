@@ -10,9 +10,9 @@
               <option name="connection">
                 <ConnectionSetting>
                   <option name="appId" value="com.example.soukify" />
-                  <option name="mobileSdkAppId" value="1:827712203514:android:eb00a47a53ad979d0c3743" />
-                  <option name="projectId" value="soukify-b0115" />
-                  <option name="projectNumber" value="827712203514" />
+                  <option name="mobileSdkAppId" value="1:1018315867996:android:abc6df57f99e9aac1a2399" />
+                  <option name="projectId" value="soukify-e091c" />
+                  <option name="projectNumber" value="1018315867996" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

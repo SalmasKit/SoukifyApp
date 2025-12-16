@@ -16,7 +16,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardCornerRadius="8dp"
-            app:cardElevation="2dp">
+            app:cardElevation="2dp"
+            android:layout_marginBottom="16dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -31,25 +32,527 @@
                     android:textStyle="bold"
                     android:textSize="16sp" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/faqButton"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="match_parent"
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="@string/view_faq" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/contactSupportButton"
-                    style="@style/Widget.MaterialComponents.Button"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="@string/contact_support"
-                    app:backgroundTint="@color/colorPrimary" />
+                    android:layout_marginTop="8dp"
+                    android:text="@string/help_support_description"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/frequently_asked_questions"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- FAQ Item 1 -->
+                <LinearLayout
+                    android:id="@+id/faqItem1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="8dp">
+
+                    <LinearLayout
+                        android:id="@+id/faqHeader1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:padding="12dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/faq_question1"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_primary" />
+
+                        <ImageView
+                            android:id="@+id/faqIcon1"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_expand_more"
+                            android:tint="@color/text_primary" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/faqAnswer1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/faq_answer1"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_secondary"
+                        android:visibility="gone"
+                        android:padding="12dp"
+                        android:background="#f5f5f5" />
+
+                </LinearLayout>
+
+                <!-- FAQ Item 2 -->
+                <LinearLayout
+                    android:id="@+id/faqItem2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="8dp">
+
+                    <LinearLayout
+                        android:id="@+id/faqHeader2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:padding="12dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/faq_question2"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_primary" />
+
+                        <ImageView
+                            android:id="@+id/faqIcon2"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_expand_more"
+                            android:tint="@color/text_primary" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/faqAnswer2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/faq_answer2"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_secondary"
+                        android:visibility="gone"
+                        android:padding="12dp"
+                        android:background="#f5f5f5" />
+
+                </LinearLayout>
+
+                <!-- FAQ Item 3 -->
+                <LinearLayout
+                    android:id="@+id/faqItem3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="8dp">
+
+                    <LinearLayout
+                        android:id="@+id/faqHeader3"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:padding="12dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/faq_question3"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_primary" />
+
+                        <ImageView
+                            android:id="@+id/faqIcon3"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_expand_more"
+                            android:tint="@color/text_primary" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/faqAnswer3"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/faq_answer3"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_secondary"
+                        android:visibility="gone"
+                        android:padding="12dp"
+                        android:background="#f5f5f5" />
+
+                </LinearLayout>
+
+                <!-- FAQ Item 4 -->
+                <LinearLayout
+                    android:id="@+id/faqItem4"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="8dp">
+
+                    <LinearLayout
+                        android:id="@+id/faqHeader4"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:padding="12dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/faq_question4"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_primary" />
+
+                        <ImageView
+                            android:id="@+id/faqIcon4"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_expand_more"
+                            android:tint="@color/text_primary" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/faqAnswer4"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/faq_answer4"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_secondary"
+                        android:visibility="gone"
+                        android:padding="12dp"
+                        android:background="#f5f5f5" />
+
+                </LinearLayout>
+
+                <!-- FAQ Item 5 -->
+                <LinearLayout
+                    android:id="@+id/faqItem5"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="8dp">
+
+                    <LinearLayout
+                        android:id="@+id/faqHeader5"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:padding="12dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/faq_question5"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_primary" />
+
+                        <ImageView
+                            android:id="@+id/faqIcon5"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_expand_more"
+                            android:tint="@color/text_primary" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/faqAnswer5"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/faq_answer5"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_secondary"
+                        android:visibility="gone"
+                        android:padding="12dp"
+                        android:background="#f5f5f5" />
+
+                </LinearLayout>
+
+                <!-- FAQ Item 6 -->
+                <LinearLayout
+                    android:id="@+id/faqItem6"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="8dp">
+
+                    <LinearLayout
+                        android:id="@+id/faqHeader6"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:padding="12dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/faq_question6"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_primary" />
+
+                        <ImageView
+                            android:id="@+id/faqIcon6"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_expand_more"
+                            android:tint="@color/text_primary" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/faqAnswer6"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/faq_answer6"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_secondary"
+                        android:visibility="gone"
+                        android:padding="12dp"
+                        android:background="#f5f5f5" />
+
+                </LinearLayout>
+
+                <!-- FAQ Item 7 -->
+                <LinearLayout
+                    android:id="@+id/faqItem7"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="8dp">
+
+                    <LinearLayout
+                        android:id="@+id/faqHeader7"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:padding="12dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/faq_question7"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_primary" />
+
+                        <ImageView
+                            android:id="@+id/faqIcon7"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_expand_more"
+                            android:tint="@color/text_primary" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/faqAnswer7"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/faq_answer7"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_secondary"
+                        android:visibility="gone"
+                        android:padding="12dp"
+                        android:background="#f5f5f5" />
+
+                </LinearLayout>
+
+                <!-- FAQ Item 8 -->
+                <LinearLayout
+                    android:id="@+id/faqItem8"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="8dp">
+
+                    <LinearLayout
+                        android:id="@+id/faqHeader8"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:padding="12dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/faq_question8"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_primary" />
+
+                        <ImageView
+                            android:id="@+id/faqIcon8"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_expand_more"
+                            android:tint="@color/text_primary" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/faqAnswer8"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/faq_answer8"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_secondary"
+                        android:visibility="gone"
+                        android:padding="12dp"
+                        android:background="#f5f5f5" />
+
+                </LinearLayout>
+
+                <!-- FAQ Item 9 -->
+                <LinearLayout
+                    android:id="@+id/faqItem9"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="8dp">
+
+                    <LinearLayout
+                        android:id="@+id/faqHeader9"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:padding="12dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/faq_question9"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_primary" />
+
+                        <ImageView
+                            android:id="@+id/faqIcon9"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_expand_more"
+                            android:tint="@color/text_primary" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/faqAnswer9"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/faq_answer9"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_secondary"
+                        android:visibility="gone"
+                        android:padding="12dp"
+                        android:background="#f5f5f5" />
+
+                </LinearLayout>
+
+                <!-- FAQ Item 10 -->
+                <LinearLayout
+                    android:id="@+id/faqItem10"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:id="@+id/faqHeader10"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:padding="12dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/faq_question10"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_primary" />
+
+                        <ImageView
+                            android:id="@+id/faqIcon10"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_expand_more"
+                            android:tint="@color/text_primary" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/faqAnswer10"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/faq_answer10"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_secondary"
+                        android:visibility="gone"
+                        android:padding="12dp"
+                        android:background="#f5f5f5" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/contactSupportButton"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/contact_support"
+            app:backgroundTint="@color/colorPrimary" />
 
     </LinearLayout>
 </ScrollView>

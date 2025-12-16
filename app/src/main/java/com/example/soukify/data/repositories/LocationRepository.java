@@ -107,32 +107,100 @@ public class LocationRepository {
     
     public LiveData<RegionModel> getRegionById(int regionId) {
         MutableLiveData<RegionModel> result = new MutableLiveData<>();
-        List<RegionModel> allRegions = regions.getValue();
-        if (allRegions != null) {
-            for (RegionModel region : allRegions) {
-                if (region.getRegionId() != null && region.getRegionId().endsWith("_" + regionId)) {
+        
+        // Try to load from Firebase first
+        String regionDocumentId = "region_" + regionId;
+        FirebaseManager.getInstance(application).getFirestore()
+                .collection("regions")
+                .document(regionDocumentId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        RegionModel region = documentSnapshot.toObject(RegionModel.class);
+                        result.setValue(region);
+                        android.util.Log.d("LocationRepository", "Region found in Firebase: " + region.getName());
+                    } else {
+                        // Fallback to static data
+                        RegionModel region = findRegionInStaticData(regionId);
+                        result.setValue(region);
+                        android.util.Log.d("LocationRepository", "Region found in static data: " + (region != null ? region.getName() : "null"));
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    // Fallback to static data on failure
+                    RegionModel region = findRegionInStaticData(regionId);
                     result.setValue(region);
-                    return result;
-                }
-            }
-        }
-        result.setValue(null);
+                    android.util.Log.e("LocationRepository", "Error loading region from Firebase, using static data: " + e.getMessage());
+                });
+        
         return result;
     }
     
     public LiveData<CityModel> getCityById(int cityId) {
         MutableLiveData<CityModel> result = new MutableLiveData<>();
-        List<CityModel> allCities = cities.getValue();
-        if (allCities != null) {
-            for (CityModel city : allCities) {
-                if (city.getCityId() != null && city.getCityId().endsWith("_" + cityId)) {
+        
+        // Try to load from Firebase first
+        // Since city IDs are more complex, we need to search
+        FirebaseManager.getInstance(application).getFirestore()
+                .collection("cities")
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    CityModel foundCity = null;
+                    for (QueryDocumentSnapshot document : querySnapshot) {
+                        CityModel city = document.toObject(CityModel.class);
+                        if (city.getCityId() != null && city.getCityId().endsWith("_" + cityId)) {
+                            foundCity = city;
+                            break;
+                        }
+                    }
+                    result.setValue(foundCity);
+                    android.util.Log.d("LocationRepository", "City found in Firebase: " + (foundCity != null ? foundCity.getName() : "null"));
+                })
+                .addOnFailureListener(e -> {
+                    // Fallback to static data on failure
+                    CityModel city = findCityInStaticData(cityId);
                     result.setValue(city);
-                    return result;
-                }
+                    android.util.Log.e("LocationRepository", "Error loading city from Firebase, using static data: " + e.getMessage());
+                });
+        
+        return result;
+    }
+    
+    private RegionModel findRegionInStaticData(int regionId) {
+        List<RegionModel> allRegions = regions.getValue();
+        if (allRegions == null) {
+            allRegions = getMoroccoRegions();
+            regions.setValue(allRegions);
+        }
+        
+        String targetId = "region_" + regionId;
+        for (RegionModel region : allRegions) {
+            if (targetId.equals(region.getRegionId())) {
+                return region;
             }
         }
-        result.setValue(null);
-        return result;
+        return null;
+    }
+    
+    private CityModel findCityInStaticData(int cityId) {
+        List<CityModel> allCities = cities.getValue();
+        if (allCities == null) {
+            // Load all cities for all regions
+            allCities = new ArrayList<>();
+            List<RegionModel> allRegions = getMoroccoRegions();
+            for (RegionModel region : allRegions) {
+                allCities.addAll(getCitiesForRegion(region.getName()));
+            }
+            cities.setValue(allCities);
+        }
+        
+        String targetSuffix = "_" + cityId;
+        for (CityModel city : allCities) {
+            if (city.getCityId() != null && city.getCityId().endsWith(targetSuffix)) {
+                return city;
+            }
+        }
+        return null;
     }
     
     // Synchronous methods for backward compatibility

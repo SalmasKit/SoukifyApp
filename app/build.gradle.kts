@@ -74,6 +74,7 @@ dependencies {
     // Glide for image loading
     implementation("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
+    
     // BCrypt for password hashing
     implementation("at.favre.lib:bcrypt:0.10.2")
     

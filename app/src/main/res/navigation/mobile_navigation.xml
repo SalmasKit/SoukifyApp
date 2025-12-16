@@ -56,7 +56,25 @@
         android:id="@+id/navigation_shop"
         android:name="com.example.soukify.ui.shop.ShopFragment"
         android:label="My Shop"
-        tools:layout="@layout/fragment_shop"/>
+        tools:layout="@layout/fragment_shop">
+
+        <action
+            android:id="@+id/action_navigation_shop_to_productDetail"
+            app:destination="@id/productDetailFragment" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/productDetailFragment"
+        android:name="com.example.soukify.ui.shop.ProductDetailFragment"
+        android:label="Product Details"
+        tools:layout="@layout/fragment_product_detail">
+
+        <argument
+            android:name="product"
+            app:argType="com.example.soukify.data.models.ProductModel" />
+
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_account_settings"

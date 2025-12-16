@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Semi-transparent black background -->
+    <item>
+        <shape>
+            <solid android:color="#80000000" />
+        </shape>
+    </item>
+    
+    <!-- White border for crop area -->
+    <item
+        android:left="40dp"
+        android:top="40dp"
+        android:right="40dp"
+        android:bottom="40dp">
+        <shape>
+            <stroke
+                android:width="2dp"
+                android:color="@android:color/white" />
+            <solid android:color="@android:color/transparent" />
+        </shape>
+    </item>
+</layer-list>

@@ -45,18 +45,35 @@ public class ProductImageRepository {
     
     // CRUD Operations
     
-    public void createProductImage(String productId, String imageUrl) {
+    public void createProductImage(String imageUrl) {
         isLoading.setValue(true);
         errorMessage.setValue(null);
         
-        ProductImageModel productImage = new ProductImageModel(productId, imageUrl);
+        ProductImageModel productImage = new ProductImageModel(null, imageUrl);
         
         productImageService.createProductImage(productImage)
                 .addOnSuccessListener(documentReference -> {
-                    productImage.setImageId(documentReference.getId());
-                    loadProductImagesByProductId(productId); // Refresh the list for this product
+                    String imageId = documentReference.getId();
+                    android.util.Log.d("ProductImageRepository", "Created product image with Firestore ID: " + imageId);
+                    
+                    productImage.setImageId(imageId);
+                    android.util.Log.d("ProductImageRepository", "Set imageId in model: " + imageId);
+                    
+                    // Update the document to include the imageId field
+                    productImageService.updateProductImage(imageId, productImage)
+                            .addOnSuccessListener(aVoid -> {
+                                android.util.Log.d("ProductImageRepository", "Updated product image with imageId: " + imageId);
+                                loadAllProductImages(); // Refresh the list
+                                isLoading.postValue(false);
+                            })
+                            .addOnFailureListener(e -> {
+                                android.util.Log.e("ProductImageRepository", "Failed to update product image with ID: " + e.getMessage());
+                                errorMessage.postValue("Failed to update product image with ID: " + e.getMessage());
+                                isLoading.postValue(false);
+                            });
                 })
                 .addOnFailureListener(e -> {
+                    android.util.Log.e("ProductImageRepository", "Failed to create product image: " + e.getMessage());
                     errorMessage.postValue("Failed to create product image: " + e.getMessage());
                     isLoading.postValue(false);
                 });
@@ -68,7 +85,7 @@ public class ProductImageRepository {
         
         productImageService.updateProductImage(productImage.getImageId(), productImage)
                 .addOnSuccessListener(aVoid -> {
-                    loadProductImagesByProductId(productImage.getProductId()); // Refresh the list
+                    loadAllProductImages(); // Refresh the list
                 })
                 .addOnFailureListener(e -> {
                     errorMessage.postValue("Failed to update product image: " + e.getMessage());
@@ -86,7 +103,7 @@ public class ProductImageRepository {
                     if (productImage != null) {
                         productImageService.deleteProductImage(imageId)
                                 .addOnSuccessListener(aVoid -> {
-                                    loadProductImagesByProductId(productImage.getProductId()); // Refresh the list
+                                    loadAllProductImages(); // Refresh the list
                                 })
                                 .addOnFailureListener(e -> {
                                     errorMessage.postValue("Failed to delete product image: " + e.getMessage());
@@ -168,13 +185,13 @@ public class ProductImageRepository {
     
     // Utility Operations
     
-    public void createProductImages(String productId, List<String> imageUrls) {
+    public void createProductImages(List<String> imageUrls) {
         isLoading.setValue(true);
         errorMessage.setValue(null);
         
-        productImageService.createProductImages(productId, imageUrls)
+        productImageService.createProductImages(null, imageUrls)
                 .addOnSuccessListener(imageIds -> {
-                    loadProductImagesByProductId(productId); // Refresh the list
+                    loadAllProductImages(); // Refresh the list
                 })
                 .addOnFailureListener(e -> {
                     errorMessage.postValue("Failed to create product images: " + e.getMessage());
@@ -182,11 +199,11 @@ public class ProductImageRepository {
                 });
     }
     
-    public void deleteAllImagesForProduct(String productId) {
+    public void deleteAllImagesForProduct() {
         isLoading.setValue(true);
         errorMessage.setValue(null);
         
-        productImageService.deleteAllImagesForProduct(productId)
+        productImageService.deleteAllImagesForProduct(null)
                 .addOnSuccessListener(aVoid -> {
                     productImages.postValue(new ArrayList<>()); // Clear the list
                     isLoading.postValue(false);
@@ -200,17 +217,9 @@ public class ProductImageRepository {
     // Synchronous methods for backward compatibility
     
     public List<ProductImageModel> getProductImagesByProductIdSync(String productId) {
-        List<ProductImageModel> result = productImages.getValue();
-        if (result != null) {
-            List<ProductImageModel> filtered = new ArrayList<>();
-            for (ProductImageModel image : result) {
-                if (image.getProductId().equals(productId)) {
-                    filtered.add(image);
-                }
-            }
-            return filtered;
-        }
-        return new ArrayList<>();
+        // Since we removed productId from ProductImageModel, return all images
+        // This method is kept for backward compatibility but now returns all images
+        return productImages.getValue() != null ? productImages.getValue() : new ArrayList<>();
     }
     
     public ProductImageModel getProductImageModelById(String imageId) {
