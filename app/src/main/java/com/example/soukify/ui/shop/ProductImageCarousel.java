@@ -89,6 +89,13 @@ public class ProductImageCarousel extends FrameLayout {
     }
     
     public void setImageUrls(java.util.List<String> urls) {
+        android.util.Log.d("ProductImageCarousel", "setImageUrls called with " + (urls != null ? urls.size() : "null") + " URLs");
+        if (urls != null) {
+            for (int i = 0; i < urls.size(); i++) {
+                android.util.Log.d("ProductImageCarousel", "URL " + i + ": " + urls.get(i));
+            }
+        }
+        
         if (adapter == null) {
             // Create adapter with click listener
             ProductCarouselAdapter.OnImageClickListener adapterClickListener = position -> {
@@ -98,14 +105,17 @@ public class ProductImageCarousel extends FrameLayout {
             };
             adapter = new ProductCarouselAdapter(urls, adapterClickListener);
             viewPager.setAdapter(adapter);
+            android.util.Log.d("ProductImageCarousel", "Created new adapter and set it to ViewPager2");
         } else {
             adapter.updateMediaUrls(urls);
+            android.util.Log.d("ProductImageCarousel", "Updated existing adapter with new URLs");
         }
         
         // Set up other configurations
         if (adapter != null) {
             adapter.setShowButtons(true);
             adapter.setShowDeleteButton(false); // Default to false for cards
+            android.util.Log.d("ProductImageCarousel", "Set adapter configurations: showButtons=true, showDeleteButton=false");
         }
     }
     

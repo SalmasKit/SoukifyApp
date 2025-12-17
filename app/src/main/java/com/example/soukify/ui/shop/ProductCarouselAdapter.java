@@ -80,6 +80,7 @@ public class ProductCarouselAdapter extends RecyclerView.Adapter<ProductCarousel
     @Override
     public void onBindViewHolder(@NonNull MediaViewHolder holder, int position) {
         String mediaUrl = mediaUrls.get(position);
+        android.util.Log.d("ProductCarouselAdapter", "Binding position " + position + " with URL: " + mediaUrl);
         holder.bind(mediaUrl, position);
     }
     

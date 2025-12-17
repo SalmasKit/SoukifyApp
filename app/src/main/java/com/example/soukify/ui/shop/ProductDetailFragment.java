@@ -76,6 +76,8 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
     private ImageButton emailButton;
     private ImageButton likeButton;
     private ImageButton favoriteButton;
+    private TextView likesCount;
+    private TextView favoritesCount;
     private UserProductPreferencesRepository userPreferences;
 
     // Product details views
@@ -182,6 +184,8 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
         deleteButton = view.findViewById(R.id.deleteButton);
         likeButton = view.findViewById(R.id.likeButton);
         favoriteButton = view.findViewById(R.id.favoriteButton);
+        likesCount = view.findViewById(R.id.likesCount);
+        favoritesCount = view.findViewById(R.id.favoritesCount);
 
         // Product details views
         productDetailsCard = view.findViewById(R.id.productDetailsCard);
@@ -230,6 +234,14 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
             // Set favorite button state using user preferences
             boolean isFavorited = userPreferences.isProductFavorited(product.getProductId());
             favoriteButton.setImageResource(isFavorited ? R.drawable.ic_star_filled : R.drawable.ic_star_outline);
+            
+            // Set like and favorite counts
+            if (likesCount != null) {
+                likesCount.setText(String.valueOf(product.getLikesCount()));
+            }
+            if (favoritesCount != null) {
+                favoritesCount.setText(String.valueOf(product.getFavoritesCount()));
+            }
             
             // Set like button click listener
             likeButton.setOnClickListener(v -> {
@@ -446,12 +458,15 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
 
     private void showImagesInCarousel(List<String> imageUrls) {
         if (imageUrls == null || imageUrls.isEmpty()) {
-            Log.d("ProductDetailFragment", "No valid image URLs to show");
+            Log.d("ProductDetailFragment", "No valid image URLs to show, adding test image");
             showImagePlaceholder();
             return;
         }
 
         Log.d("ProductDetailFragment", "Showing " + imageUrls.size() + " images in carousel");
+        for (int i = 0; i < imageUrls.size(); i++) {
+            Log.d("ProductDetailFragment", "Image URL " + i + ": " + imageUrls.get(i));
+        }
         
         // Safety check: ensure fragment is still attached to context
         if (!isAdded() || getContext() == null) {
@@ -463,12 +478,16 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
         if (productImage != null && productImage.getParent() instanceof FrameLayout) {
             FrameLayout imageContainer = (FrameLayout) productImage.getParent();
 
-            // Hide single ImageView
+            // Hide single ImageView and placeholder
             productImage.setVisibility(View.GONE);
+            if (imagePlaceholder != null) {
+                imagePlaceholder.setVisibility(View.GONE);
+            }
 
             // Try to find existing carousel or create one
             ProductImageCarousel carousel = imageContainer.findViewById(R.id.productImageCarousel);
             if (carousel == null) {
+                Log.d("ProductDetailFragment", "Creating new carousel dynamically");
                 // Create carousel dynamically
                 carousel = new ProductImageCarousel(requireContext());
                 carousel.setId(R.id.productImageCarousel);
@@ -479,6 +498,8 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
                     FrameLayout.LayoutParams.MATCH_PARENT
                 );
                 imageContainer.addView(carousel, params);
+            } else {
+                Log.d("ProductDetailFragment", "Using existing carousel");
             }
 
             // Set up carousel with click listener
@@ -499,6 +520,8 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
             carousel.setVisibility(View.VISIBLE);
             
             Log.d("ProductDetailFragment", "Carousel visibility set to VISIBLE");
+        } else {
+            Log.e("ProductDetailFragment", "Could not find image container or productImage is null");
         }
     }
 

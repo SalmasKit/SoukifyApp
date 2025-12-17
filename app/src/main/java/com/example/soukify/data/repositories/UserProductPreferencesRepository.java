@@ -2,6 +2,7 @@ package com.example.soukify.data.repositories;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.provider.Settings;
 import android.util.Log;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -14,29 +15,61 @@ import java.util.Set;
 /**
  * Repository to manage user-specific product likes and favorites
  * Uses both SharedPreferences for local persistence and Firestore for cloud sync
+ * Enhanced with device-based fallback for anonymous users
  */
 public class UserProductPreferencesRepository {
     private static final String TAG = "UserProductPreferencesRepository";
     private static final String PREFS_NAME = "user_product_preferences";
     private static final String LIKED_PRODUCTS_KEY = "liked_products_";
     private static final String FAVORITED_PRODUCTS_KEY = "favorited_products_";
+    private static final String DEVICE_LIKED_PRODUCTS_KEY = "device_liked_products";
+    private static final String DEVICE_FAVORITED_PRODUCTS_KEY = "device_favorited_products";
     
     private final Context context;
     private final SharedPreferences sharedPreferences;
     private final FirebaseFirestore firestore;
+    private String deviceUniqueId;
     
     public UserProductPreferencesRepository(Context context) {
         this.context = context.getApplicationContext();
         this.sharedPreferences = this.context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         this.firestore = FirebaseFirestore.getInstance();
+        this.deviceUniqueId = getDeviceUniqueId();
     }
     
     /**
-     * Get current user ID
+     * Get unique device identifier for anonymous users
+     */
+    private String getDeviceUniqueId() {
+        try {
+            // Use Android ID as device identifier (persists across app reinstallation)
+            String androidId = Settings.Secure.getString(
+                context.getContentResolver(), 
+                Settings.Secure.ANDROID_ID
+            );
+            return "device_" + androidId;
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to get device ID", e);
+            return "device_fallback";
+        }
+    }
+    
+    /**
+     * Get current user ID or device ID for anonymous users
      */
     private String getCurrentUserId() {
-        return FirebaseAuth.getInstance().getCurrentUser() != null ? 
-            FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            return FirebaseAuth.getInstance().getCurrentUser().getUid();
+        } else {
+            return deviceUniqueId;
+        }
+    }
+    
+    /**
+     * Check if current user is authenticated
+     */
+    private boolean isUserAuthenticated() {
+        return FirebaseAuth.getInstance().getCurrentUser() != null;
     }
     
     /**
@@ -46,7 +79,12 @@ public class UserProductPreferencesRepository {
         String userId = getCurrentUserId();
         if (userId == null) return new HashSet<>();
         
-        return sharedPreferences.getStringSet(LIKED_PRODUCTS_KEY + userId, new HashSet<>());
+        Set<String> likedProducts = sharedPreferences.getStringSet(LIKED_PRODUCTS_KEY + userId, new HashSet<>());
+        if (!isUserAuthenticated()) {
+            Set<String> deviceLikedProducts = sharedPreferences.getStringSet(DEVICE_LIKED_PRODUCTS_KEY, new HashSet<>());
+            likedProducts.addAll(deviceLikedProducts);
+        }
+        return likedProducts;
     }
     
     /**
@@ -56,7 +94,12 @@ public class UserProductPreferencesRepository {
         String userId = getCurrentUserId();
         if (userId == null) return new HashSet<>();
         
-        return sharedPreferences.getStringSet(FAVORITED_PRODUCTS_KEY + userId, new HashSet<>());
+        Set<String> favoritedProducts = sharedPreferences.getStringSet(FAVORITED_PRODUCTS_KEY + userId, new HashSet<>());
+        if (!isUserAuthenticated()) {
+            Set<String> deviceFavoritedProducts = sharedPreferences.getStringSet(DEVICE_FAVORITED_PRODUCTS_KEY, new HashSet<>());
+            favoritedProducts.addAll(deviceFavoritedProducts);
+        }
+        return favoritedProducts;
     }
     
     /**
@@ -65,7 +108,7 @@ public class UserProductPreferencesRepository {
     public void toggleLike(String productId) {
         String userId = getCurrentUserId();
         if (userId == null) {
-            Log.w(TAG, "User not logged in, cannot toggle like");
+            Log.w(TAG, "Cannot get user ID, cannot toggle like");
             return;
         }
         
@@ -78,13 +121,30 @@ public class UserProductPreferencesRepository {
             likedProducts.add(productId);
         }
         
-        // Save locally
+        // Save locally with user-specific key
         sharedPreferences.edit()
             .putStringSet(LIKED_PRODUCTS_KEY + userId, likedProducts)
             .apply();
         
-        // Update in Firestore
-        updateProductLikeCount(productId, isLiked);
+        // Also save to device-level storage for anonymous users
+        if (!isUserAuthenticated()) {
+            Set<String> deviceLikedProducts = sharedPreferences.getStringSet(DEVICE_LIKED_PRODUCTS_KEY, new HashSet<>());
+            if (isLiked) {
+                deviceLikedProducts.remove(productId);
+            } else {
+                deviceLikedProducts.add(productId);
+            }
+            sharedPreferences.edit()
+                .putStringSet(DEVICE_LIKED_PRODUCTS_KEY, deviceLikedProducts)
+                .apply();
+        }
+        
+        // Update in Firestore only if user is authenticated
+        if (isUserAuthenticated()) {
+            updateProductLikeCount(productId, isLiked);
+        }
+        
+        Log.d(TAG, "Toggled like for product " + productId + " (now " + !isLiked + ")");
     }
     
     /**
@@ -93,7 +153,7 @@ public class UserProductPreferencesRepository {
     public void toggleFavorite(String productId) {
         String userId = getCurrentUserId();
         if (userId == null) {
-            Log.w(TAG, "User not logged in, cannot toggle favorite");
+            Log.w(TAG, "Cannot get user ID, cannot toggle favorite");
             return;
         }
         
@@ -106,13 +166,30 @@ public class UserProductPreferencesRepository {
             favoritedProducts.add(productId);
         }
         
-        // Save locally
+        // Save locally with user-specific key
         sharedPreferences.edit()
             .putStringSet(FAVORITED_PRODUCTS_KEY + userId, favoritedProducts)
             .apply();
         
-        // Update in Firestore
-        updateProductFavoriteCount(productId, isFavorited);
+        // Also save to device-level storage for anonymous users
+        if (!isUserAuthenticated()) {
+            Set<String> deviceFavoritedProducts = sharedPreferences.getStringSet(DEVICE_FAVORITED_PRODUCTS_KEY, new HashSet<>());
+            if (isFavorited) {
+                deviceFavoritedProducts.remove(productId);
+            } else {
+                deviceFavoritedProducts.add(productId);
+            }
+            sharedPreferences.edit()
+                .putStringSet(DEVICE_FAVORITED_PRODUCTS_KEY, deviceFavoritedProducts)
+                .apply();
+        }
+        
+        // Update in Firestore only if user is authenticated
+        if (isUserAuthenticated()) {
+            updateProductFavoriteCount(productId, isFavorited);
+        }
+        
+        Log.d(TAG, "Toggled favorite for product " + productId + " (now " + !isFavorited + ")");
     }
     
     /**
@@ -229,5 +306,39 @@ public class UserProductPreferencesRepository {
         sharedPreferences.edit()
             .putStringSet(FAVORITED_PRODUCTS_KEY + userId, favoritedProducts)
             .apply();
+    }
+    
+    /**
+     * Migrate device preferences to user preferences when user logs in
+     */
+    public void migrateDevicePreferencesToUser(String userId) {
+        Set<String> deviceLikedProducts = sharedPreferences.getStringSet(DEVICE_LIKED_PRODUCTS_KEY, new HashSet<>());
+        Set<String> deviceFavoritedProducts = sharedPreferences.getStringSet(DEVICE_FAVORITED_PRODUCTS_KEY, new HashSet<>());
+        
+        if (!deviceLikedProducts.isEmpty() || !deviceFavoritedProducts.isEmpty()) {
+            Log.d(TAG, "Migrating device preferences to user " + userId);
+            
+            // Get existing user preferences
+            Set<String> userLikedProducts = sharedPreferences.getStringSet(LIKED_PRODUCTS_KEY + userId, new HashSet<>());
+            Set<String> userFavoritedProducts = sharedPreferences.getStringSet(FAVORITED_PRODUCTS_KEY + userId, new HashSet<>());
+            
+            // Merge device preferences with user preferences
+            userLikedProducts.addAll(deviceLikedProducts);
+            userFavoritedProducts.addAll(deviceFavoritedProducts);
+            
+            // Save merged preferences
+            sharedPreferences.edit()
+                .putStringSet(LIKED_PRODUCTS_KEY + userId, userLikedProducts)
+                .putStringSet(FAVORITED_PRODUCTS_KEY + userId, userFavoritedProducts)
+                .apply();
+            
+            // Clear device preferences
+            sharedPreferences.edit()
+                .remove(DEVICE_LIKED_PRODUCTS_KEY)
+                .remove(DEVICE_FAVORITED_PRODUCTS_KEY)
+                .apply();
+            
+            Log.d(TAG, "Migration completed: " + userLikedProducts.size() + " likes, " + userFavoritedProducts.size() + " favorites");
+        }
     }
 }

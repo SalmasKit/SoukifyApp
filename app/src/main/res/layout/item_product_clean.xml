@@ -38,7 +38,7 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Product Name and Action Buttons -->
+            <!-- Like and Favorite Buttons -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -46,71 +46,62 @@
                 android:gravity="center_vertical"
                 android:layout_marginBottom="8dp">
 
-                <TextView
-                    android:id="@+id/productName"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Product Name"
-                    android:textColor="#212121"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:maxLines="2"
-                    android:ellipsize="end"
-                    android:lineSpacingExtra="2dp" />
+                <!-- Like Button -->
+                <ImageButton
+                    android:id="@+id/likeButton"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_marginEnd="4dp"
+                    android:src="@drawable/ic_heart_outline"
+                    android:background="?attr/selectableItemBackground"
+                    android:scaleType="centerCrop"
+                    android:contentDescription="Like" />
 
-                <!-- Like and Favorite Buttons -->
-                <LinearLayout
+                <!-- Likes Count -->
+                <TextView
+                    android:id="@+id/likesCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginStart="8dp">
+                    android:text="0"
+                    android:textSize="12sp"
+                    android:layout_marginEnd="8dp"
+                    android:textColor="#757575" />
 
-                    <!-- Like Button -->
-                    <ImageButton
-                        android:id="@+id/likeButton"
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
-                        android:layout_marginEnd="4dp"
-                        android:src="@drawable/ic_heart_outline"
-                        android:background="?attr/selectableItemBackground"
-                        android:scaleType="centerCrop"
-                        android:contentDescription="Like" />
+                <!-- Favorite Button -->
+                <ImageButton
+                    android:id="@+id/favoriteButton"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_marginEnd="4dp"
+                    android:src="@drawable/ic_star_outline"
+                    android:background="?attr/selectableItemBackground"
+                    android:scaleType="centerCrop"
+                    android:contentDescription="Favorite" />
 
-                    <!-- Likes Count -->
-                    <TextView
-                        android:id="@+id/likesCount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
-                        android:textSize="12sp"
-                        android:layout_marginEnd="8dp"
-                        android:textColor="#757575" />
-
-                    <!-- Favorite Button -->
-                    <ImageButton
-                        android:id="@+id/favoriteButton"
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
-                        android:layout_marginEnd="4dp"
-                        android:src="@drawable/ic_star_outline"
-                        android:background="?attr/selectableItemBackground"
-                        android:scaleType="centerCrop"
-                        android:contentDescription="Favorite" />
-
-                    <!-- Favorites Count -->
-                    <TextView
-                        android:id="@+id/favoritesCount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
-                        android:textSize="12sp"
-                        android:textColor="#757575" />
-
-                </LinearLayout>
+                <!-- Favorites Count -->
+                <TextView
+                    android:id="@+id/favoritesCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textSize="12sp"
+                    android:textColor="#757575" />
 
             </LinearLayout>
+
+            <!-- Product Name -->
+            <TextView
+                android:id="@+id/productName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Product Name"
+                android:textColor="#212121"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:lineSpacingExtra="2dp"
+                android:layout_marginBottom="8dp" />
 
             <!-- Product Type -->
             <TextView

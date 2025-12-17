@@ -93,7 +93,7 @@
                         android:id="@+id/productImageCarousel"
                         android:layout_width="match_parent"
                         android:layout_height="280dp"
-                        android:visibility="gone"
+                        android:visibility="visible"
                         android:nestedScrollingEnabled="false" />
 
                     <!-- Single Image Preview -->
@@ -202,21 +202,41 @@
                                 android:id="@+id/likeButton"
                                 android:layout_width="32dp"
                                 android:layout_height="32dp"
-                                android:layout_marginEnd="8dp"
+                                android:layout_marginEnd="4dp"
                                 android:src="@drawable/ic_heart_outline"
                                 android:background="?attr/selectableItemBackground"
                                 android:scaleType="centerCrop"
                                 android:contentDescription="Like" />
+
+                            <!-- Likes Count -->
+                            <TextView
+                                android:id="@+id/likesCount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0"
+                                android:textSize="12sp"
+                                android:layout_marginEnd="12dp"
+                                android:textColor="#757575" />
 
                             <!-- Favorite Button -->
                             <ImageButton
                                 android:id="@+id/favoriteButton"
                                 android:layout_width="32dp"
                                 android:layout_height="32dp"
+                                android:layout_marginEnd="4dp"
                                 android:src="@drawable/ic_star_outline"
                                 android:background="?attr/selectableItemBackground"
                                 android:scaleType="centerCrop"
                                 android:contentDescription="Favorite" />
+
+                            <!-- Favorites Count -->
+                            <TextView
+                                android:id="@+id/favoritesCount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0"
+                                android:textSize="12sp"
+                                android:textColor="#757575" />
 
                         </LinearLayout>
 
