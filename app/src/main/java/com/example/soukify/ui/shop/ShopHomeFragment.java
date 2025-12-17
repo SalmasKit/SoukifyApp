@@ -964,6 +964,28 @@ public class ShopHomeFragment extends Fragment {
                             break;
                         }
                     }
+                }
+            });
+        }
+    }
+
+    private void handleShopImage(ShopModel shop, ImageView ivShopPreview, LinearLayout imageContainer) {
+        // Handle existing image
+        if (shop.getImageUrl() != null && !shop.getImageUrl().isEmpty()) {
+            try {
+                ivShopPreview.setVisibility(View.VISIBLE);
+                imageContainer.setVisibility(View.GONE);
+                ivShopPreview.setImageURI(Uri.parse(shop.getImageUrl()));
+            } catch (Exception e) {
+                ivShopPreview.setVisibility(View.GONE);
+                imageContainer.setVisibility(View.VISIBLE);
+            }
+        }
+
+        // Setup image click listeners
+        imageContainer.setOnClickListener(v -> {
+            currentImageView = ivShopPreview;
+            currentImageContainer = imageContainer;
             isSelectingShopImage = true;
             openGallery();
         });
