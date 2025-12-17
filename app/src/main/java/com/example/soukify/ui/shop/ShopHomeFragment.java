@@ -153,6 +153,9 @@ public class ShopHomeFragment extends Fragment {
         shopViewModel = new ViewModelProvider(requireActivity()).get(ShopViewModel.class);
         locationRepository = new LocationRepository(requireActivity().getApplication());
 
+        // Initialize toolbar with back button
+        initializeToolbar();
+
         // Initialize product managers
         productManager = new ProductManager(requireActivity().getApplication());
         productsUIManager = new ProductsUIManager(this, productManager);
@@ -162,8 +165,22 @@ public class ShopHomeFragment extends Fragment {
 
         // Initialize product dialog helper
         productDialogHelper = new ProductDialogHelper(this, productManager, imagePickerLauncher);
-
         shopViewModel.loadRegions();
+    }
+
+    private void initializeToolbar() {
+        androidx.appcompat.widget.Toolbar toolbar = rootView.findViewById(R.id.toolbar);
+        if (toolbar != null) {
+            toolbar.setNavigationOnClickListener(v -> {
+                // Navigate back to previous screen
+                if (getFragmentManager() != null) {
+                    getFragmentManager().popBackStack();
+                } else {
+                    // Fallback to navigation controller
+                    Navigation.findNavController(requireView()).navigateUp();
+                }
+            });
+        }
     }
 
     private void initializeImagePicker() {

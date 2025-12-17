@@ -4,11 +4,15 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
+import com.example.soukify.R;
 import com.example.soukify.databinding.FragmentAccountSettingsBinding;
 import com.example.soukify.ui.settings.SettingsViewModel;
 
@@ -27,10 +31,28 @@ public class AccountSettingsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         
+        // Initialize toolbar with back button
+        initializeToolbar(view);
+        
         viewModel = new ViewModelProvider(requireActivity()).get(SettingsViewModel.class);
         
         setupObservers();
         setupClickListeners();
+    }
+
+    private void initializeToolbar(View view) {
+        Toolbar toolbar = view.findViewById(R.id.toolbar);
+        if (toolbar != null) {
+            toolbar.setNavigationOnClickListener(v -> {
+                // Navigate back to previous screen
+                if (getFragmentManager() != null) {
+                    getFragmentManager().popBackStack();
+                } else {
+                    // Fallback to navigation controller
+                    Navigation.findNavController(requireView()).navigateUp();
+                }
+            });
+        }
     }
 
     private void setupObservers() {

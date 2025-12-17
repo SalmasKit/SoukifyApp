@@ -7,13 +7,35 @@
     android:layout_height="match_parent"
     tools:context=".ui.shop.ShopHomeFragment">
 
+    <!-- App Bar with Back Button -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:elevation="0dp">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="#F5E5D8"
+            android:elevation="4dp"
+            app:navigationIcon="@drawable/ic_back_arrow"
+            app:navigationIconTint="#E85F4C"
+            app:title="Shop Details"
+            app:titleTextColor="#000000"
+            android:textStyle="bold" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
     <!-- Main Content -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
         android:fillViewport="true"
-        android:scrollbars="vertical">
+        android:scrollbars="vertical"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"

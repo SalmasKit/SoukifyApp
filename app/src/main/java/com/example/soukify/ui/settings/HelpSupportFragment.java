@@ -13,7 +13,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 
 import com.example.soukify.R;
 
@@ -32,6 +34,9 @@ public class HelpSupportFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        
+        // Initialize toolbar with back button
+        initializeToolbar(view);
 
         initFAQViews(view);
         setupFAQClickListeners();
@@ -165,6 +170,21 @@ public class HelpSupportFragment extends Fragment {
     private void showToast(String msg) {
         if (getContext() != null) {
             Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+        }
+    }
+    
+    private void initializeToolbar(View view) {
+        Toolbar toolbar = view.findViewById(R.id.toolbar);
+        if (toolbar != null) {
+            toolbar.setNavigationOnClickListener(v -> {
+                // Navigate back to previous screen
+                if (getFragmentManager() != null) {
+                    getFragmentManager().popBackStack();
+                } else {
+                    // Fallback to navigation controller
+                    Navigation.findNavController(requireView()).navigateUp();
+                }
+            });
         }
     }
 
