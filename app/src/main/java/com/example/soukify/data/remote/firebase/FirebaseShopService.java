@@ -46,11 +46,19 @@ public class FirebaseShopService {
     }
     
     public Query getShopsByUser(String userId) {
-        return firestore.collection(SHOPS_COLLECTION).whereEqualTo("userId", userId);
+        android.util.Log.d("FirebaseShopService", "getShopsByUser called with userId: " + userId);
+        android.util.Log.d("FirebaseShopService", "Query: " + SHOPS_COLLECTION + ".whereEqualTo(\"userId\", \"" + userId + "\")");
+        Query query = firestore.collection(SHOPS_COLLECTION).whereEqualTo("userId", userId);
+        android.util.Log.d("FirebaseShopService", "Query created successfully");
+        return query;
     }
     
     public Query getAllShops() {
-        return firestore.collection(SHOPS_COLLECTION).orderBy("createdAt", Query.Direction.DESCENDING);
+        android.util.Log.d("FirebaseShopService", "getAllShops called");
+        android.util.Log.d("FirebaseShopService", "Query: " + SHOPS_COLLECTION + ".orderBy(\"createdAt\", DESC)");
+        Query query = firestore.collection(SHOPS_COLLECTION).orderBy("createdAt", Query.Direction.DESCENDING);
+        android.util.Log.d("FirebaseShopService", "getAllShops query created successfully");
+        return query;
     }
     
     public Query searchShops(String query) {

@@ -36,7 +36,6 @@
                     android:text="@string/pageTitle"
                     android:textStyle="bold"
                     android:textSize="40sp"
-                    android:textColor="?android:attr/textColorPrimary"
                     android:fontFamily="serif"
                     android:letterSpacing="-0.02"/>
 
@@ -71,13 +70,14 @@
                         android:layout_height="wrap_content"
                         android:text="@string/location"
                         android:textSize="15sp"
-                        android:textColor="?android:attr/textColorPrimary"
                         android:textStyle="bold"/>
                 </LinearLayout>
             </RelativeLayout>
 
-            <!-- Barre de recherche -->
+            <!-- Dans ton LinearLayout qui contient le search_input, ajoute ceci APRÈS le Button : -->
+
             <LinearLayout
+                android:id="@+id/search_bar_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -86,7 +86,7 @@
                 android:paddingBottom="20dp"
                 android:gravity="center_vertical">
 
-                <EditText
+                <AutoCompleteTextView
                     android:id="@+id/search_input"
                     android:layout_width="0dp"
                     android:layout_height="40dp"
@@ -104,7 +104,9 @@
                     android:minHeight="0dp"
                     android:includeFontPadding="false"
                     android:inputType="text"
-                    android:layout_gravity="center_vertical"/>
+                    android:layout_gravity="center_vertical"
+                    android:completionThreshold="2"
+                    android:dropDownHeight="200dp"/>
 
                 <Button
                     android:id="@+id/btn_search"
@@ -118,6 +120,20 @@
                     android:textStyle="bold"
                     android:layout_marginStart="12dp"/>
             </LinearLayout>
+
+            <!-- ⭐ AJOUTE CETTE LISTVIEW ICI ⭐ -->
+            <ListView
+                android:id="@+id/suggestions_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginEnd="24dp"
+                android:background="@android:color/white"
+                android:elevation="4dp"
+                android:divider="@android:color/darker_gray"
+                android:dividerHeight="1dp"
+                android:visibility="gone"
+                android:maxHeight="200dp"/>
 
             <!-- Catégories circulaires -->
             <HorizontalScrollView
@@ -164,7 +180,6 @@
                             android:layout_height="wrap_content"
                             android:text="@string/tapestry"
                             android:textSize="13sp"
-                            android:textColor="?android:attr/textColorPrimary"
                             android:paddingBottom="6dp"/>
                     </LinearLayout>
 
@@ -200,7 +215,6 @@
                             android:layout_height="wrap_content"
                             android:text="@string/food"
                             android:textSize="13sp"
-                            android:textColor="?android:attr/textColorPrimary"
                             android:paddingBottom="6dp"/>
                     </LinearLayout>
 
@@ -236,7 +250,76 @@
                             android:layout_height="wrap_content"
                             android:text="@string/pottery"
                             android:textSize="13sp"
-                            android:textColor="?android:attr/textColorPrimary"
+                            android:paddingBottom="6dp"/>
+                    </LinearLayout>
+
+                    <!-- Traditional Wear -->
+                    <LinearLayout
+                        android:id="@+id/cat_traditional_wear"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:layout_marginEnd="24dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingBottom="8dp">
+
+                        <androidx.cardview.widget.CardView
+                            android:layout_width="80dp"
+                            android:layout_height="80dp"
+                            app:cardCornerRadius="40dp"
+                            app:cardElevation="0dp"
+                            android:layout_marginBottom="10dp">
+
+                            <ImageView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:scaleType="centerCrop"
+                                android:background="#F5E6D8"
+                                app:srcCompat="@drawable/wear"/>
+                        </androidx.cardview.widget.CardView>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/traditional_wear"
+                            android:textSize="13sp"
+                            android:paddingBottom="6dp"/>
+                    </LinearLayout>
+
+                    <!-- Leather Crafts -->
+                    <LinearLayout
+                        android:id="@+id/cat_leather_crafts"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:layout_marginEnd="24dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingBottom="8dp">
+
+                        <androidx.cardview.widget.CardView
+                            android:layout_width="80dp"
+                            android:layout_height="80dp"
+                            app:cardCornerRadius="40dp"
+                            app:cardElevation="0dp"
+                            android:layout_marginBottom="10dp">
+
+                            <ImageView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:scaleType="centerCrop"
+                                android:background="#F5E6D8"
+                                app:srcCompat="@drawable/leather"/>
+                        </androidx.cardview.widget.CardView>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Leather Crafts"
+                            android:textSize="13sp"
                             android:paddingBottom="6dp"/>
                     </LinearLayout>
 
@@ -272,7 +355,6 @@
                             android:layout_height="wrap_content"
                             android:text="@string/naturalProducts"
                             android:textSize="13sp"
-                            android:textColor="?android:attr/textColorPrimary"
                             android:paddingBottom="6dp"/>
                     </LinearLayout>
 
@@ -308,7 +390,6 @@
                             android:layout_height="wrap_content"
                             android:text="@string/jewellery"
                             android:textSize="13sp"
-                            android:textColor="?android:attr/textColorPrimary"
                             android:paddingBottom="6dp"/>
                     </LinearLayout>
 
@@ -344,7 +425,6 @@
                             android:layout_height="wrap_content"
                             android:text="@string/metal"
                             android:textSize="13sp"
-                            android:textColor="?android:attr/textColorPrimary"
                             android:paddingBottom="6dp"/>
                     </LinearLayout>
 
@@ -380,7 +460,6 @@
                             android:layout_height="wrap_content"
                             android:text="@string/paintings"
                             android:textSize="13sp"
-                            android:textColor="?android:attr/textColorPrimary"
                             android:paddingBottom="6dp"/>
                     </LinearLayout>
 
@@ -415,7 +494,6 @@
                             android:layout_height="wrap_content"
                             android:text="@string/woodwork"
                             android:textSize="13sp"
-                            android:textColor="?android:attr/textColorPrimary"
                             android:paddingBottom="6dp"/>
                     </LinearLayout>
 
@@ -447,12 +525,12 @@
                     android:textColor="#FFFFFF"/>
 
                 <Button
-                    android:id="@+id/btn_object_type"
+                    android:id="@+id/btnLiv"
                     android:layout_width="0dp"
                     android:layout_height="44dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="12dp"
-                    android:text="@string/Type"
+                    android:text="Liv"
                     android:textSize="14sp"
                     android:textAllCaps="false"
                     android:backgroundTint="#E85F4C"
@@ -481,6 +559,19 @@
                     android:backgroundTint="#E85F4C"
                     android:textColor="#FFFFFF"/>
             </LinearLayout>
+            <TextView
+                android:id="@+id/textView_not_found"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Élément introuvable"
+                android:textSize="18sp"
+                android:textColor="#E85F4C"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:padding="32dp"
+                android:visibility="gone"
+                android:drawableTop="@android:drawable/ic_menu_search"
+                android:drawablePadding="16dp"/>
 
             <!-- RecyclerView pour les boutiques -->
             <androidx.recyclerview.widget.RecyclerView

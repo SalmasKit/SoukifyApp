@@ -11,6 +11,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -143,6 +144,26 @@ public class FavoritesRepository {
                             .addOnSuccessListener(aVoid -> {
                                 // Toggle the favorite status in the shop model
                                 shop.setFavorite(!isFavorite);
+                                
+                                // Update favorites count
+                                int currentFavoritesCount = shop.getFavoritesCount();
+                                int newFavoritesCount = !isFavorite ? currentFavoritesCount + 1 : Math.max(0, currentFavoritesCount - 1);
+                                shop.setFavoritesCount(newFavoritesCount);
+                                
+                                // Update favorites count in Firestore
+                                shopService.getShopById(shop.getShopId())
+                                    .addOnSuccessListener(documentSnapshot -> {
+                                        if (documentSnapshot != null && documentSnapshot.exists()) {
+                                            documentSnapshot.getReference()
+                                                .update("favoritesCount", newFavoritesCount)
+                                                .addOnSuccessListener(updateSuccess -> {
+                                                    // Log.d(TAG, "Updated favorites count to: " + newFavoritesCount);
+                                                })
+                                                .addOnFailureListener(updateError -> {
+                                                    // Log.e(TAG, "Failed to update favorites count", updateError);
+                                                });
+                                        }
+                                    });
                                 
                                 // Reload favorites list
                                 loadFavoriteShops();

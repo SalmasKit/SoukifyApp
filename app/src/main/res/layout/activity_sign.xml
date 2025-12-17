@@ -11,7 +11,7 @@
     tools:context=".ui.sign.SignActivity">
     <androidx.cardview.widget.CardView
         android:layout_width="300dp"
-        android:layout_height="500dp"
+        android:layout_height="540dp"
         android:layout_marginTop="60dp"
         app:cardCornerRadius="30dp"
         app:cardElevation="20dp">
@@ -93,6 +93,30 @@
                 android:layout_height="35dp"
                 android:background="@drawable/rounded"
                 android:text="sign up"></Button>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="25dp"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Already have on account?"
+                    android:textSize="12dp"
+                    android:layout_marginLeft="40dp"
+                    android:layout_marginTop="10dp"></TextView>
+                <TextView
+                    android:id="@+id/login"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="log in"
+                    android:layout_marginTop="10dp"
+                    android:textColor="@color/colorPrimaryDark"
+                    android:textSize="12dp"
+                    android:layout_marginLeft="5dp"
+                    ></TextView>
+
+
+            </LinearLayout>
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>

@@ -30,6 +30,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
 
 import com.bumptech.glide.Glide;
 import com.example.soukify.R;
@@ -57,12 +58,12 @@ public class ShopHomeFragment extends Fragment {
     private ShopViewModel shopViewModel;
     private LocationRepository locationRepository;
     private View rootView;
-    
+
     // Shop image handling
     private Uri selectedShopImageUri;
     private boolean isPreviewingShopImage = false;
     private boolean isSelectingShopImage = false;
-    
+
     private ActivityResultLauncher<Intent> imagePickerLauncher;
     private boolean hasHandledDeletion = false;
 
@@ -78,36 +79,90 @@ public class ShopHomeFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.fragment_shop_home, container, false);
-        return rootView;
-    }
 
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
+        // Initialize components first
         initializeComponents();
+
+        // Check if dialogs should be hidden (when opened from search)
+        boolean hideDialogs = false;
+        Bundle args = getArguments();
+        if (args != null) {
+            hideDialogs = args.getBoolean("hideDialogs", false);
+            
+            // If shop data is passed from search, load the full shop data from database using shopId
+            if (args.containsKey("shopId")) {
+                String shopId = args.getString("shopId");
+                if (shopId != null && !shopId.isEmpty()) {
+                    android.util.Log.d("ShopHomeFragment", "Loading shop data from database for shopId: " + shopId);
+                    // Load shop data from database to ensure consistency
+                    shopViewModel.loadShopById(shopId);
+                }
+            }
+        }
+
         loadShopRegionCities();
         observeViewModel();
         setupClickListeners();
         initializeProductsUI();
 
         android.util.Log.d("ShopHomeFragment", "onViewCreated completed");
+        return rootView;
+    }
+
+    private boolean isShopOwner() {
+        ShopModel currentShop = shopViewModel.getShop().getValue();
+        String currentUserId = shopViewModel.getCurrentUserId();
+        
+        if (currentShop == null || currentUserId == null) {
+            return false;
+        }
+        
+        // Check if the current user is the owner of this shop
+        boolean isOwner = currentUserId.equals(currentShop.getUserId());
+        android.util.Log.d("ShopHomeFragment", "Ownership check - Current user: " + currentUserId + 
+                          ", Shop owner: " + currentShop.getUserId() + ", Is owner: " + isOwner);
+        return isOwner;
+    }
+
+    private ShopModel createShopFromArguments(Bundle args) {
+        try {
+            ShopModel shop = new ShopModel();
+            shop.setShopId(args.getString("shopId"));
+            shop.setName(args.getString("shopName"));
+            shop.setCategory(args.getString("shopCategory"));
+            shop.setDescription(args.getString("shopDescription"));
+            shop.setLocation(args.getString("shopLocation"));
+            shop.setPhone(args.getString("shopPhone"));
+            shop.setEmail(args.getString("shopEmail"));
+            shop.setAddress(args.getString("shopAddress"));
+            shop.setImageUrl(args.getString("shopImageUrl"));
+            shop.setInstagram(args.getString("shopInstagram"));
+            shop.setFacebook(args.getString("shopFacebook"));
+            shop.setWebsite(args.getString("shopWebsite"));
+            shop.setRegionId(args.getString("shopRegionId"));
+            shop.setCityId(args.getString("shopCityId"));
+            shop.setCreatedAt(args.getString("shopCreatedAt"));
+            return shop;
+        } catch (Exception e) {
+            android.util.Log.e("ShopHomeFragment", "Error creating shop from arguments", e);
+            return null;
+        }
     }
 
     private void initializeComponents() {
         shopViewModel = new ViewModelProvider(requireActivity()).get(ShopViewModel.class);
         locationRepository = new LocationRepository(requireActivity().getApplication());
-        
+
         // Initialize product managers
         productManager = new ProductManager(requireActivity().getApplication());
         productsUIManager = new ProductsUIManager(this, productManager);
-        
+
         // Initialize image picker
         initializeImagePicker();
-        
+
         // Initialize product dialog helper
         productDialogHelper = new ProductDialogHelper(this, productManager, imagePickerLauncher);
-        
+
         shopViewModel.loadRegions();
     }
 
@@ -117,7 +172,7 @@ public class ShopHomeFragment extends Fragment {
                 result -> {
                     if (result.getResultCode() == requireActivity().RESULT_OK && result.getData() != null) {
                         ClipData clipData = result.getData().getClipData();
-                        
+
                         if (isSelectingShopImage && currentImageView != null && currentImageContainer != null) {
                             isSelectingShopImage = false;
                             Uri selectedUri = null;
@@ -126,16 +181,16 @@ public class ShopHomeFragment extends Fragment {
                             } else {
                                 selectedUri = result.getData().getData();
                             }
-                            
+
                             if (selectedUri != null) {
                                 try {
                                     selectedShopImageUri = selectedUri;
                                     isPreviewingShopImage = true;
-                                    
+
                                     currentImageView.setImageURI(selectedUri);
                                     currentImageView.setVisibility(View.VISIBLE);
                                     currentImageContainer.setVisibility(View.GONE);
-                                    
+
                                     ShopModel currentShop = shopViewModel.getShop().getValue();
                                     if (currentShop != null && currentImageView.getId() == R.id.shopBannerImage) {
                                         try {
@@ -144,9 +199,9 @@ public class ShopHomeFragment extends Fragment {
                                         } catch (SecurityException e) {
                                             Log.w("ShopHomeFragment", "Could not take persistent permission", e);
                                         }
-                                        
+
                                         shopViewModel.updateShopImage(selectedUri.toString());
-                                        
+
                                         new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
                                             isPreviewingShopImage = false;
                                         }, 1000);
@@ -159,7 +214,7 @@ public class ShopHomeFragment extends Fragment {
                             }
                             return;
                         }
-                        
+
                         // Handle product image picker through ProductDialogHelper
                         if (productDialogHelper != null) {
                             productDialogHelper.handleImagePickerResult(result.getData());
@@ -196,7 +251,8 @@ public class ShopHomeFragment extends Fragment {
             productsUIManager.setOnProductClickListener(new ProductsUIManager.OnProductClickListener() {
                 @Override
                 public void onProductClick(ProductModel product) {
-                    Toast.makeText(getContext(), "Clicked: " + product.getName(), Toast.LENGTH_SHORT).show();
+                    android.util.Log.d("ShopHomeFragment", "Product clicked: " + product.getName());
+                    navigateToProductDetail(product);
                 }
 
                 @Override
@@ -288,6 +344,47 @@ public class ShopHomeFragment extends Fragment {
                     productDialogHelper.showAddProductDialog();
                 }
             });
+        }
+
+        // Check if dialogs should be hidden based on ownership and navigation source
+        Bundle args = getArguments();
+        boolean fromSearch = args != null && args.getBoolean("hideDialogs", false);
+        boolean shouldHideDialogs = fromSearch || !isShopOwner();
+        
+        if (shouldHideDialogs) {
+            hideDialogElements();
+        }
+    }
+
+    private void hideDialogElements() {
+        // Hide edit and delete buttons
+        ImageView editShopButton = rootView.findViewById(R.id.editShopButton);
+        ImageView deleteShopButton = rootView.findViewById(R.id.deleteShopButton);
+        
+        if (editShopButton != null) {
+            editShopButton.setVisibility(View.GONE);
+        }
+        if (deleteShopButton != null) {
+            deleteShopButton.setVisibility(View.GONE);
+        }
+
+        // Hide FAB
+        FloatingActionButton addProductFab = rootView.findViewById(R.id.addProductFab);
+        if (addProductFab != null) {
+            addProductFab.setVisibility(View.GONE);
+        }
+
+        // Disable image container clicks
+        LinearLayout imageContainer = rootView.findViewById(R.id.imageContainer);
+        ImageView shopBannerImage = rootView.findViewById(R.id.shopBannerImage);
+        
+        if (imageContainer != null) {
+            imageContainer.setClickable(false);
+            imageContainer.setFocusable(false);
+        }
+        if (shopBannerImage != null) {
+            shopBannerImage.setClickable(false);
+            shopBannerImage.setFocusable(false);
         }
     }
 
@@ -506,7 +603,7 @@ public class ShopHomeFragment extends Fragment {
 
         // Only skip update if we're previewing a LOCAL image (file/content scheme)
         // Allow Firebase Storage URLs to update normally
-        if (isPreviewingShopImage && shop.getImageUrl() != null && 
+        if (isPreviewingShopImage && shop.getImageUrl() != null &&
             (shop.getImageUrl().startsWith("file:") || shop.getImageUrl().startsWith("content:"))) {
             android.util.Log.d("ShopHomeFragment", "Skipping image update - preview in progress for local image");
             return;
@@ -515,7 +612,7 @@ public class ShopHomeFragment extends Fragment {
         if (shop.getImageUrl() != null && !shop.getImageUrl().isEmpty()) {
             try {
                 Uri imageUri = Uri.parse(shop.getImageUrl());
-                
+
                 if (imageUri.getScheme() != null && imageUri.getScheme().equals("file")) {
                     String imagePath = imageUri.getPath();
                     if (imagePath != null && new File(imagePath).exists()) {
@@ -704,7 +801,7 @@ public class ShopHomeFragment extends Fragment {
         tvShopRating.setText(String.format("%.1f", shop.getRating()));
 
         List<String> categories = Arrays.asList(
-                "Textile & Tapestry", "Gourmet & Local Foods", "Pottery & Ceramics",
+                "Textile & Tapestry", "Gourmet & Local Foods", "Pottery & Ceramics","Traditional Wear","Leather Crafts",
                 "Natural Wellness Products", "Jewelry & Accessories", "Metal & Brass Crafts",
                 "Painting & Calligraphy", "Woodwork"
         );
@@ -716,7 +813,7 @@ public class ShopHomeFragment extends Fragment {
 
         // Setup working hours and PRE-FILL DATA
         prefillWorkingHoursData(dialogView, shop);
-        
+
         // Setup checkbox listeners for working hours
         setupWorkingHoursCheckboxes(dialogView);
 
@@ -867,28 +964,6 @@ public class ShopHomeFragment extends Fragment {
                             break;
                         }
                     }
-                }
-            });
-        }
-    }
-
-    private void handleShopImage(ShopModel shop, ImageView ivShopPreview, LinearLayout imageContainer) {
-        // Handle existing image
-        if (shop.getImageUrl() != null && !shop.getImageUrl().isEmpty()) {
-            try {
-                ivShopPreview.setVisibility(View.VISIBLE);
-                imageContainer.setVisibility(View.GONE);
-                ivShopPreview.setImageURI(Uri.parse(shop.getImageUrl()));
-            } catch (Exception e) {
-                ivShopPreview.setVisibility(View.GONE);
-                imageContainer.setVisibility(View.VISIBLE);
-            }
-        }
-
-        // Setup image click listeners
-        imageContainer.setOnClickListener(v -> {
-            currentImageView = ivShopPreview;
-            currentImageContainer = imageContainer;
             isSelectingShopImage = true;
             openGallery();
         });
@@ -910,7 +985,7 @@ public class ShopHomeFragment extends Fragment {
         if (selectedShopImageUri != null) {
             // Upload the selected image to get a proper file:// URI like during creation
             shopViewModel.updateShopImage(selectedShopImageUri.toString());
-            
+
             // Reset the preview flag after initiating the upload
             isPreviewingShopImage = false;
         }
@@ -957,7 +1032,7 @@ public class ShopHomeFragment extends Fragment {
         shop.setCityId(cityId);
 
         shopViewModel.updateShop(shop);
-        
+
         // Clear the preview URI after saving
         selectedShopImageUri = null;
     }
@@ -1066,7 +1141,7 @@ public class ShopHomeFragment extends Fragment {
                     shopViewModel.clearErrorMessage();
                 }
             });
-            
+
             shopViewModel.getSuccessMessage().observe(getViewLifecycleOwner(), successMsg -> {
                 if (successMsg != null && successMsg.contains("deleted successfully")) {
                     dialog.dismiss();
@@ -1074,17 +1149,17 @@ public class ShopHomeFragment extends Fragment {
                     shopViewModel.clearSuccessMessage();
                 }
             });
-            
+
             Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
             positiveButton.setOnClickListener(view -> {
                 String password = passwordInput.getText().toString().trim();
-                
+
                 if (password.isEmpty()) {
                     errorText.setText("Password is required");
                     errorText.setVisibility(View.VISIBLE);
                     return;
                 }
-                
+
                 errorText.setVisibility(View.GONE);
                 shopViewModel.deleteShop(shop.getShopId(), password);
                 Toast.makeText(requireContext(), "Verifying password...", Toast.LENGTH_SHORT).show();
@@ -1097,7 +1172,7 @@ public class ShopHomeFragment extends Fragment {
     private void showShopImageEditDialog(boolean isEditing) {
         String[] options;
         String title;
-        
+
         if (isEditing) {
             options = new String[]{"Change Cover Photo", "Remove Cover Photo", "Cancel"};
             title = "Edit Shop Cover Photo";
@@ -1105,7 +1180,7 @@ public class ShopHomeFragment extends Fragment {
             options = new String[]{"Add Cover Photo", "Cancel"};
             title = "Add Shop Cover Photo";
         }
-        
+
         new MaterialAlertDialogBuilder(requireContext())
             .setTitle(title)
             .setItems(options, (dialog, which) -> {
@@ -1429,6 +1504,45 @@ public class ShopHomeFragment extends Fragment {
             while ((read = in.read(buffer)) != -1) {
                 out.write(buffer, 0, read);
             }
+        }
+    }
+
+    private void navigateToProductDetail(ProductModel product) {
+        if (product == null) {
+            android.util.Log.e("ShopHomeFragment", "Cannot navigate to product detail - product is null");
+            return;
+        }
+        
+        android.util.Log.d("ShopHomeFragment", "Navigating to product detail for: " + product.getName());
+        
+        try {
+            Bundle args = new Bundle();
+            args.putParcelable("product", product);
+            
+            // Use the activity's NavController for global navigation
+            // This should work regardless of fragment hierarchy
+            androidx.navigation.NavController navController = null;
+            
+            // Try to get NavController from the activity first
+            if (getActivity() != null) {
+                navController = androidx.navigation.Navigation.findNavController(getActivity(), R.id.nav_host_fragment_activity_main);
+            }
+            
+            // Fallback to view-based navigation
+            if (navController == null && getView() != null) {
+                navController = androidx.navigation.Navigation.findNavController(getView());
+            }
+            
+            if (navController != null) {
+                navController.navigate(R.id.global_action_to_productDetail, args);
+                android.util.Log.d("ShopHomeFragment", "Navigation to product detail successful");
+            } else {
+                android.util.Log.e("ShopHomeFragment", "Could not find NavController");
+                Toast.makeText(getContext(), "Error opening product details", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            android.util.Log.e("ShopHomeFragment", "Error navigating to product detail", e);
+            Toast.makeText(getContext(), "Error opening product details", Toast.LENGTH_SHORT).show();
         }
     }
 }

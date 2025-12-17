@@ -81,6 +81,20 @@
                     android:paddingEnd="8dp"
                     android:textColor="#FFFFFF" />
 
+                <!-- Chat -->
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/btnChat"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:padding="8dp"
+                    android:background="@android:color/transparent"
+                    android:scaleType="centerInside"
+                    android:src="@android:drawable/ic_dialog_email"
+                    android:contentDescription="Chat"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:tint="#FFFFFF" />
+
                 <!-- Favoris (étoile) -->
                 <androidx.appcompat.widget.AppCompatImageButton
                     android:id="@+id/btn_favorite"
@@ -94,6 +108,17 @@
                     android:focusable="false"
                     android:focusableInTouchMode="false"
                     android:tint="#FFFFFF" />
+
+                <!-- Nombre de favoris -->
+                <TextView
+                    android:id="@+id/favorites_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textSize="14sp"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="8dp"
+                    android:textColor="#FFFFFF" />
             </LinearLayout>
         </RelativeLayout>
 
@@ -111,6 +136,18 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:paddingBottom="4dp">
+
+                <RatingBar
+                    android:id="@+id/shop_rating_bar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:numStars="5"
+                    android:stepSize="0.1"
+                    android:rating="4.5"
+                    android:scaleX="0.5"
+                    android:scaleY="0.5"
+                    style="?android:attr/ratingBarStyleSmall" />
 
                 <TextView
                     android:id="@+id/shop_rating"

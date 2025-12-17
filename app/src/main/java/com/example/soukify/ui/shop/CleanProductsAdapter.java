@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -19,7 +20,9 @@ import com.example.soukify.R;
 import com.example.soukify.data.models.ProductModel;
 import com.example.soukify.data.models.ProductImageModel;
 import com.example.soukify.data.remote.firebase.FirebaseProductImageService;
+import com.example.soukify.data.repositories.UserProductPreferencesRepository;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.io.File;
@@ -33,6 +36,7 @@ public class CleanProductsAdapter extends RecyclerView.Adapter<CleanProductsAdap
     private OnProductClickListener listener;
     private Context context;
     private FirebaseProductImageService imageService;
+    private UserProductPreferencesRepository userPreferences;
     
     public interface OnProductClickListener {
         void onProductClick(ProductModel product);
@@ -43,6 +47,7 @@ public class CleanProductsAdapter extends RecyclerView.Adapter<CleanProductsAdap
         this.context = context;
         this.listener = listener;
         this.imageService = new FirebaseProductImageService(FirebaseFirestore.getInstance());
+        this.userPreferences = new UserProductPreferencesRepository(context);
     }
     
     @NonNull
@@ -96,8 +101,8 @@ public class CleanProductsAdapter extends RecyclerView.Adapter<CleanProductsAdap
                 Bundle bundle = new Bundle();
                 bundle.putParcelable("product", product);
                 
-                // Navigate using Navigation Component
-                navController.navigate(R.id.action_navigation_shop_to_productDetail, bundle);
+                // Navigate using global navigation action
+                navController.navigate(R.id.global_action_to_productDetail, bundle);
                 
                 Log.d("CleanProductsAdapter", "Navigated to product detail for: " + product.getName());
             }
@@ -109,29 +114,36 @@ public class CleanProductsAdapter extends RecyclerView.Adapter<CleanProductsAdap
     class ProductViewHolder extends RecyclerView.ViewHolder {
         private ProductImageCarousel productImageCarousel;
         private TextView productName;
-        private TextView productDescription;
         private TextView productPrice;
         private TextView productType;
         private TextView productCurrency;
-        private MaterialButton seeMoreButton;
+        private TextView likesCount;
+        private TextView favoritesCount;
+        private ImageButton likeButton;
+        private ImageButton favoriteButton;
         
         public ProductViewHolder(@NonNull View itemView) {
             super(itemView);
             
             productImageCarousel = itemView.findViewById(R.id.productImageCarousel);
             productName = itemView.findViewById(R.id.productName);
-            productDescription = itemView.findViewById(R.id.productDescription);
             productPrice = itemView.findViewById(R.id.productPrice);
             productType = itemView.findViewById(R.id.productType);
             productCurrency = itemView.findViewById(R.id.productCurrency);
-            seeMoreButton = itemView.findViewById(R.id.seeMoreButton);
+            likesCount = itemView.findViewById(R.id.likesCount);
+            favoritesCount = itemView.findViewById(R.id.favoritesCount);
+            likeButton = itemView.findViewById(R.id.likeButton);
+            favoriteButton = itemView.findViewById(R.id.favoriteButton);
         }
         
         public void bind(@NonNull ProductModel product) {
             Log.d("CleanProductsAdapter", "Binding product: " + product.getName() + " (ID: " + product.getProductId() + ")");
             
             productName.setText(product.getName());
-            productDescription.setText(product.getDescription());
+            
+            // Display likes and favorites counts
+            likesCount.setText(String.valueOf(product.getLikesCount()));
+            favoritesCount.setText(String.valueOf(product.getFavoritesCount()));
             
             // Set price and currency separately
             productPrice.setText(String.format("%.2f", product.getPrice()));
@@ -143,6 +155,9 @@ public class CleanProductsAdapter extends RecyclerView.Adapter<CleanProductsAdap
             } else {
                 productType.setVisibility(View.GONE);
             }
+            
+            // Setup like and favorite buttons
+            setupLikeAndFavoriteButtons(product);
             
             // Load product images using imageIds from product
             loadProductImages(product);
@@ -156,18 +171,66 @@ public class CleanProductsAdapter extends RecyclerView.Adapter<CleanProductsAdap
                 }
             });
             
-            // Set click listener for "See More" button
-            seeMoreButton.setOnClickListener(v -> {
-                // Navigate to product detail
-                navigateToProductDetail(product);
-            });
-            
             itemView.setOnLongClickListener(v -> {
                 if (listener != null) {
                     listener.onProductLongClick(product);
                 }
                 return true;
             });
+        }
+        
+        private void setupLikeAndFavoriteButtons(ProductModel product) {
+            // Set like button state using user preferences
+            boolean isLiked = userPreferences.isProductLiked(product.getProductId());
+            likeButton.setImageResource(isLiked ? R.drawable.ic_heart_filled : R.drawable.ic_heart_outline);
+            
+            // Set favorite button state using user preferences
+            boolean isFavorited = userPreferences.isProductFavorited(product.getProductId());
+            favoriteButton.setImageResource(isFavorited ? R.drawable.ic_star_filled : R.drawable.ic_star_outline);
+            
+            // Set like button click listener
+            likeButton.setOnClickListener(v -> {
+                toggleLike(product);
+            });
+            
+            // Set favorite button click listener
+            favoriteButton.setOnClickListener(v -> {
+                toggleFavorite(product);
+            });
+        }
+        
+        private void toggleLike(ProductModel product) {
+            // Use UserProductPreferencesRepository for persistence
+            userPreferences.toggleLike(product.getProductId());
+            
+            // Update likes count in the product model
+            boolean isLiked = userPreferences.isProductLiked(product.getProductId());
+            int currentLikesCount = product.getLikesCount();
+            int newLikesCount = isLiked ? currentLikesCount + 1 : Math.max(0, currentLikesCount - 1);
+            product.setLikesCount(newLikesCount);
+            
+            // Update UI immediately based on new state
+            likeButton.setImageResource(isLiked ? R.drawable.ic_heart_filled : R.drawable.ic_heart_outline);
+            
+            // Update the likes count display
+            likesCount.setText(String.valueOf(newLikesCount));
+        }
+        
+        private void toggleFavorite(ProductModel product) {
+            // Use UserProductPreferencesRepository for persistence
+            userPreferences.toggleFavorite(product.getProductId());
+            
+            // Update favorites count in the product model
+            boolean isFavorited = userPreferences.isProductFavorited(product.getProductId());
+            int currentFavoritesCount = product.getFavoritesCount();
+            int newFavoritesCount = isFavorited ? currentFavoritesCount + 1 : Math.max(0, currentFavoritesCount - 1);
+            product.setFavoritesCount(newFavoritesCount);
+            
+            // Update UI immediately based on new state
+            favoriteButton.setImageResource(isFavorited ? R.drawable.ic_star_filled : R.drawable.ic_star_outline);
+            
+            // Update the favorites count display
+            favoritesCount.setText(String.valueOf(newFavoritesCount));
         }
         
         private void loadProductImages(ProductModel product) {

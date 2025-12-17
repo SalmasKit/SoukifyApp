@@ -50,6 +50,9 @@
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <activity
+            android:name=".ui.chat.ChatActivity"
+            android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

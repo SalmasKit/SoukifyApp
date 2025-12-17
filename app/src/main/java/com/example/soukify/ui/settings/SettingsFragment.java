@@ -25,12 +25,14 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import androidx.appcompat.app.AppCompatDelegate;
 import com.example.soukify.R;
 import com.example.soukify.ui.settings.SettingItemView;
+import com.example.soukify.ui.shop.ShopViewModel;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class SettingsFragment extends Fragment {
     
     private static final int REQUEST_READ_EXTERNAL_STORAGE = 100;
     private SettingsViewModel settingsViewModel;
+    private ShopViewModel shopViewModel;
     private int currentThemeIndex;
 
     @Override

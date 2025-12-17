@@ -68,6 +68,8 @@ public class ShopFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         
+        android.util.Log.d("ShopFragment", "=== ShopFragment.onViewCreated STARTED ===");
+        
         shopViewModel = new ViewModelProvider(requireActivity()).get(ShopViewModel.class);
         android.util.Log.d("ShopFragment", "ViewModel initialized with activity scope");
         
@@ -78,13 +80,21 @@ public class ShopFragment extends Fragment {
         android.util.Log.d("ShopFragment", "CurrentUserId: " + currentUserId);
         if (currentUserId != null && !currentUserId.isEmpty()) {
             android.util.Log.d("ShopFragment", "User is logged in, checking shop status");
+            // Force refresh shop status to ensure latest data
             shopViewModel.checkShopStatus();
+            
+            // Add a delayed refresh to ensure Firebase has time to sync
+            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                android.util.Log.d("ShopFragment", "Delayed shop status refresh");
+                shopViewModel.checkShopStatus();
+            }, 1000); // 1 second delay
         } else {
             android.util.Log.d("ShopFragment", "User not logged in or userId is null/empty");
             Toast.makeText(getContext(), getString(R.string.please_login_to_access_shop), Toast.LENGTH_SHORT).show();
         }
         
         observeViewModel();
+        android.util.Log.d("ShopFragment", "=== ShopFragment.onViewCreated COMPLETED ===");
     }
 
     private void observeViewModel() {
@@ -115,46 +125,38 @@ public class ShopFragment extends Fragment {
     private void setupObservers() {
         android.util.Log.d("ShopFragment", "Setting up observers");
         
-        shopViewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
-            android.util.Log.d("ShopFragment", "Loading state changed: " + isLoading);
-            if (isLoading != null && !isLoading) {
-                ShopModel currentShop = shopViewModel.getShop().getValue();
-                Boolean hasShop = shopViewModel.getHasShop().getValue();
-                
-                android.util.Log.d("ShopFragment", "Loading finished - Shop: " + (currentShop != null ? "EXISTS" : "NULL") + 
-                                  ", HasShop: " + hasShop);
-                
-                if (currentShop != null || (hasShop != null && hasShop)) {
-                    showShopHomeView();
-                } else {
-                    showNoShopView();
-                }
-            }
-        });
-        
-        shopViewModel.getHasShop().observe(getViewLifecycleOwner(), hasShop -> {
-            android.util.Log.d("ShopFragment", "hasShop changed: " + hasShop);
+        // Single observer to handle all shop state changes
+        shopViewModel.getShop().observe(getViewLifecycleOwner(), shop -> {
+            android.util.Log.d("ShopFragment", "Shop data changed: " + (shop != null ? "EXISTS" : "NULL"));
             Boolean isLoading = shopViewModel.getIsLoading().getValue();
             
             if (isLoading == null || !isLoading) {
-                if (hasShop != null && hasShop) {
-                    android.util.Log.d("ShopFragment", "hasShop is true and not loading, showing shop home view");
+                if (shop != null) {
+                    android.util.Log.d("ShopFragment", "Shop exists, showing shop home view");
                     showShopHomeView();
                 } else {
-                    android.util.Log.d("ShopFragment", "hasShop is false and not loading, showing no shop view");
-                    showNoShopView();
+                    Boolean hasShop = shopViewModel.getHasShop().getValue();
+                    if (hasShop != null && hasShop) {
+                        android.util.Log.d("ShopFragment", "Shop is null but hasShop is true, showing shop home view");
+                        showShopHomeView();
+                    } else {
+                        android.util.Log.d("ShopFragment", "No shop data, showing no shop view");
+                        showNoShopView();
+                    }
                 }
-            } else {
-                android.util.Log.d("ShopFragment", "hasShop changed but still loading, waiting...");
             }
         });
         
+        // Only observe hasShop for logging, don't trigger UI changes here
+        shopViewModel.getHasShop().observe(getViewLifecycleOwner(), hasShop -> {
+            android.util.Log.d("ShopFragment", "hasShop changed: " + hasShop);
+            // Don't trigger UI changes here to avoid loops
+        });
+        
+        // Only observe repository shop for logging, don't trigger UI changes here
         shopViewModel.getRepositoryShop().observe(getViewLifecycleOwner(), shop -> {
             android.util.Log.d("ShopFragment", "Repository shop changed: " + (shop != null ? "YES" : "NO"));
-            if (shop != null) {
-                android.util.Log.d("ShopFragment", "Shop detected, showing shop home view");
-                showShopHomeView();
-            }
+            // Don't trigger UI changes here to avoid loops
         });
         
         shopViewModel.getErrorMessage().observe(getViewLifecycleOwner(), errorMessage -> {
@@ -175,15 +177,37 @@ public class ShopFragment extends Fragment {
             return;
         }
         
-        ShopModel repositoryShop = shopViewModel.getRepositoryShop().getValue();
-        if (repositoryShop != null && (shopViewModel.getHasShop().getValue() == null || !shopViewModel.getHasShop().getValue())) {
-            android.util.Log.d("ShopFragment", "Forcing hasShop update based on repository shop");
-            shopViewModel.setHasShop(true);
+        // Create ShopHomeFragment with shop data
+        ShopHomeFragment shopHomeFragment = new ShopHomeFragment();
+        ShopModel currentShop = shopViewModel.getShop().getValue();
+        if (currentShop != null) {
+            Bundle args = new Bundle();
+            args.putString("shopId", currentShop.getShopId() != null ? currentShop.getShopId() : "");
+            args.putString("shopName", currentShop.getName() != null ? currentShop.getName() : "");
+            args.putString("shopCategory", currentShop.getCategory() != null ? currentShop.getCategory() : "");
+            args.putString("shopDescription", currentShop.getDescription() != null ? currentShop.getDescription() : "");
+            args.putString("shopLocation", currentShop.getLocation() != null ? currentShop.getLocation() : "");
+            args.putString("shopPhone", currentShop.getPhone() != null ? currentShop.getPhone() : "");
+            args.putString("shopEmail", currentShop.getEmail() != null ? currentShop.getEmail() : "");
+            args.putString("shopAddress", currentShop.getAddress() != null ? currentShop.getAddress() : "");
+            args.putString("shopImageUrl", currentShop.getImageUrl() != null ? currentShop.getImageUrl() : "");
+            args.putString("shopInstagram", currentShop.getInstagram() != null ? currentShop.getInstagram() : "");
+            args.putString("shopFacebook", currentShop.getFacebook() != null ? currentShop.getFacebook() : "");
+            args.putString("shopWebsite", currentShop.getWebsite() != null ? currentShop.getWebsite() : "");
+            args.putString("shopRegionId", currentShop.getRegionId() != null ? currentShop.getRegionId() : "");
+            args.putString("shopCityId", currentShop.getCityId() != null ? currentShop.getCityId() : "");
+            args.putString("shopCreatedAt", currentShop.getCreatedAt() != null ? currentShop.getCreatedAt() : "");
+            args.putLong("shopCreatedAtTimestamp", currentShop.getCreatedAtTimestamp() > 0 ? currentShop.getCreatedAtTimestamp() : System.currentTimeMillis());
+            args.putBoolean("hideDialogs", false); // Show dialogs when opened from settings
+            shopHomeFragment.setArguments(args);
+            android.util.Log.d("ShopFragment", "ShopHomeFragment created with shop data: " + currentShop.getName());
+        } else {
+            android.util.Log.d("ShopFragment", "ShopHomeFragment created without shop data");
         }
         
         getChildFragmentManager()
             .beginTransaction()
-            .replace(R.id.shop_container, new ShopHomeFragment())
+            .replace(R.id.shop_container, shopHomeFragment)
             .commit();
             
         android.util.Log.d("ShopFragment", "ShopHomeFragment transaction committed");
@@ -492,7 +516,7 @@ public class ShopFragment extends Fragment {
 
     private void setupCategoryDropdown(AutoCompleteTextView etShopCategory, String[] selectedCategory) {
         List<String> categories = Arrays.asList(
-            "Textile & Tapestry", "Gourmet & Local Foods", "Pottery & Ceramics",
+            "Textile & Tapestry", "Gourmet & Local Foods", "Pottery & Ceramics","Traditional Wear", "Leather Crafts",
             "Natural Wellness Products", "Jewelry & Accessories", "Metal & Brass Crafts",
             "Painting & Calligraphy", "Woodwork"
         );

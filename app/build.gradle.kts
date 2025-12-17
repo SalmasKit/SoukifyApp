@@ -32,10 +32,12 @@ android {
             )
         }
     }
+    
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    
     buildFeatures {
         viewBinding = true
     }
@@ -49,6 +51,7 @@ android {
 }
 
 dependencies {
+    // AndroidX Core Libraries
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.constraintlayout)
@@ -56,30 +59,36 @@ dependencies {
     implementation(libs.lifecycle.viewmodel.ktx)
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
+    
+    // UI Components
     implementation("de.hdodenhof:circleimageview:3.1.0")
     
-    // Firebase
+    // Firebase (using BOM for version management)
     implementation(platform("com.google.firebase:firebase-bom:34.6.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-storage")
     implementation("com.google.firebase:firebase-analytics")
+    implementation(libs.firebase.crashlytics)
     
-    // Room (keeping for offline caching - optional)
+    // Google Play Services
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
+    
+    // Room Database (for offline caching)
     implementation("androidx.room:room-runtime:2.6.1")
     implementation(libs.room.runtime)
-    implementation(libs.firebase.crashlytics)
     annotationProcessor("androidx.room:room-compiler:2.6.1")
+    annotationProcessor(libs.room.compiler)
     
-    // Glide for image loading
+    // Image Loading
     implementation("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
     
-    // BCrypt for password hashing
+    // Security
     implementation("at.favre.lib:bcrypt:0.10.2")
     
+    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-    annotationProcessor(libs.room.compiler)
 }

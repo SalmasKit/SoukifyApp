@@ -1,7 +1,9 @@
 package com.example.soukify.ui.login;
 
+import android.app.Activity;
 import android.app.Application;
 
+import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -10,200 +12,289 @@ import com.example.soukify.data.repositories.SessionRepository;
 import com.example.soukify.data.repositories.UserRepository;
 import com.example.soukify.data.models.UserModel;
 
+import com.google.firebase.FirebaseException;
+import com.google.firebase.auth.PhoneAuthCredential;
+import com.google.firebase.auth.PhoneAuthProvider;
+
 public class LoginActivityViewModel extends AndroidViewModel {
+
     private final SessionRepository sessionRepository;
     private final UserRepository userRepository;
+
     private final MutableLiveData<Boolean> loginSuccess = new MutableLiveData<>();
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private final MutableLiveData<String> successMessage = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
-    
+
+    // PHONE AUTH
+    private final MutableLiveData<String> phoneVerificationId = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> phoneAuthSuccess = new MutableLiveData<>();
+    private final MutableLiveData<String> phoneAuthError = new MutableLiveData<>();
+
     public LoginActivityViewModel(Application application) {
         super(application);
+
         sessionRepository = SessionRepository.getInstance(application);
         userRepository = new UserRepository(application);
-        
-        // Observe repository changes
-        observeRepositories();
+
+        observeRepositoryBase();
     }
-    
-    private void observeRepositories() {
-        userRepository.getIsLoading().observeForever(loading -> {
-            isLoading.postValue(loading);
-        });
-        
+
+
+    // -----------------------------
+    // 🔥 OBSERVER CENTRALISÉ
+    // -----------------------------
+    private void observeRepositoryBase() {
+        userRepository.getIsLoading().observeForever(isLoading::setValue);
+
         userRepository.getErrorMessage().observeForever(error -> {
             if (error != null) {
-                errorMessage.postValue(error);
+                errorMessage.setValue(error);
             }
         });
-    }
-    
-    public LiveData<Boolean> getLoginSuccess() {
-        return loginSuccess;
-    }
-    
-    public LiveData<String> getErrorMessage() {
-        return errorMessage;
-    }
-    
-    public LiveData<String> getSuccessMessage() {
-        return successMessage;
-    }
-    
-    public LiveData<Boolean> getIsLoading() {
-        return isLoading;
-    }
-    
-    public LiveData<String> getCurrentUserId() {
-        return sessionRepository.getCurrentUserId();
-    }
-    
-    public LiveData<UserModel> getCurrentUser() {
-        return userRepository.getCurrentUser();
-    }
-    
-    // Login functionality
-    public void login(String email, String password) {
-        // Validate input
-        if (email == null || email.isEmpty() || password == null || password.isEmpty()) {
-            errorMessage.postValue("Email and password cannot be empty");
-            loginSuccess.postValue(false);
-            return;
-        }
-        
-        if (!isValidEmail(email)) {
-            errorMessage.postValue("Please enter a valid email address");
-            loginSuccess.postValue(false);
-            return;
-        }
-        
-        // Use Firebase Authentication
-        userRepository.signIn(email, password);
-        
-        // Observe the result
+
+        // Centralise toute connexion réussie (Google / Facebook / Email / Phone)
         userRepository.getCurrentUser().observeForever(user -> {
             if (user != null) {
-                // Login successful - create session
-                sessionRepository.createLoginSession(
-                    user.getUserId(), 
-                    user.getEmail(), 
-                    user.getFullName()
-                );
-                loginSuccess.postValue(true);
-                errorMessage.postValue(null);
-                successMessage.postValue("Login successful!");
-            }
-        });
-        
-        userRepository.getErrorMessage().observeForever(error -> {
-            if (error != null) {
-                errorMessage.postValue(error);
-                loginSuccess.postValue(false);
+                createUserSession(user);
             }
         });
     }
-    
-    // Sign up functionality
-    public void signUp(String fullName, String email, String password, String confirmPassword, String phoneNumber) {
-        // Validate inputs
-        if (fullName == null || fullName.trim().isEmpty()) {
-            errorMessage.setValue("Full name is required");
+
+    private void createUserSession(UserModel user) {
+        sessionRepository.createLoginSession(
+                user.getUserId(),
+                user.getEmail(),
+                user.getFullName()
+        );
+    }
+
+
+    // ---------------------------------
+    // 📌 PHONE AUTH — SEND CODE
+    // ---------------------------------
+    public void sendVerificationCode(String phoneNumber, Activity activity) {
+        isLoading.setValue(true);
+
+        userRepository.sendPhoneVerificationCode(
+                phoneNumber,
+                activity,
+                new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+                    @Override
+                    public void onVerificationCompleted(@NonNull PhoneAuthCredential credential) {
+                        verifyPhoneCredential(credential);
+                    }
+
+                    @Override
+                    public void onVerificationFailed(@NonNull FirebaseException e) {
+                        phoneAuthError.setValue(e.getMessage());
+                        isLoading.setValue(false);
+                    }
+
+                    @Override
+                    public void onCodeSent(@NonNull String verificationId,
+                                           @NonNull PhoneAuthProvider.ForceResendingToken token) {
+                        phoneVerificationId.setValue(verificationId);
+                        isLoading.setValue(false);
+                    }
+                }
+        );
+    }
+
+    // ---------------------------------
+    // 📌 VERIFY PHONE CODE (SMS)
+    // ---------------------------------
+    public void verifyPhoneCode(String code) {
+        String verificationId = phoneVerificationId.getValue();
+
+        if (verificationId == null || verificationId.isEmpty()) {
+            phoneAuthError.setValue("Verification ID missing. Please resend code.");
             return;
         }
-        
-        if (email == null || email.trim().isEmpty()) {
-            errorMessage.setValue("Email is required");
+
+        PhoneAuthCredential credential = PhoneAuthProvider.getCredential(verificationId, code);
+        verifyPhoneCredential(credential);
+    }
+
+    private void verifyPhoneCredential(PhoneAuthCredential credential) {
+        isLoading.setValue(true);
+
+        userRepository.signInWithPhoneCredential(credential);
+
+        userRepository.getCurrentUser().observeForever(user -> {
+            if (user != null) {
+                createUserSession(user);
+                phoneAuthSuccess.setValue(true);
+                phoneAuthError.setValue(null);
+                isLoading.setValue(false);
+            }
+        });
+
+        userRepository.getErrorMessage().observeForever(error -> {
+            if (error != null) {
+                phoneAuthError.setValue(error);
+                phoneAuthSuccess.setValue(false);
+                isLoading.setValue(false);
+            }
+        });
+    }
+
+
+    // ---------------------------------
+    // 📌 LOGIN EMAIL / PASSWORD
+    // ---------------------------------
+    public void login(String email, String password) {
+
+        if (email == null || email.isEmpty() || password == null || password.isEmpty()) {
+            errorMessage.setValue("Email and password cannot be empty");
             return;
         }
-        
+
         if (!isValidEmail(email)) {
-            errorMessage.setValue("Please enter a valid email address");
+            errorMessage.setValue("Invalid email format");
             return;
         }
-        
-        if (password == null || password.trim().isEmpty()) {
-            errorMessage.setValue("Password is required");
+
+        isLoading.setValue(true);
+
+        userRepository.signIn(email, password);
+
+        userRepository.getCurrentUser().observeForever(user -> {
+            if (user != null) {
+                loginSuccess.setValue(true);
+                successMessage.setValue("Login successful!");
+                isLoading.setValue(false);
+            }
+        });
+
+        userRepository.getErrorMessage().observeForever(error -> {
+            if (error != null) {
+                errorMessage.setValue(error);
+                loginSuccess.setValue(false);
+                isLoading.setValue(false);
+            }
+        });
+    }
+
+
+    // ---------------------------------
+    // 📌 SIGN UP
+    // ---------------------------------
+    public void signUp(String fullName, String email, String password, String confirmPassword, String phone) {
+
+        if (fullName == null || fullName.trim().isEmpty()) {
+            errorMessage.setValue("Full name required");
             return;
         }
-        
-        if (password.length() < 6) {
+
+        if (!isValidEmail(email)) {
+            errorMessage.setValue("Invalid email");
+            return;
+        }
+
+        if (password == null || password.length() < 6) {
             errorMessage.setValue("Password must be at least 6 characters");
             return;
         }
-        
+
         if (!password.equals(confirmPassword)) {
             errorMessage.setValue("Passwords do not match");
             return;
         }
-        
-        userRepository.signUp(fullName, email, password, phoneNumber);
-        
-        // Observe sign up result
+
+        userRepository.signUp(fullName, email, password, phone);
+
         userRepository.getCurrentUser().observeForever(user -> {
             if (user != null) {
-                successMessage.postValue("Account created successfully!");
+                successMessage.setValue("Account created successfully!");
             }
         });
     }
-    
-    // Password reset functionality
+
+
+    // ---------------------------------
+    // 📌 RESET PASSWORD
+    // ---------------------------------
     public void resetPassword(String email) {
-        if (email == null || email.trim().isEmpty()) {
-            errorMessage.setValue("Email is required");
-            return;
-        }
-        
         if (!isValidEmail(email)) {
-            errorMessage.setValue("Please enter a valid email address");
+            errorMessage.setValue("Email invalide");
             return;
         }
-        
+
         userRepository.resetPassword(email);
-        successMessage.setValue("Password reset email sent");
     }
-    
-    // Profile management
+
+
+
+    // ---------------------------------
+    // 📌 PROFILE UPDATE
+    // ---------------------------------
     public void updateProfile(UserModel user) {
-        if (user == null) {
+        if (user == null || user.getFullName().trim().isEmpty()) {
             errorMessage.setValue("Invalid user data");
             return;
         }
-        
-        if (user.getFullName() == null || user.getFullName().trim().isEmpty()) {
-            errorMessage.setValue("Full name is required");
-            return;
-        }
-        
+
         userRepository.updateProfile(user);
-        successMessage.setValue("Profile updated successfully");
+        successMessage.setValue("Profile updated");
     }
-    
-    // Session management
+
+
+    // ---------------------------------
+    // 📌 SOCIAL LOGIN
+    // ---------------------------------
+    public void signInWithGoogle(String idToken) {
+
+        isLoading.setValue(true);
+
+        userRepository.signInWithGoogle(idToken);
+
+        // Observer USER après Google login
+        userRepository.getCurrentUser().observeForever(user -> {
+            if (user != null) {
+                loginSuccess.setValue(true);         // 🔥 ICI LA SOLUTION
+                successMessage.setValue("Google Login Successful");
+                isLoading.setValue(false);
+            }
+        });
+
+        userRepository.getErrorMessage().observeForever(error -> {
+            if (error != null) {
+                errorMessage.setValue(error);
+                loginSuccess.setValue(false);
+                isLoading.setValue(false);
+            }
+        });
+    }
+
+
+
+
+
+    // ---------------------------------
+    // 📌 GENERAL
+    // ---------------------------------
     public void logout() {
         userRepository.signOut();
         sessionRepository.logout();
-        successMessage.setValue("Signed out successfully");
+        successMessage.setValue("Signed out");
     }
-    
-    public boolean isUserLoggedIn() {
-        return userRepository.isUserLoggedIn();
-    }
-    
-    public String getCurrentUserIdString() {
-        return userRepository.getCurrentUserId();
-    }
-    
-    public void loadUserProfile() {
-        userRepository.loadUserProfile();
-    }
-    
-    public void clearMessages() {
-        errorMessage.setValue(null);
-        successMessage.setValue(null);
-    }
-    
+
     private boolean isValidEmail(String email) {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
     }
+
+    // ---------------------------------
+    // 📌 GETTERS
+    // ---------------------------------
+    public LiveData<Boolean> getLoginSuccess() { return loginSuccess; }
+    public LiveData<String> getErrorMessage() { return errorMessage; }
+    public LiveData<String> getSuccessMessage() { return successMessage; }
+    public LiveData<Boolean> getIsLoading() { return isLoading; }
+
+    public LiveData<String> getPhoneVerificationId() { return phoneVerificationId; }
+    public LiveData<Boolean> getPhoneAuthSuccess() { return phoneAuthSuccess; }
+    public LiveData<String> getPhoneAuthError() { return phoneAuthError; }
+
+    public LiveData<UserModel> getCurrentUser() { return userRepository.getCurrentUser(); }
 }

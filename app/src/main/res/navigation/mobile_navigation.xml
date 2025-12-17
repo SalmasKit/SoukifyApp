@@ -15,7 +15,12 @@
         android:id="@+id/navigation_search"
         android:name="com.example.soukify.ui.search.SearchFragment"
         android:label="Search"
-        tools:layout="@layout/fragment_search" />
+        tools:layout="@layout/fragment_search" >
+        
+        <action
+            android:id="@+id/action_navigation_search_to_shopHome"
+            app:destination="@id/shopHomeFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_favorites"
@@ -112,5 +117,78 @@
         android:label="About"
         tools:layout="@layout/fragment_about" />
 
+    <fragment
+        android:id="@+id/shopHomeFragment"
+        android:name="com.example.soukify.ui.shop.ShopHomeFragment"
+        android:label="Shop Details"
+        tools:layout="@layout/fragment_shop_home">
+
+        <argument
+            android:name="shopId"
+            app:argType="string"
+            android:defaultValue="" />
+        <argument
+            android:name="shopName"
+            app:argType="string"
+            android:defaultValue="" />
+        <argument
+            android:name="shopCategory"
+            app:argType="string"
+            android:defaultValue="" />
+        <argument
+            android:name="shopDescription"
+            app:argType="string"
+            android:defaultValue="" />
+        <argument
+            android:name="shopLocation"
+            app:argType="string"
+            android:defaultValue="" />
+        <argument
+            android:name="shopPhone"
+            app:argType="string"
+            android:defaultValue="" />
+        <argument
+            android:name="shopEmail"
+            app:argType="string"
+            android:defaultValue="" />
+        <argument
+            android:name="shopAddress"
+            app:argType="string"
+            android:defaultValue="" />
+        <argument
+            android:name="shopImageUrl"
+            app:argType="string"
+            android:defaultValue="" />
+        <argument
+            android:name="shopInstagram"
+            app:argType="string"
+            android:defaultValue="" />
+        <argument
+            android:name="shopFacebook"
+            app:argType="string"
+            android:defaultValue="" />
+        <argument
+            android:name="shopWebsite"
+            app:argType="string"
+            android:defaultValue="" />
+        <argument
+            android:name="shopRegionId"
+            app:argType="string"
+            android:defaultValue="" />
+        <argument
+            android:name="shopCityId"
+            app:argType="string"
+            android:defaultValue="" />
+        <argument
+            android:name="hideDialogs"
+            app:argType="boolean"
+            android:defaultValue="false" />
+
+    </fragment>
+
+    <!-- Global actions that can be used from any fragment -->
+    <action
+        android:id="@+id/global_action_to_productDetail"
+        app:destination="@id/productDetailFragment" />
 
 </navigation>

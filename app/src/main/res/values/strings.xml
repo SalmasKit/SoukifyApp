@@ -1,6 +1,9 @@
 <resources>
     <string name="app_name">Soukify</string>
     
+    <!-- Google Sign-In -->
+    <string name="default_web_client_id">YOUR_GOOGLE_CLIENT_ID_HERE</string>
+    
     <!-- Common Messages -->
     <string name="please_enter_email_and_password">Please enter email and password</string>
     <string name="please_enter_valid_email">Please enter a valid email address</string>
@@ -35,6 +38,7 @@
     <string name="tapestry">Textile &amp; Tapestry</string>
     <string name="food">Gourmet &amp; Local Foods</string>
     <string name="pottery"> Pottery &amp; Ceramics</string>
+    <string name="traditional_wear">Traditional Wear</string>
     <string name="naturalProducts">Natural Wellness Products</string>
     <string name="jewellery">Jewelry &amp; Accessories</string>
     <string name="metal">Metal &amp; Brass Crafts</string>

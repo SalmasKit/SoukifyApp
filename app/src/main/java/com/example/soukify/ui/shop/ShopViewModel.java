@@ -165,7 +165,7 @@ public class ShopViewModel extends AndroidViewModel {
     }
     
     public void checkShopStatus() {
-        android.util.Log.d("ShopViewModel", "checkShopStatus called");
+        android.util.Log.d("ShopViewModel", "=== checkShopStatus STARTED ===");
         String userId = getCurrentUserId();
         android.util.Log.d("ShopViewModel", "Current user ID: " + userId);
         if (userId != null && !userId.isEmpty()) {
@@ -176,12 +176,43 @@ public class ShopViewModel extends AndroidViewModel {
             hasShop.setValue(false);
             isLoading.setValue(false);
         }
+        android.util.Log.d("ShopViewModel", "=== checkShopStatus COMPLETED ===");
     }
     
     private void loadUserShops() {
         android.util.Log.d("ShopViewModel", "loadUserShops called");
         isLoading.setValue(true);
         shopRepository.loadUserShops();
+    }
+    
+    public void loadShopById(String shopId) {
+        android.util.Log.d("ShopViewModel", "loadShopById called for shopId: " + shopId);
+        isLoading.setValue(true);
+        errorMessage.setValue(null);
+        
+        if (shopId == null || shopId.isEmpty()) {
+            errorMessage.setValue("Shop ID is required");
+            isLoading.setValue(false);
+            return;
+        }
+        
+        shopRepository.getShopById(shopId)
+            .addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    ShopModel shop = shopRepository.deserializeShop(documentSnapshot);
+                    currentShop.setValue(shop);
+                    android.util.Log.d("ShopViewModel", "Shop loaded successfully: " + shop.getName());
+                } else {
+                    errorMessage.setValue("Shop not found");
+                    currentShop.setValue(null);
+                }
+                isLoading.setValue(false);
+            })
+            .addOnFailureListener(e -> {
+                android.util.Log.e("ShopViewModel", "Failed to load shop: " + e.getMessage(), e);
+                errorMessage.setValue("Failed to load shop: " + e.getMessage());
+                isLoading.setValue(false);
+            });
     }
     
     public void createShop(String name, String description, String phone, String email, 

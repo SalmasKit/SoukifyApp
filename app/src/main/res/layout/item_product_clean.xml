@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="6dp"
+    android:layout_margin="4dp"
     app:cardCornerRadius="12dp"
     app:cardElevation="3dp"
     app:strokeWidth="0dp"
@@ -29,34 +29,6 @@
                 android:layout_height="match_parent"
                 android:visibility="gone" />
 
-            <!-- More Button at center-bottom of image -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/seeMoreButton"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom|center_horizontal"
-                android:layout_margin="8dp"
-                android:text="More"
-                android:textColor="#E85F4C"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:minHeight="36dp"
-                android:minWidth="60dp"
-                android:paddingStart="8dp"
-                android:paddingTop="4dp"
-                android:paddingEnd="8dp"
-                android:paddingBottom="4dp"
-                android:gravity="center"
-                android:backgroundTint="#F5E5D8"
-                app:strokeColor="#E85F4C"
-                app:strokeWidth="1dp"
-                app:cornerRadius="8dp"
-                app:icon="@android:drawable/ic_menu_send"
-                app:iconTint="#E85F4C"
-                app:iconSize="14dp"
-                app:iconPadding="4dp" />
-
         </FrameLayout>
 
         <!-- Product Info Container -->
@@ -66,14 +38,14 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Header Section: Name and Type -->
+            <!-- Product Name and Action Buttons -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="top">
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
 
-                <!-- Product Name -->
                 <TextView
                     android:id="@+id/productName"
                     android:layout_width="0dp"
@@ -83,40 +55,78 @@
                     android:textColor="#212121"
                     android:textSize="16sp"
                     android:textStyle="bold"
-                    android:maxLines="1"
+                    android:maxLines="2"
                     android:ellipsize="end"
                     android:lineSpacingExtra="2dp" />
 
-                <!-- Product Type Badge -->
-                <TextView
-                    android:id="@+id/productType"
+                <!-- Like and Favorite Buttons -->
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/product_type_badge_background"
-                    android:paddingStart="8dp"
-                    android:paddingTop="4dp"
-                    android:paddingEnd="8dp"
-                    android:paddingBottom="4dp"
-                    android:text="Type"
-                    android:textColor="#E85F4C"
-                    android:textSize="10sp"
-                    android:textStyle="bold" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginStart="8dp">
+
+                    <!-- Like Button -->
+                    <ImageButton
+                        android:id="@+id/likeButton"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_marginEnd="4dp"
+                        android:src="@drawable/ic_heart_outline"
+                        android:background="?attr/selectableItemBackground"
+                        android:scaleType="centerCrop"
+                        android:contentDescription="Like" />
+
+                    <!-- Likes Count -->
+                    <TextView
+                        android:id="@+id/likesCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textSize="12sp"
+                        android:layout_marginEnd="8dp"
+                        android:textColor="#757575" />
+
+                    <!-- Favorite Button -->
+                    <ImageButton
+                        android:id="@+id/favoriteButton"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_marginEnd="4dp"
+                        android:src="@drawable/ic_star_outline"
+                        android:background="?attr/selectableItemBackground"
+                        android:scaleType="centerCrop"
+                        android:contentDescription="Favorite" />
+
+                    <!-- Favorites Count -->
+                    <TextView
+                        android:id="@+id/favoritesCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textSize="12sp"
+                        android:textColor="#757575" />
+
+                </LinearLayout>
 
             </LinearLayout>
 
-            <!-- Product Description -->
+            <!-- Product Type -->
             <TextView
-                android:id="@+id/productDescription"
-                android:layout_width="match_parent"
+                android:id="@+id/productType"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text="Description..."
-                android:textColor="#616161"
-                android:textSize="13sp"
-                android:maxLines="2"
-                android:ellipsize="end"
-                android:lineSpacingExtra="1dp" />
+                android:layout_marginTop="4dp"
+                android:background="@drawable/product_type_badge_background"
+                android:paddingStart="8dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="4dp"
+                android:text="Type"
+                android:textColor="#E85F4C"
+                android:textSize="10sp"
+                android:textStyle="bold" />
 
             <!-- Price and Currency Section -->
             <LinearLayout

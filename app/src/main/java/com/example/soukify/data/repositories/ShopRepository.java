@@ -177,7 +177,7 @@ public class ShopRepository {
     }
     
     public void loadUserShops() {
-        android.util.Log.d("ShopRepository", "loadUserShops called");
+        android.util.Log.d("ShopRepository", "=== loadUserShops STARTED ===");
         isLoading.setValue(true);
         errorMessage.setValue(null);
         
@@ -191,30 +191,78 @@ public class ShopRepository {
         }
         
         android.util.Log.d("ShopRepository", "Fetching shops for user: " + userId);
+        android.util.Log.d("ShopRepository", "Calling shopService.getShopsByUser(" + userId + ")");
+        
         shopService.getShopsByUser(userId).get()
                 .addOnSuccessListener(querySnapshot -> {
+                    android.util.Log.d("ShopRepository", "=== Direct Query SUCCESS ===");
                     android.util.Log.d("ShopRepository", "Query successful, documents count: " + querySnapshot.size());
                     List<ShopModel> shops = new ArrayList<>();
                     for (QueryDocumentSnapshot document : querySnapshot) {
                         ShopModel shop = deserializeShop(document);
                         shops.add(shop);
-                        android.util.Log.d("ShopRepository", "Found shop: " + shop.getName() + " (ID: " + shop.getShopId() + ")");
+                        android.util.Log.d("ShopRepository", "Found shop: " + shop.getName() + " (ID: " + shop.getShopId() + ") for user: " + shop.getUserId());
                     }
                     userShops.postValue(shops);
                     android.util.Log.d("ShopRepository", "Posted " + shops.size() + " shops to userShops LiveData");
                     
-                    // Set current shop if not already set and list is not empty
-                    if (currentShop.getValue() == null && !shops.isEmpty()) {
+                    // Always set current shop if there are shops available
+                    if (!shops.isEmpty()) {
                         currentShop.postValue(shops.get(0));
                         android.util.Log.d("ShopRepository", "Set current shop to: " + shops.get(0).getName());
+                    } else {
+                        currentShop.postValue(null);
+                        android.util.Log.d("ShopRepository", "No shops found, currentShop set to null");
                     }
                     isLoading.postValue(false);
+                    android.util.Log.d("ShopRepository", "=== Direct Query COMPLETED ===");
                 })
                 .addOnFailureListener(e -> {
-                    android.util.Log.e("ShopRepository", "Failed to load shops: " + e.getMessage(), e);
-                    errorMessage.postValue("Failed to load shops: " + e.getMessage());
-                    isLoading.postValue(false);
+                    android.util.Log.e("ShopRepository", "=== Direct Query FAILED ===");
+                    android.util.Log.e("ShopRepository", "Failed to load shops with direct query: " + e.getMessage(), e);
+                    android.util.Log.d("ShopRepository", "Trying fallback: loading all shops and filtering by user ID");
+                    
+                    // Fallback: Load all shops and filter by user ID
+                    android.util.Log.d("ShopRepository", "Calling fallback: shopService.getAllShops()");
+                    shopService.getAllShops().get()
+                        .addOnSuccessListener(allShopsSnapshot -> {
+                            android.util.Log.d("ShopRepository", "=== Fallback Query SUCCESS ===");
+                            android.util.Log.d("ShopRepository", "Fallback query successful, total documents: " + allShopsSnapshot.size());
+                            List<ShopModel> userShopsList = new ArrayList<>();
+                            for (QueryDocumentSnapshot document : allShopsSnapshot) {
+                                ShopModel shop = deserializeShop(document);
+                                android.util.Log.d("ShopRepository", "Processing shop: " + shop.getName() + " (ID: " + shop.getShopId() + ") for user: " + shop.getUserId());
+                                if (userId.equals(shop.getUserId())) {
+                                    userShopsList.add(shop);
+                                    android.util.Log.d("ShopRepository", "Fallback found shop: " + shop.getName() + " (ID: " + shop.getShopId() + ") for user: " + shop.getUserId());
+                                }
+                            }
+                            userShops.postValue(userShopsList);
+                            android.util.Log.d("ShopRepository", "Fallback posted " + userShopsList.size() + " shops to userShops LiveData");
+                            
+                            if (!userShopsList.isEmpty()) {
+                                currentShop.postValue(userShopsList.get(0));
+                                android.util.Log.d("ShopRepository", "Fallback set current shop to: " + userShopsList.get(0).getName());
+                            } else {
+                                currentShop.postValue(null);
+                                android.util.Log.d("ShopRepository", "Fallback: No shops found for user, currentShop set to null");
+                            }
+                            isLoading.postValue(false);
+                            android.util.Log.d("ShopRepository", "=== Fallback Query COMPLETED ===");
+                        })
+                        .addOnFailureListener(fallbackE -> {
+                            android.util.Log.e("ShopRepository", "=== Fallback Query FAILED ===");
+                            android.util.Log.e("ShopRepository", "Fallback also failed: " + fallbackE.getMessage(), fallbackE);
+                            errorMessage.postValue("Failed to load shops: " + fallbackE.getMessage());
+                            isLoading.postValue(false);
+                        });
                 });
+        android.util.Log.d("ShopRepository", "=== loadUserShops METHOD COMPLETED (async) ===");
+    }
+    
+    public Task<DocumentSnapshot> getShopById(String shopId) {
+        android.util.Log.d("ShopRepository", "getShopById called for shopId: " + shopId);
+        return shopService.getShopById(shopId);
     }
     
     public void loadAllShops() {
@@ -303,7 +351,7 @@ public class ShopRepository {
     }
     
     // Helper method to handle both old (Long) and new (String) createdAt formats
-    private ShopModel deserializeShop(QueryDocumentSnapshot document) {
+    public ShopModel deserializeShop(QueryDocumentSnapshot document) {
         ShopModel shop = new ShopModel();
         shop.setShopId(document.getId());
         
@@ -409,7 +457,7 @@ public class ShopRepository {
     }
     
     // Helper method for DocumentSnapshot (single document)
-    private ShopModel deserializeShop(DocumentSnapshot document) {
+    public ShopModel deserializeShop(DocumentSnapshot document) {
         ShopModel shop = new ShopModel();
         shop.setShopId(document.getId());
         

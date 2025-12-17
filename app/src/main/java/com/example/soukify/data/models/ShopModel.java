@@ -1,8 +1,11 @@
 package com.example.soukify.data.models;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Shop Model - Firebase POJO for shop data
@@ -20,6 +23,7 @@ public class ShopModel {
     private boolean favorite;
     private boolean liked;
     private int likesCount;
+    private int favoritesCount;
     private String searchableName;
     private String createdAt;
     private String phone;
@@ -35,6 +39,9 @@ public class ShopModel {
     private String instagram;
     private String facebook;
     private String website;
+    private boolean hasLivraison;
+    private ArrayList<String> likedByUserIds;
+    private Map<String, Float> userRatings;
     
     // Date formatter for consistent date format
     private static final String DATE_FORMAT = "dd/MM/yyyy HH:mm";
@@ -44,8 +51,12 @@ public class ShopModel {
         this.favorite = false;
         this.liked = false;
         this.likesCount = 0;
+        this.favoritesCount = 0;
         this.rating = 0.0;
         this.reviews = 0;
+        this.hasLivraison = false;
+        this.likedByUserIds = new ArrayList<>();
+        this.userRatings = new HashMap<>();
     }
     
     public ShopModel(String name, String category, String location, String imageUrl) {
@@ -209,6 +220,14 @@ public class ShopModel {
         this.likesCount = likesCount;
     }
     
+    public int getFavoritesCount() {
+        return favoritesCount;
+    }
+    
+    public void setFavoritesCount(int favoritesCount) {
+        this.favoritesCount = favoritesCount;
+    }
+    
     public String getSearchableName() {
         return searchableName;
     }
@@ -340,5 +359,48 @@ public class ShopModel {
     
     public void setWebsite(String website) {
         this.website = website;
+    }
+    
+    // Missing methods required by SearchFragment
+    public boolean hasLivraison() {
+        return hasLivraison;
+    }
+    
+    public void setHasLivraison(Boolean hasLivraison) {
+        this.hasLivraison = hasLivraison != null ? hasLivraison : false;
+    }
+    
+    public ArrayList<String> getLikedByUserIds() {
+        return likedByUserIds;
+    }
+    
+    public void setLikedByUserIds(ArrayList<String> likedByUserIds) {
+        this.likedByUserIds = likedByUserIds != null ? likedByUserIds : new ArrayList<>();
+    }
+    
+    public Map<String, Float> getUserRatings() {
+        return userRatings;
+    }
+    
+    public void setUserRatings(Map<String, Float> userRatings) {
+        this.userRatings = userRatings != null ? userRatings : new HashMap<>();
+    }
+    
+    public void calculateAverageRating() {
+        if (userRatings == null || userRatings.isEmpty()) {
+            this.rating = 0.0;
+            return;
+        }
+        
+        float sum = 0.0f;
+        int count = 0;
+        for (Float ratingValue : userRatings.values()) {
+            if (ratingValue != null) {
+                sum += ratingValue;
+                count++;
+            }
+        }
+        
+        this.rating = count > 0 ? sum / count : 0.0;
     }
 }

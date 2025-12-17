@@ -140,9 +140,9 @@ public class FirebaseProductImageService {
             return com.google.android.gms.tasks.Tasks.forResult(null);
         }
         
-        // Check if imageId is a local file path (starts with "file://")
-        if (imageId.startsWith("file://")) {
-            // For local file paths, create a ProductImageModel with the file URL
+        // Check if imageId is a local file path (starts with "file://" or "content://")
+        if (imageId.startsWith("file://") || imageId.startsWith("content://")) {
+            // For local file paths or content URIs, create a ProductImageModel with the file URL
             ProductImageModel localImage = new ProductImageModel();
             localImage.setImageId(imageId);
             localImage.setImageUrl(imageId);
