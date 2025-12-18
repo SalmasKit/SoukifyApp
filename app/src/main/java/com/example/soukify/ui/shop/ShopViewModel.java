@@ -375,7 +375,7 @@ public class ShopViewModel extends AndroidViewModel {
         }
         
         // Verify password before deletion
-        userRepository.reauthenticate(userEmail, password)
+      /*  userRepository.reauthenticate(userEmail, password)
                 .addOnSuccessListener(authResult -> {
                     android.util.Log.d("ShopViewModel", "Password verification successful, proceeding with shop deletion");
                     // Password verified, proceed with deletion
@@ -385,7 +385,7 @@ public class ShopViewModel extends AndroidViewModel {
                     android.util.Log.e("ShopViewModel", "Password verification failed", e);
                     errorMessage.setValue("Incorrect password. Shop deletion cancelled.");
                     isLoading.setValue(false);
-                });
+                });*/
     }
     
     private void performShopDeletion(String shopId) {
