@@ -40,7 +40,6 @@ public class LoginActivityViewModel extends AndroidViewModel {
         observeRepositoryBase();
     }
 
-
     // -----------------------------
     // 🔥 OBSERVER CENTRALISÉ
     // -----------------------------
@@ -53,7 +52,6 @@ public class LoginActivityViewModel extends AndroidViewModel {
             }
         });
 
-        // Centralise toute connexion réussie (Google / Facebook / Email / Phone)
         userRepository.getCurrentUser().observeForever(user -> {
             if (user != null) {
                 createUserSession(user);
@@ -69,13 +67,11 @@ public class LoginActivityViewModel extends AndroidViewModel {
         );
     }
 
-
     // ---------------------------------
     // 📌 PHONE AUTH — SEND CODE
     // ---------------------------------
     public void sendVerificationCode(String phoneNumber, Activity activity) {
         isLoading.setValue(true);
-
         userRepository.sendPhoneVerificationCode(
                 phoneNumber,
                 activity,
@@ -106,7 +102,6 @@ public class LoginActivityViewModel extends AndroidViewModel {
     // ---------------------------------
     public void verifyPhoneCode(String code) {
         String verificationId = phoneVerificationId.getValue();
-
         if (verificationId == null || verificationId.isEmpty()) {
             phoneAuthError.setValue("Verification ID missing. Please resend code.");
             return;
@@ -139,12 +134,10 @@ public class LoginActivityViewModel extends AndroidViewModel {
         });
     }
 
-
     // ---------------------------------
     // 📌 LOGIN EMAIL / PASSWORD
     // ---------------------------------
     public void login(String email, String password) {
-
         if (email == null || email.isEmpty() || password == null || password.isEmpty()) {
             errorMessage.setValue("Email and password cannot be empty");
             return;
@@ -156,7 +149,6 @@ public class LoginActivityViewModel extends AndroidViewModel {
         }
 
         isLoading.setValue(true);
-
         userRepository.signIn(email, password);
 
         userRepository.getCurrentUser().observeForever(user -> {
@@ -176,12 +168,10 @@ public class LoginActivityViewModel extends AndroidViewModel {
         });
     }
 
-
     // ---------------------------------
     // 📌 SIGN UP
     // ---------------------------------
     public void signUp(String fullName, String email, String password, String confirmPassword, String phone) {
-
         if (fullName == null || fullName.trim().isEmpty()) {
             errorMessage.setValue("Full name required");
             return;
@@ -211,7 +201,6 @@ public class LoginActivityViewModel extends AndroidViewModel {
         });
     }
 
-
     // ---------------------------------
     // 📌 RESET PASSWORD
     // ---------------------------------
@@ -220,11 +209,8 @@ public class LoginActivityViewModel extends AndroidViewModel {
             errorMessage.setValue("Email invalide");
             return;
         }
-
         userRepository.resetPassword(email);
     }
-
-
 
     // ---------------------------------
     // 📌 PROFILE UPDATE
@@ -234,25 +220,20 @@ public class LoginActivityViewModel extends AndroidViewModel {
             errorMessage.setValue("Invalid user data");
             return;
         }
-
         userRepository.updateProfile(user);
         successMessage.setValue("Profile updated");
     }
-
 
     // ---------------------------------
     // 📌 SOCIAL LOGIN
     // ---------------------------------
     public void signInWithGoogle(String idToken) {
-
         isLoading.setValue(true);
-
         userRepository.signInWithGoogle(idToken);
 
-        // Observer USER après Google login
         userRepository.getCurrentUser().observeForever(user -> {
             if (user != null) {
-                loginSuccess.setValue(true);         // 🔥 ICI LA SOLUTION
+                loginSuccess.setValue(true);
                 successMessage.setValue("Google Login Successful");
                 isLoading.setValue(false);
             }
@@ -266,10 +247,6 @@ public class LoginActivityViewModel extends AndroidViewModel {
             }
         });
     }
-
-
-
-
 
     // ---------------------------------
     // 📌 GENERAL
@@ -291,10 +268,8 @@ public class LoginActivityViewModel extends AndroidViewModel {
     public LiveData<String> getErrorMessage() { return errorMessage; }
     public LiveData<String> getSuccessMessage() { return successMessage; }
     public LiveData<Boolean> getIsLoading() { return isLoading; }
-
     public LiveData<String> getPhoneVerificationId() { return phoneVerificationId; }
     public LiveData<Boolean> getPhoneAuthSuccess() { return phoneAuthSuccess; }
     public LiveData<String> getPhoneAuthError() { return phoneAuthError; }
-
     public LiveData<UserModel> getCurrentUser() { return userRepository.getCurrentUser(); }
 }

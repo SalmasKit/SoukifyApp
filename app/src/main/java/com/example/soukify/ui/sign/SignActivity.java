@@ -1,27 +1,30 @@
 package com.example.soukify.ui.sign;
 
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.content.Intent;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import com.example.soukify.MainActivity;
-
 import com.example.soukify.R;
-import com.example.soukify.data.repositories.SessionRepository;
+import com.example.soukify.ui.login.LoginActivity;
 import com.example.soukify.utils.ValidationUtils;
 
 public class SignActivity extends AppCompatActivity {
     private static final String TAG = "SignActivity";
+
     private SignActivityViewModel viewModel;
     private EditText fullNameField, phoneField, emailField, passwordField, confirmField;
     private Button signupButton;
+    private TextView loginText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,22 +41,28 @@ public class SignActivity extends AppCompatActivity {
         phoneField = findViewById(R.id.phone);
         emailField = findViewById(R.id.email);
         signupButton = findViewById(R.id.signbtn);
-        
-        // Debug: Log field assignments
-        Log.d(TAG, "Fields initialized - username: " + (fullNameField != null) + 
-                   ", password: " + (passwordField != null) + 
-                   ", confirm: " + (confirmField != null) + 
-                   ", phone: " + (phoneField != null) + 
-                   ", email: " + (emailField != null));
+        loginText = findViewById(R.id.login);
+
+        // Underline login text
+        loginText.setPaintFlags(loginText.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+
+        // Navigate to LoginActivity
+        loginText.setOnClickListener(v ->
+                startActivity(new Intent(SignActivity.this, LoginActivity.class)));
+
+        // Debug log
+        Log.d(TAG, "Fields initialized - username: " + (fullNameField != null) +
+                ", password: " + (passwordField != null) +
+                ", confirm: " + (confirmField != null) +
+                ", phone: " + (phoneField != null) +
+                ", email: " + (emailField != null));
 
         // Real-time validation
         TextWatcher validationWatcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {}
-            
             @Override
             public void afterTextChanged(Editable s) {
                 validateForm();
@@ -66,7 +75,7 @@ public class SignActivity extends AppCompatActivity {
         passwordField.addTextChangedListener(validationWatcher);
         confirmField.addTextChangedListener(validationWatcher);
 
-        // Signup button click listener
+        // Signup button listener
         signupButton.setOnClickListener(v -> attemptSignup());
 
         // Observe ViewModel for signup results
@@ -74,11 +83,10 @@ public class SignActivity extends AppCompatActivity {
             if (success != null && success) {
                 Toast.makeText(this, getString(R.string.signup_successful), Toast.LENGTH_SHORT).show();
                 Log.i(TAG, "Signup successful");
-                // Redirect to MainActivity
                 Intent intent = new Intent(SignActivity.this, MainActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
-                finish(); // Close the signup activity
+                finish();
             }
         });
 
@@ -97,30 +105,27 @@ public class SignActivity extends AppCompatActivity {
         String password = passwordField.getText().toString().trim();
         String confirm = confirmField.getText().toString().trim();
 
-        // Debug: Log field values
-        Log.d(TAG, "validateForm - fullName: '" + fullName + "', phone: '" + phone + 
-                   "', email: '" + email + "', password: '" + password + "', confirm: '" + confirm + "'");
+        Log.d(TAG, "validateForm - fullName: '" + fullName + "', phone: '" + phone +
+                "', email: '" + email + "', password: '" + password + "', confirm: '" + confirm + "'");
 
-        boolean phoneValid = ValidationUtils.isValidPhone(phone) || phone.isEmpty();
-        boolean emailValid = android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() || email.isEmpty();
-        boolean passwordValid = (password.equals(confirm) || confirm.isEmpty()) && 
-                              (password.length() >= 6 || password.isEmpty());
         boolean allFilled = !fullName.isEmpty() && !phone.isEmpty() && !email.isEmpty() &&
-                           !password.isEmpty() && !confirm.isEmpty();
+                !password.isEmpty() && !confirm.isEmpty();
 
-        // Real-time error messages
+        // Phone validation
         if (!phone.isEmpty() && !ValidationUtils.isValidPhone(phone)) {
             phoneField.setError("Numéro invalide (06 ou 07 + 8 chiffres)");
         } else {
             phoneField.setError(null);
         }
 
+        // Email validation
         if (!email.isEmpty() && !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             emailField.setError(getString(R.string.invalid_email));
         } else {
             emailField.setError(null);
         }
 
+        // Password validation
         if (!password.isEmpty() && password.length() < 6) {
             passwordField.setError("Le mot de passe doit contenir au moins 6 caractères");
         } else if (!password.equals(confirm) && !confirm.isEmpty()) {
@@ -130,17 +135,17 @@ public class SignActivity extends AppCompatActivity {
             confirmField.setError(null);
         }
 
-        // Enable button only if all fields are valid
-        signupButton.setEnabled(allFilled && 
-                              ValidationUtils.isValidPhone(phone) && 
-                              android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() &&
-                              password.length() >= 6 && 
-                              password.equals(confirm));
+        // Enable signup button only if valid
+        signupButton.setEnabled(allFilled &&
+                ValidationUtils.isValidPhone(phone) &&
+                android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() &&
+                password.length() >= 6 &&
+                password.equals(confirm));
     }
 
     private void attemptSignup() {
         Log.d(TAG, "Attempting to sign up user");
-        
+
         String fullName = fullNameField.getText().toString().trim();
         String phone = phoneField.getText().toString().trim();
         String email = emailField.getText().toString().trim();
@@ -149,12 +154,9 @@ public class SignActivity extends AppCompatActivity {
 
         Log.d(TAG, String.format("Signup attempt - Name: %s, Phone: %s, Email: %s", fullName, phone, email));
 
-        // Final validation
-        if (!validateInputs(fullName, phone, email, password, confirm)) {
-            return;
-        }
+        if (!validateInputs(fullName, phone, email, password, confirm)) return;
 
-        // Use Firebase ViewModel for signup
+        // Call ViewModel signup
         viewModel.signup(fullName, email, password, phone);
     }
 
