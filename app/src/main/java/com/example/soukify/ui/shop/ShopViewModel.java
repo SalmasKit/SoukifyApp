@@ -18,6 +18,7 @@ import com.example.soukify.data.models.ShopModel;
 import com.example.soukify.data.models.ProductModel;
 import com.example.soukify.data.models.UserModel;
 import com.example.soukify.utils.ImageUtils;
+import com.example.soukify.data.remote.CloudinaryImageService;
 import java.util.List;
 
 import android.net.Uri;
@@ -32,6 +33,7 @@ public class ShopViewModel extends AndroidViewModel {
     private LocationRepository locationRepository;
     private ShopRepository shopRepository;
     private UserRepository userRepository;
+    private CloudinaryImageService cloudinaryService;
     private final MutableLiveData<Boolean> hasShop = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
     private final MutableLiveData<ShopModel> currentShop = new MutableLiveData<>();
@@ -43,10 +45,11 @@ public class ShopViewModel extends AndroidViewModel {
         locationRepository = new LocationRepository(application);
         shopRepository = new ShopRepository(application);
         userRepository = new UserRepository(application);
+        cloudinaryService = new CloudinaryImageService(application);
         
         // Initialize with default values
-        hasShop.setValue(false);
-        isLoading.setValue(false);
+        hasShop.postValue(false);
+        isLoading.postValue(false);
         
         // Load regions data
         locationRepository.loadRegions();
@@ -67,39 +70,39 @@ public class ShopViewModel extends AndroidViewModel {
         // Observe shop repository
         shopRepository.getCurrentShop().observeForever(shop -> {
             android.util.Log.d("ShopViewModel", "Repository shop changed: " + (shop != null ? "EXISTS - " + shop.getName() : "NULL"));
-            currentShop.setValue(shop);
-            hasShop.setValue(shop != null);
+            currentShop.postValue(shop);
+            hasShop.postValue(shop != null);
             android.util.Log.d("ShopViewModel", "hasShop updated to: " + (shop != null));
         });
         
         shopRepository.getErrorMessage().observeForever(error -> {
             if (error != null) {
-                errorMessage.setValue(error);
+                errorMessage.postValue(error);
             }
         });
         
         shopRepository.getIsLoading().observeForever(loading -> {
             if (loading != null) {
-                isLoading.setValue(loading);
+                isLoading.postValue(loading);
             }
         });
         
         // Observe user shops to determine if user has a shop
         shopRepository.getUserShops().observeForever(shops -> {
             android.util.Log.d("ShopViewModel", "User shops LiveData changed: " + (shops != null ? shops.size() + " shops" : "null"));
-            isLoading.setValue(false); // Loading finished
+            isLoading.postValue(false); // Loading finished
             
             if (shops != null && !shops.isEmpty()) {
                 android.util.Log.d("ShopViewModel", "User has shops, setting hasShop to true");
-                hasShop.setValue(true);
+                hasShop.postValue(true);
                 if (currentShop.getValue() == null) {
-                    currentShop.setValue(shops.get(0));
+                    currentShop.postValue(shops.get(0));
                     android.util.Log.d("ShopViewModel", "Set current shop to: " + shops.get(0).getName());
                 }
             } else {
                 android.util.Log.d("ShopViewModel", "User has no shops, setting hasShop to false");
-                hasShop.setValue(false);
-                currentShop.setValue(null);
+                hasShop.postValue(false);
+                currentShop.postValue(null);
             }
         });
         
@@ -110,8 +113,8 @@ public class ShopViewModel extends AndroidViewModel {
                 loadUserShops();
             } else {
                 // User is logged out, clear shop data
-                hasShop.setValue(false);
-                currentShop.setValue(null);
+                hasShop.postValue(false);
+                currentShop.postValue(null);
             }
         });
     }
@@ -137,7 +140,7 @@ public class ShopViewModel extends AndroidViewModel {
     }
     
     public void clearSuccessMessage() {
-        successMessage.setValue(null);
+        successMessage.postValue(null);
     }
     
     public LiveData<Boolean> getIsLoading() {
@@ -145,7 +148,7 @@ public class ShopViewModel extends AndroidViewModel {
     }
     
     public void setHasShop(boolean hasShop) {
-        this.hasShop.setValue(hasShop);
+        this.hasShop.postValue(hasShop);
     }
     
     public LiveData<List<RegionModel>> getRegions() {
@@ -173,26 +176,26 @@ public class ShopViewModel extends AndroidViewModel {
             loadUserShops();
         } else {
             android.util.Log.d("ShopViewModel", "User is not logged in");
-            hasShop.setValue(false);
-            isLoading.setValue(false);
+            hasShop.postValue(false);
+            isLoading.postValue(false);
         }
         android.util.Log.d("ShopViewModel", "=== checkShopStatus COMPLETED ===");
     }
     
     private void loadUserShops() {
         android.util.Log.d("ShopViewModel", "loadUserShops called");
-        isLoading.setValue(true);
+        isLoading.postValue(true);
         shopRepository.loadUserShops();
     }
     
     public void loadShopById(String shopId) {
         android.util.Log.d("ShopViewModel", "loadShopById called for shopId: " + shopId);
-        isLoading.setValue(true);
-        errorMessage.setValue(null);
+        isLoading.postValue(true);
+        errorMessage.postValue(null);
         
         if (shopId == null || shopId.isEmpty()) {
-            errorMessage.setValue("Shop ID is required");
-            isLoading.setValue(false);
+            errorMessage.postValue("Shop ID is required");
+            isLoading.postValue(false);
             return;
         }
         
@@ -200,18 +203,18 @@ public class ShopViewModel extends AndroidViewModel {
             .addOnSuccessListener(documentSnapshot -> {
                 if (documentSnapshot.exists()) {
                     ShopModel shop = shopRepository.deserializeShop(documentSnapshot);
-                    currentShop.setValue(shop);
+                    currentShop.postValue(shop);
                     android.util.Log.d("ShopViewModel", "Shop loaded successfully: " + shop.getName());
                 } else {
-                    errorMessage.setValue("Shop not found");
-                    currentShop.setValue(null);
+                    errorMessage.postValue("Shop not found");
+                    currentShop.postValue(null);
                 }
-                isLoading.setValue(false);
+                isLoading.postValue(false);
             })
             .addOnFailureListener(e -> {
                 android.util.Log.e("ShopViewModel", "Failed to load shop: " + e.getMessage(), e);
-                errorMessage.setValue("Failed to load shop: " + e.getMessage());
-                isLoading.setValue(false);
+                errorMessage.postValue("Failed to load shop: " + e.getMessage());
+                isLoading.postValue(false);
             });
     }
     
@@ -222,30 +225,41 @@ public class ShopViewModel extends AndroidViewModel {
         
         // Validate inputs
         if (name == null || name.trim().isEmpty()) {
-            errorMessage.setValue("Shop name is required");
+            errorMessage.postValue("Shop name is required");
             return;
         }
         
-        // Upload image to Firebase Storage for persistence
+        // Upload media to Cloudinary for persistence
         String finalImageUrl = imageUrl;
         if (imageUrl != null && !imageUrl.isEmpty()) {
             String userId = userRepository.getCurrentUserId();
             if (userId != null) {
-                // For shop creation, upload with a temporary userId-based path
-                // The image will be re-uploaded with proper shopId after shop creation
-                ImageUtils.uploadImageToFirebaseStorage(getApplication(), Uri.parse(imageUrl), "shop", userId)
-                    .addOnSuccessListener(uri -> {
-                        Log.d("ShopViewModel", "Shop image uploaded to Firebase Storage: " + uri.toString());
-                        proceedWithShopCreation(name, description, phone, email, regionName, cityName, address, 
-                                              uri.toString(), category, workingHours, workingDays, instagram, facebook, website);
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e("ShopViewModel", "Failed to upload shop image to Firebase Storage", e);
-                        errorMessage.setValue("Failed to upload image: " + e.getMessage());
+                // Generate unique public ID for shop cover media
+                String publicId = CloudinaryImageService.generateUniquePublicId("shop", userId);
+                
+                cloudinaryService.uploadMedia(Uri.parse(imageUrl), publicId, 
+                    new CloudinaryImageService.MediaUploadCallback() {
+                        @Override
+                        public void onSuccess(String mediaUrl) {
+                            Log.d("ShopViewModel", "Shop media uploaded to Cloudinary: " + mediaUrl);
+                            proceedWithShopCreation(name, description, phone, email, regionName, cityName, address, 
+                                                  mediaUrl, category, workingHours, workingDays, instagram, facebook, website);
+                        }
+                        
+                        @Override
+                        public void onError(String error) {
+                            Log.e("ShopViewModel", "Failed to upload shop media to Cloudinary", new Exception(error));
+                            errorMessage.postValue("Failed to upload media: " + error);
+                        }
+                        
+                        @Override
+                        public void onProgress(int progress) {
+                            // Progress can be handled by UI if needed
+                        }
                     });
                 return; // Wait for upload completion
             } else {
-                errorMessage.setValue("User not logged in");
+                errorMessage.postValue("User not logged in");
                 return;
             }
         }
@@ -304,34 +318,61 @@ public class ShopViewModel extends AndroidViewModel {
     public void updateShopImage(String imageUrl) {
         ShopModel currentShopData = currentShop.getValue();
         if (currentShopData != null) {
-            // Upload image to Firebase Storage for persistence
+            // Upload media to Cloudinary for persistence
             if (imageUrl != null && !imageUrl.isEmpty()) {
                 String shopId = currentShopData.getShopId();
                 if (shopId != null) {
-                    // Upload to Firebase Storage and get the download URL
-                    ImageUtils.uploadImageToFirebaseStorage(getApplication(), Uri.parse(imageUrl), "shop", shopId)
-                        .addOnSuccessListener(uri -> {
-                            Log.d("ShopViewModel", "Shop image uploaded to Firebase Storage: " + uri.toString());
-                            
-                            // Delete old image from Firebase Storage if it exists
-                            if (currentShopData.getImageUrl() != null && !currentShopData.getImageUrl().isEmpty()) {
-                                ImageUtils.deleteImageFromFirebaseStorage("shop", shopId);
+                    // Generate unique public ID for shop cover media
+                    String publicId = CloudinaryImageService.generateUniquePublicId("shop", shopId);
+                    
+                    cloudinaryService.uploadMedia(Uri.parse(imageUrl), publicId, 
+                        new CloudinaryImageService.MediaUploadCallback() {
+                            @Override
+                            public void onSuccess(String mediaUrl) {
+                                Log.d("ShopViewModel", "Shop media uploaded to Cloudinary: " + mediaUrl);
+                                
+                                // Delete old media from Cloudinary if it exists
+                                if (currentShopData.getImageUrl() != null && !currentShopData.getImageUrl().isEmpty()) {
+                                    // Extract public ID from old URL and delete
+                                    String oldPublicId = extractPublicIdFromUrl(currentShopData.getImageUrl());
+                                    if (oldPublicId != null) {
+                                        cloudinaryService.deleteMedia(oldPublicId, 
+                                            new CloudinaryImageService.MediaDeleteCallback() {
+                                                @Override
+                                                public void onSuccess() {
+                                                    Log.d("ShopViewModel", "Old shop media deleted from Cloudinary");
+                                                }
+                                                
+                                                @Override
+                                                public void onError(String error) {
+                                                    Log.w("ShopViewModel", "Failed to delete old shop media: " + error);
+                                                }
+                                            });
+                                    }
+                                }
+                                
+                                // Update shop with new media URL
+                                currentShopData.setImageUrl(mediaUrl);
+                                shopRepository.updateShop(currentShopData);
+                                successMessage.postValue("Shop media updated successfully!");
                             }
                             
-                            // Update shop with new image URL
-                            currentShopData.setImageUrl(uri.toString());
-                            shopRepository.updateShop(currentShopData);
-                            successMessage.setValue("Shop image updated successfully!");
-                        })
-                        .addOnFailureListener(e -> {
-                            Log.e("ShopViewModel", "Failed to upload shop image to Firebase Storage", e);
-                            errorMessage.setValue("Failed to upload image: " + e.getMessage());
+                            @Override
+                            public void onError(String error) {
+                                Log.e("ShopViewModel", "Failed to upload shop media to Cloudinary", new Exception(error));
+                                errorMessage.postValue("Failed to upload media: " + error);
+                            }
+                            
+                            @Override
+                            public void onProgress(int progress) {
+                                // Progress can be handled by UI if needed
+                            }
                         });
                 } else {
-                    errorMessage.setValue("Shop ID is null");
+                    errorMessage.postValue("Shop ID is null");
                 }
             } else {
-                // No image provided, clear existing image
+                // No media provided, clear existing media
                 currentShopData.setImageUrl(null);
                 shopRepository.updateShop(currentShopData);
             }
@@ -343,19 +384,19 @@ public class ShopViewModel extends AndroidViewModel {
         
         // Validate inputs
         if (shop == null) {
-            errorMessage.setValue("Invalid shop data");
+            errorMessage.postValue("Invalid shop data");
             return;
         }
         
         if (shop.getName() == null || shop.getName().trim().isEmpty()) {
-            errorMessage.setValue("Shop name is required");
+            errorMessage.postValue("Shop name is required");
             return;
         }
         
         shopRepository.updateShop(shop);
         
         // Show success message
-        successMessage.setValue("Shop updated successfully!");
+        successMessage.postValue("Shop updated successfully!");
         
         // Force refresh to ensure UI updates
         loadUserShops();
@@ -363,14 +404,14 @@ public class ShopViewModel extends AndroidViewModel {
     
     public void deleteShop(String shopId, String password) {
         android.util.Log.d("ShopViewModel", "deleteShop called for: " + shopId + " with password verification");
-        isLoading.setValue(true);
-        errorMessage.setValue(null);
+        isLoading.postValue(true);
+        errorMessage.postValue(null);
         
         // Get current user email directly from Firebase Auth
         String userEmail = userRepository.getCurrentUserEmail();
         if (userEmail == null || userEmail.isEmpty()) {
-            errorMessage.setValue("No user logged in or user email not available");
-            isLoading.setValue(false);
+            errorMessage.postValue("No user logged in or user email not available");
+            isLoading.postValue(false);
             return;
         }
         
@@ -383,8 +424,8 @@ public class ShopViewModel extends AndroidViewModel {
                 })
                 .addOnFailureListener(e -> {
                     android.util.Log.e("ShopViewModel", "Password verification failed", e);
-                    errorMessage.setValue("Incorrect password. Shop deletion cancelled.");
-                    isLoading.setValue(false);
+                    errorMessage.postValue("Incorrect password. Shop deletion cancelled.");
+                    isLoading.postValue(false);
                 });
     }
     
@@ -393,41 +434,41 @@ public class ShopViewModel extends AndroidViewModel {
         shopRepository.deleteShop(shopId)
                 .addOnSuccessListener(aVoid -> {
                     android.util.Log.d("ShopViewModel", "Shop deletion completed successfully");
-                    successMessage.setValue("Shop and all related products deleted successfully!");
+                    successMessage.postValue("Shop and all related products deleted successfully!");
                     // Shop is already cleared by repository, just ensure UI state
-                    hasShop.setValue(false);
+                    hasShop.postValue(false);
                 })
                 .addOnFailureListener(e -> {
                     android.util.Log.e("ShopViewModel", "Shop deletion failed", e);
-                    errorMessage.setValue("Failed to delete shop: " + e.getMessage());
-                    isLoading.setValue(false);
+                    errorMessage.postValue("Failed to delete shop: " + e.getMessage());
+                    isLoading.postValue(false);
                 });
     }
     
     public void deleteShop(String shopId) {
         // Legacy method for backward compatibility - requires password
         android.util.Log.d("ShopViewModel", "Legacy deleteShop called without password - not allowed");
-        errorMessage.setValue("Password required for shop deletion. Please use the delete button in the shop interface.");
+        errorMessage.postValue("Password required for shop deletion. Please use the delete button in the shop interface.");
     }
     
     public void clearErrorMessage() {
-        errorMessage.setValue(null);
+        errorMessage.postValue(null);
     }
     
     public void setErrorMessage(String message) {
-        errorMessage.setValue(message);
+        errorMessage.postValue(message);
     }
     
     public void addProduct(String productName, String productDescription, double price) {
         // Validate inputs
         if (productName == null || productName.trim().isEmpty()) {
-            errorMessage.setValue("Product name is required");
+            errorMessage.postValue("Product name is required");
             return;
         }
         
         ShopModel currentShopData = currentShop.getValue();
         if (currentShopData == null) {
-            errorMessage.setValue("No shop found to add product to");
+            errorMessage.postValue("No shop found to add product to");
             return;
         }
         
@@ -464,12 +505,12 @@ public class ShopViewModel extends AndroidViewModel {
         
         // Validate inputs
         if (product == null) {
-            errorMessage.setValue("Invalid product data");
+            errorMessage.postValue("Invalid product data");
             return;
         }
         
         if (product.getName() == null || product.getName().trim().isEmpty()) {
-            errorMessage.setValue("Product name is required");
+            errorMessage.postValue("Product name is required");
             return;
         }
         
@@ -483,7 +524,7 @@ public class ShopViewModel extends AndroidViewModel {
         });
         
         productRepository.updateProduct(product);
-        successMessage.setValue("Product updated successfully!");
+        successMessage.postValue("Product updated successfully!");
     }
     
     public void deleteProduct(String productId, String shopId) {
@@ -491,12 +532,12 @@ public class ShopViewModel extends AndroidViewModel {
         
         // Validate inputs
         if (productId == null || productId.trim().isEmpty()) {
-            errorMessage.setValue("Invalid product ID");
+            errorMessage.postValue("Invalid product ID");
             return;
         }
         
         if (shopId == null || shopId.trim().isEmpty()) {
-            errorMessage.setValue("Invalid shop ID");
+            errorMessage.postValue("Invalid shop ID");
             return;
         }
         
@@ -510,14 +551,14 @@ public class ShopViewModel extends AndroidViewModel {
         });
         
         productRepository.deleteProduct(productId, shopId);
-        successMessage.setValue("Product deleted successfully!");
+        successMessage.postValue("Product deleted successfully!");
     }
     
     public void clearAllShops() {
         android.util.Log.d("ShopViewModel", "Clear all shops called");
         // In Firebase context, this would clear local cache
-        hasShop.setValue(false);
-        currentShop.setValue(null);
+        hasShop.postValue(false);
+        currentShop.postValue(null);
     }
     
     public String getCurrentUserId() {
@@ -534,5 +575,30 @@ public class ShopViewModel extends AndroidViewModel {
     
     public void signOut() {
         userRepository.signOut();
+    }
+    
+    private String extractPublicIdFromUrl(String cloudinaryUrl) {
+        if (cloudinaryUrl == null || cloudinaryUrl.isEmpty()) {
+            return null;
+        }
+        
+        try {
+            // Extract public ID from Cloudinary URL
+            // URL format: https://res.cloudinary.com/cloud_name/image/upload/v1234567890/public_id.extension
+            String[] parts = cloudinaryUrl.split("/");
+            if (parts.length >= 2) {
+                String lastPart = parts[parts.length - 1];
+                // Remove file extension
+                int dotIndex = lastPart.lastIndexOf('.');
+                if (dotIndex > 0) {
+                    return lastPart.substring(0, dotIndex);
+                }
+                return lastPart;
+            }
+        } catch (Exception e) {
+            Log.w("ShopViewModel", "Failed to extract public ID from URL: " + cloudinaryUrl, e);
+        }
+        
+        return null;
     }
 }
