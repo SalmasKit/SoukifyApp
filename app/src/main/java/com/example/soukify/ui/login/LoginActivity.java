@@ -1,6 +1,5 @@
 package com.example.soukify.ui.login;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Paint;
 import android.os.Bundle;
@@ -29,50 +28,38 @@ import com.google.android.gms.common.api.ApiException;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private Button loginbtn;
-    private EditText uselog, passlog;
-    private TextView logpasswrod, tvSignup;
-    private ImageView googleimg;
-
+    private Button loginBtn;
+    private EditText emailEdit, passwordEdit;
+    private TextView forgotPassword, signupText;
+    private ImageView googleBtn;
 
     private LoginActivityViewModel loginViewModel;
     private GoogleSignInClient googleClient;
 
-    // ---------------- GOOGLE SIGN IN ---------------- //
+    // ---------------- GOOGLE RESULT ----------------
     private final ActivityResultLauncher<Intent> googleLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
 
-                Toast.makeText(this, "GoogleLauncher → déclenché", Toast.LENGTH_SHORT).show();
-
                 if (result.getData() == null) {
-                    Toast.makeText(this, "GoogleLauncher → result.getData() = NULL ❌", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "Google result NULL", Toast.LENGTH_LONG).show();
                     return;
                 }
-
-                Toast.makeText(this, "GoogleLauncher → Intent reçu ✔️", Toast.LENGTH_SHORT).show();
 
                 try {
                     GoogleSignInAccount account = GoogleSignIn
                             .getSignedInAccountFromIntent(result.getData())
                             .getResult(ApiException.class);
 
-                    if (account != null) {
-                        Toast.makeText(this, "Google Account récupéré ✔️", Toast.LENGTH_SHORT).show();
-
-                        if (account.getIdToken() != null) {
-                            Toast.makeText(this, "ID TOKEN OK ✔️", Toast.LENGTH_SHORT).show();
-                            loginViewModel.signInWithGoogle(account.getIdToken());
-                        } else {
-                            Toast.makeText(this, "ID TOKEN NULL (problème clientID)", Toast.LENGTH_LONG).show();
-                        }
-
+                    if (account != null && account.getIdToken() != null) {
+                        Toast.makeText(this, "Google Token OK", Toast.LENGTH_SHORT).show();
+                        loginViewModel.signInWithGoogle(account.getIdToken());
                     } else {
-                        Toast.makeText(this, "Account NULL", Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "Google ID Token manquant", Toast.LENGTH_LONG).show();
                     }
 
                 } catch (ApiException e) {
                     Toast.makeText(this,
-                            "ApiException Google: " + e.getStatusCode(),
+                            "Erreur Google: " + e.getStatusCode(),
                             Toast.LENGTH_LONG).show();
                 }
             });
@@ -83,61 +70,32 @@ public class LoginActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_login);
 
-        Toast.makeText(this, "LoginActivity → onCreate()", Toast.LENGTH_SHORT).show();
-
         initViews();
         initViewModel();
         initGoogleAuth();
         setupListeners();
         setupObservers();
-
-        logpasswrod.setOnClickListener(v -> {
-            String email = uselog.getText().toString().trim();
-            if (email.isEmpty()) {
-                Toast.makeText(this, "Entrez votre email d'abord", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            logpasswrod.setEnabled(false); // Désactive le bouton
-            loginViewModel.resetPassword(email);
-        });
-        loginViewModel.getSuccessMessage().observe(this, msg -> {
-            if (msg != null && !msg.isEmpty()) {
-                Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
-                logpasswrod.setEnabled(true);
-            }
-        });
-        loginViewModel.getErrorMessage().observe(this, msg -> {
-            if (msg != null && !msg.isEmpty()) {
-                logpasswrod.setEnabled(true);
-            }
-        });
-
     }
 
-    // ---------------- INITIALISATION DES VUES ---------------- //
+    // ---------------- INIT VIEWS ----------------
     private void initViews() {
-        loginbtn = findViewById(R.id.logine);
-        uselog = findViewById(R.id.user);
-        passlog = findViewById(R.id.passwd);
-        logpasswrod = findViewById(R.id.forgetpassword);
-        googleimg = findViewById(R.id.google);
-        tvSignup = findViewById(R.id.tvSignup);
+        loginBtn = findViewById(R.id.logine);
+        emailEdit = findViewById(R.id.user);
+        passwordEdit = findViewById(R.id.passwd);
+        forgotPassword = findViewById(R.id.forgetpassword);
+        googleBtn = findViewById(R.id.google);
+        signupText = findViewById(R.id.tvSignup);
 
-        tvSignup.setPaintFlags(tvSignup.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+        signupText.setPaintFlags(signupText.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
     }
 
-    // ---------------- VIEWMODEL ---------------- //
+    // ---------------- VIEWMODEL ----------------
     private void initViewModel() {
-
-
         loginViewModel = new ViewModelProvider(this).get(LoginActivityViewModel.class);
     }
 
-    // ---------------- GOOGLE CONFIG ---------------- //
+    // ---------------- GOOGLE AUTH ----------------
     private void initGoogleAuth() {
-        Toast.makeText(this, "Init Google Auth...", Toast.LENGTH_SHORT).show();
-
         GoogleSignInOptions gso =
                 new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                         .requestIdToken(getString(R.string.default_web_client_id))
@@ -145,112 +103,109 @@ public class LoginActivity extends AppCompatActivity {
                         .build();
 
         googleClient = GoogleSignIn.getClient(this, gso);
-
-        Toast.makeText(this, "Google Auth Configurée ✔️", Toast.LENGTH_SHORT).show();
     }
 
-    // ---------------- CLICK LISTENERS ---------------- //
+    // ---------------- LISTENERS ----------------
     private void setupListeners() {
 
-        // Login normal
-        loginbtn.setOnClickListener(v -> {
-
-            String email = uselog.getText().toString().trim();
-            String password = passlog.getText().toString().trim();
+        // LOGIN EMAIL / PASSWORD
+        loginBtn.setOnClickListener(v -> {
+            String email = emailEdit.getText().toString().trim();
+            String password = passwordEdit.getText().toString().trim();
             loginViewModel.login(email, password);
         });
 
-        // Aller vers signup
-        tvSignup.setOnClickListener(v -> {
-            startActivity(new Intent(LoginActivity.this, SignActivity.class));
-        });
+        // SIGN UP
+        signupText.setOnClickListener(v ->
+                startActivity(new Intent(LoginActivity.this, SignActivity.class)));
 
-        // Reset password
-        logpasswrod.setOnClickListener(v -> {
-
-            String email = uselog.getText().toString().trim();
+        // RESET PASSWORD (version simple)
+        forgotPassword.setOnClickListener(v -> {
+            String email = emailEdit.getText().toString().trim();
 
             if (email.isEmpty()) {
                 Toast.makeText(this, "Entrez votre email d'abord", Toast.LENGTH_SHORT).show();
                 return;
             }
+
+            forgotPassword.setEnabled(false);
             loginViewModel.resetPassword(email);
         });
 
-        // Show/hide password
-        passlog.setOnTouchListener((v, event) -> {
+        // SHOW / HIDE PASSWORD
+        passwordEdit.setOnTouchListener((v, event) -> {
             final int drawableRight = 2;
 
             if (event.getAction() == MotionEvent.ACTION_UP) {
-                if (event.getRawX() >= (passlog.getRight()
-                        - passlog.getCompoundDrawables()[drawableRight].getBounds().width())) {
+                if (event.getRawX() >= (passwordEdit.getRight()
+                        - passwordEdit.getCompoundDrawables()[drawableRight].getBounds().width())) {
 
-                    Toast.makeText(this, "Changement affichage mot de passe", Toast.LENGTH_SHORT).show();
-
-                    if (passlog.getInputType()
+                    if (passwordEdit.getInputType()
                             == (InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)) {
 
-                        passlog.setInputType(InputType.TYPE_CLASS_TEXT |
+                        passwordEdit.setInputType(InputType.TYPE_CLASS_TEXT |
                                 InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
 
                     } else {
-                        passlog.setInputType(InputType.TYPE_CLASS_TEXT |
+                        passwordEdit.setInputType(InputType.TYPE_CLASS_TEXT |
                                 InputType.TYPE_TEXT_VARIATION_PASSWORD);
                     }
 
-                    passlog.setSelection(passlog.getText().length());
+                    passwordEdit.setSelection(passwordEdit.getText().length());
                     return true;
                 }
             }
             return false;
         });
 
-        // Google login
-        googleimg.setOnClickListener(v -> {
-            Toast.makeText(this, "Bouton Google cliqué ✔️", Toast.LENGTH_SHORT).show();
-
-            googleClient.signOut()
-                    .addOnCompleteListener(task -> {
-                        Toast.makeText(this, "Google SignOut OK, lancement Intent...", Toast.LENGTH_SHORT).show();
-                        googleLauncher.launch(googleClient.getSignInIntent());
-
-                    })
-                    .addOnFailureListener(e ->
-                            Toast.makeText(this, "Erreur SignOut : " + e.getMessage(), Toast.LENGTH_SHORT).show()
-                    );
-
-        });
+        // GOOGLE LOGIN
+        googleBtn.setOnClickListener(v ->
+                googleClient.signOut()
+                        .addOnCompleteListener(task ->
+                                googleLauncher.launch(googleClient.getSignInIntent()))
+                        .addOnFailureListener(e ->
+                                Toast.makeText(this,
+                                        "Erreur Google SignOut: " + e.getMessage(),
+                                        Toast.LENGTH_SHORT).show())
+        );
     }
 
-    // ---------------- OBSERVERS ---------------- //
+    // ---------------- OBSERVERS ----------------
     private void setupObservers() {
+
         loginViewModel.getLoginSuccess().observe(this, success -> {
-            Toast.makeText(this, "Observer loginSuccess = " + success, Toast.LENGTH_SHORT).show();
             if (Boolean.TRUE.equals(success)) navigateToMain();
         });
 
         loginViewModel.getPhoneAuthSuccess().observe(this, success -> {
-            Toast.makeText(this, "Observer phoneAuthSuccess = " + success, Toast.LENGTH_SHORT).show();
             if (Boolean.TRUE.equals(success)) navigateToMain();
         });
 
-        loginViewModel.getErrorMessage().observe(this, message -> {
-            if (message != null && !message.isEmpty())
-                Toast.makeText(this, "Observer ErrorMessage: " + message, Toast.LENGTH_LONG).show();
-        });
-
-        loginViewModel.getPhoneAuthError().observe(this, error -> {
-            if (error != null && !error.isEmpty())
-                Toast.makeText(this, "Phone Auth Error: " + error, Toast.LENGTH_LONG).show();
+        loginViewModel.getErrorMessage().observe(this, msg -> {
+            if (msg != null && !msg.isEmpty()) {
+                Toast.makeText(this, "❌ " + msg, Toast.LENGTH_LONG).show();
+                forgotPassword.setEnabled(true);
+            }
         });
 
         loginViewModel.getSuccessMessage().observe(this, msg -> {
-            if (msg != null && !msg.isEmpty())
-                Toast.makeText(this, "Message: " + msg, Toast.LENGTH_LONG).show();
+            if (msg != null && !msg.isEmpty()) {
+                Toast.makeText(this, "📨 " + msg, Toast.LENGTH_LONG).show();
+                forgotPassword.setEnabled(true);
+            }
         });
+
+        loginViewModel.getPhoneAuthError().observe(this, error -> {
+            if (error != null && !error.isEmpty()) {
+                Toast.makeText(this, "❌ " + error, Toast.LENGTH_LONG).show();
+            }
+        });
+
+        loginViewModel.getIsLoading().observe(this,
+                isLoading -> forgotPassword.setEnabled(!Boolean.TRUE.equals(isLoading)));
     }
 
-    // ---------------- NAVIGATION ---------------- //
+    // ---------------- NAVIGATION ----------------
     private void navigateToMain() {
         startActivity(new Intent(this, MainActivity.class));
         finish();
