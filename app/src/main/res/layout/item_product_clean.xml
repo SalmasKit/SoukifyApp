@@ -85,7 +85,18 @@
                     android:layout_height="wrap_content"
                     android:text="0"
                     android:textSize="12sp"
+                    android:layout_marginEnd="8dp"
                     android:textColor="#757575" />
+
+                <!-- Shop Link Button -->
+                <ImageButton
+                    android:id="@+id/shopLinkButton"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:src="@android:drawable/ic_menu_send"
+                    android:background="?attr/selectableItemBackground"
+                    android:scaleType="centerCrop"
+                    android:contentDescription="Visit Shop" />
 
             </LinearLayout>
 

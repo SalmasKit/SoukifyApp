@@ -39,6 +39,7 @@ public class ProductsUIManager {
     
     private final Fragment fragment;
     private final ProductManager productManager;
+    private final ProductViewModel productViewModel;
     
     // UI Components
     private RecyclerView productsRecyclerView;
@@ -55,9 +56,10 @@ public class ProductsUIManager {
     
     private OnProductClickListener productClickListener;
     
-    public ProductsUIManager(Fragment fragment, ProductManager productManager) {
+    public ProductsUIManager(Fragment fragment, ProductManager productManager, ProductViewModel productViewModel) {
         this.fragment = fragment;
         this.productManager = productManager;
+        this.productViewModel = productViewModel;
     }
     
     /**
@@ -105,7 +107,10 @@ public class ProductsUIManager {
                     productClickListener.onProductLongClick(product);
                 }
             }
-        });
+        }, productViewModel);
+        
+        // Set lifecycle owner for proper observer management
+        productsAdapter.setLifecycleOwner(fragment.getViewLifecycleOwner());
         
         // Setup RecyclerView
         productsRecyclerView.setAdapter(productsAdapter);

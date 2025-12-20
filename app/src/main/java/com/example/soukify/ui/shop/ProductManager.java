@@ -13,6 +13,7 @@ import com.example.soukify.data.models.ProductImageModel;
 import com.example.soukify.data.repositories.ProductRepository;
 import com.example.soukify.data.remote.firebase.FirebaseProductImageService;
 import com.example.soukify.data.remote.FirebaseManager;
+import com.example.soukify.data.remote.CloudinaryImageService;
 import com.example.soukify.utils.ImageUtils;
 
 import java.util.List;
@@ -30,6 +31,7 @@ public class ProductManager {
     
     private final ProductRepository productRepository;
     private final FirebaseProductImageService firebaseProductImageService;
+    private final CloudinaryImageService cloudinaryService;
     private final Context context;
     private final ExecutorService executorService;
     private final MutableLiveData<List<ProductModel>> products = new MutableLiveData<>();
@@ -43,6 +45,7 @@ public class ProductManager {
         this.productRepository = new ProductRepository(application);
         FirebaseManager firebaseManager = FirebaseManager.getInstance(application);
         this.firebaseProductImageService = new FirebaseProductImageService(firebaseManager.getFirestore());
+        this.cloudinaryService = new CloudinaryImageService(application);
         this.context = application.getApplicationContext();
         this.executorService = Executors.newSingleThreadExecutor();
     }
@@ -61,8 +64,8 @@ public class ProductManager {
         Log.d(TAG, "Loading products for shop: " + shopId);
         this.currentShopId = shopId;
         
-        isLoading.setValue(true);
-        errorMessage.setValue(null);
+        isLoading.postValue(true);
+        errorMessage.postValue(null);
         
         productRepository.loadShopProducts(shopId);
         observeProductData();
@@ -161,7 +164,7 @@ public class ProductManager {
     public void updateProduct(ProductModel product, String newImageUriString) {
         if (product == null || product.getProductId() == null) {
             Log.w(TAG, "Cannot update null product or product without ID");
-            errorMessage.setValue("Invalid product");
+            errorMessage.postValue("Invalid product");
             return;
         }
         
@@ -171,7 +174,7 @@ public class ProductManager {
             uploadNewImageAndUpdate(product, newImageUriString);
         } else {
             productRepository.updateProduct(product);
-            successMessage.setValue("Product updated successfully");
+            successMessage.postValue("Product updated successfully");
             Log.d(TAG, "Product updated in repository");
         }
     }
@@ -182,13 +185,13 @@ public class ProductManager {
     public void updateProductType(ProductModel product, String newProductType) {
         if (product == null || product.getProductId() == null) {
             Log.w(TAG, "Cannot update null product or product without ID");
-            errorMessage.setValue("Invalid product");
+            errorMessage.postValue("Invalid product");
             return;
         }
         
         if (newProductType == null || newProductType.trim().isEmpty()) {
             Log.w(TAG, "Cannot update product with empty type name");
-            errorMessage.setValue("Product type cannot be empty");
+            errorMessage.postValue("Product type cannot be empty");
             return;
         }
         
@@ -205,7 +208,7 @@ public class ProductManager {
     public void deleteProduct(ProductModel product) {
         if (product == null || product.getProductId() == null) {
             Log.w(TAG, "Cannot delete null product or product without ID");
-            errorMessage.setValue("Invalid product");
+            errorMessage.postValue("Invalid product");
             return;
         }
         
@@ -218,7 +221,7 @@ public class ProductManager {
         
         // Delete product from repository
         productRepository.deleteProduct(product.getProductId(), product.getShopId());
-        successMessage.setValue("Product deleted successfully");
+        successMessage.postValue("Product deleted successfully");
         Log.d(TAG, "Product deleted from repository");
     }
     
@@ -283,27 +286,27 @@ public class ProductManager {
      */
     public boolean validateProductInput(String name, String description, double price, String type) {
         if (currentShopId == null || currentShopId.isEmpty()) {
-            errorMessage.setValue("No shop selected");
+            errorMessage.postValue("No shop selected");
             return false;
         }
         
         if (name == null || name.trim().isEmpty()) {
-            errorMessage.setValue("Product name is required");
+            errorMessage.postValue("Product name is required");
             return false;
         }
         
         if (description == null || description.trim().isEmpty()) {
-            errorMessage.setValue("Product description is required");
+            errorMessage.postValue("Product description is required");
             return false;
         }
         
         if (price <= 0) {
-            errorMessage.setValue("Product price must be greater than 0");
+            errorMessage.postValue("Product price must be greater than 0");
             return false;
         }
         
         if (type == null || type.trim().isEmpty()) {
-            errorMessage.setValue("Product type is required");
+            errorMessage.postValue("Product type is required");
             return false;
         }
         
@@ -329,11 +332,11 @@ public class ProductManager {
     }
     
     public void clearError() {
-        errorMessage.setValue(null);
+        errorMessage.postValue(null);
     }
     
     public void clearSuccess() {
-        successMessage.setValue(null);
+        successMessage.postValue(null);
     }
     
     public String getCurrentShopId() {
@@ -353,12 +356,16 @@ public class ProductManager {
         try {
             Uri mediaUri = Uri.parse(imageUriString);
             
-            ImageUtils.uploadMediaToLocalStorage(context, mediaUri, "product", productName)
-                .addOnSuccessListener(uri -> {
-                    Log.d(TAG, "Product media uploaded: " + uri.toString());
+            // Generate unique public ID for product media
+            String publicId = CloudinaryImageService.generateUniquePublicId("product", productName + "_" + System.currentTimeMillis());
+            
+            cloudinaryService.uploadMedia(mediaUri, publicId, new CloudinaryImageService.MediaUploadCallback() {
+                @Override
+                public void onSuccess(String mediaUrl) {
+                    Log.d(TAG, "Product media uploaded to Cloudinary: " + mediaUrl);
                     
                     ProductImageModel productImage = new ProductImageModel();
-                    productImage.setImageUrl(uri.toString());
+                    productImage.setImageUrl(mediaUrl);
                     
                     firebaseProductImageService.createProductImage(productImage)
                         .addOnSuccessListener(documentReference -> {
@@ -377,14 +384,33 @@ public class ProductManager {
                         })
                         .addOnFailureListener(e -> {
                             Log.e(TAG, "Failed to create product image: " + e.getMessage(), e);
-                            ImageUtils.deleteImageFromFirebaseStorage("product", productName);
+                            // Delete from Cloudinary if Firebase document creation fails
+                            cloudinaryService.deleteMedia(publicId, new CloudinaryImageService.MediaDeleteCallback() {
+                                @Override
+                                public void onSuccess() {
+                                    Log.d(TAG, "Cloudinary media deleted due to Firebase failure");
+                                }
+                                
+                                @Override
+                                public void onError(String error) {
+                                    Log.w(TAG, "Failed to delete Cloudinary media: " + error);
+                                }
+                            });
                             handleImageProcessingFailure(imageIds, processedCount, totalImages, productName, description, price, productType, weight, length, width, height, color, material);
                         });
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Failed to upload product media: " + e.getMessage(), e);
+                }
+                
+                @Override
+                public void onError(String error) {
+                    Log.e(TAG, "Failed to upload product media to Cloudinary: " + error);
                     handleImageProcessingFailure(imageIds, processedCount, totalImages, productName, description, price, productType, weight, length, width, height, color, material);
-                });
+                }
+                
+                @Override
+                public void onProgress(int progress) {
+                    // Progress can be handled by UI if needed
+                }
+            });
         } catch (Exception e) {
             Log.e(TAG, "Error parsing image URI: " + e.getMessage(), e);
             handleImageProcessingFailure(imageIds, processedCount, totalImages, productName, description, price, productType, weight, length, width, height, color, material);
@@ -431,16 +457,20 @@ public class ProductManager {
             (imageIds != null ? imageIds.size() : 0));
         
         productRepository.createProduct(product);
-        successMessage.setValue("Product added successfully!");
+        successMessage.postValue("Product added successfully!");
     }
     
     private void uploadNewImageAndUpdate(ProductModel product, String newImageUriString) {
         try {
             Uri newImageUri = Uri.parse(newImageUriString);
             
-            ImageUtils.uploadMediaToLocalStorage(context, newImageUri, "product", product.getName())
-                .addOnSuccessListener(uri -> {
-                    Log.d(TAG, "New product image uploaded: " + uri.toString());
+            // Generate unique public ID for product media
+            String publicId = CloudinaryImageService.generateUniquePublicId("product", product.getName() + "_" + System.currentTimeMillis());
+            
+            cloudinaryService.uploadMedia(newImageUri, publicId, new CloudinaryImageService.MediaUploadCallback() {
+                @Override
+                public void onSuccess(String mediaUrl) {
+                    Log.d(TAG, "New product media uploaded to Cloudinary: " + mediaUrl);
                     
                     // Delete old images
                     if (product.hasImages()) {
@@ -449,7 +479,7 @@ public class ProductManager {
                     
                     // Create new image document
                     ProductImageModel newImageModel = new ProductImageModel();
-                    newImageModel.setImageUrl(uri.toString());
+                    newImageModel.setImageUrl(mediaUrl);
                     
                     firebaseProductImageService.createProductImage(newImageModel)
                         .addOnSuccessListener(documentReference -> {
@@ -460,23 +490,42 @@ public class ProductManager {
                             newImageIds.add(newImageId);
                             product.setImageIds(newImageIds);
                             productRepository.updateProduct(product);
-                            successMessage.setValue("Product updated successfully");
+                            successMessage.postValue("Product updated successfully");
                             Log.d(TAG, "Product updated with new image");
                         })
                         .addOnFailureListener(e -> {
                             Log.e(TAG, "Failed to create new image document: " + e.getMessage(), e);
-                            ImageUtils.deleteImageFromFirebaseStorage("product", product.getName());
-                            errorMessage.setValue("Failed to update product image");
+                            // Delete from Cloudinary if Firebase document creation fails
+                            cloudinaryService.deleteMedia(publicId, new CloudinaryImageService.MediaDeleteCallback() {
+                                @Override
+                                public void onSuccess() {
+                                    Log.d(TAG, "Cloudinary media deleted due to Firebase failure");
+                                }
+                                
+                                @Override
+                                public void onError(String error) {
+                                    Log.w(TAG, "Failed to delete Cloudinary media: " + error);
+                                }
+                            });
+                            errorMessage.postValue("Failed to update product image");
                         });
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Failed to upload new product image: " + e.getMessage(), e);
-                    errorMessage.setValue("Failed to upload product image");
-                });
+                }
+                
+                @Override
+                public void onError(String error) {
+                    Log.e(TAG, "Failed to upload new product media to Cloudinary: " + error);
+                    errorMessage.postValue("Failed to upload product image");
+                }
+                
+                @Override
+                public void onProgress(int progress) {
+                    // Progress can be handled by UI if needed
+                }
+            });
             
         } catch (Exception e) {
             Log.e(TAG, "Error parsing new image URI: " + e.getMessage(), e);
-            errorMessage.setValue("Invalid image");
+            errorMessage.postValue("Invalid image");
         }
     }
     
@@ -486,44 +535,62 @@ public class ProductManager {
         
         for (String imageId : imageIds) {
             if (imageId != null && !imageId.isEmpty()) {
-                firebaseProductImageService.getProductImage(imageId)
-                    .addOnSuccessListener(productImage -> {
-                        if (productImage != null && productImage.getImageUrl() != null) {
-                            String mediaUrl = productImage.getImageUrl();
+                // Check if imageId is a URL (Cloudinary) or Firestore document ID
+                if (imageId.startsWith("http://") || imageId.startsWith("https://")) {
+                    // This is a Cloudinary URL, delete directly from Cloudinary
+                    String publicId = extractPublicIdFromUrl(imageId);
+                    if (publicId != null) {
+                        cloudinaryService.deleteMedia(publicId, new CloudinaryImageService.MediaDeleteCallback() {
+                            @Override
+                            public void onSuccess() {
+                                Log.d(TAG, "Cloudinary media deleted: " + publicId);
+                            }
                             
-                            ImageUtils.deleteMediaFromLocalStorage(mediaUrl)
-                                .addOnSuccessListener(deleted -> {
-                                    if (deleted) {
-                                        Log.d(TAG, "Local media file deleted: " + mediaUrl);
-                                    }
+                            @Override
+                            public void onError(String error) {
+                                Log.w(TAG, "Failed to delete Cloudinary media: " + error);
+                            }
+                        });
+                    }
+                } else {
+                    // This is a Firestore document ID, get the image details first
+                    firebaseProductImageService.getProductImage(imageId)
+                        .addOnSuccessListener(productImage -> {
+                            if (productImage != null && productImage.getImageUrl() != null) {
+                                String mediaUrl = productImage.getImageUrl();
+                                
+                                // Extract public ID from Cloudinary URL and delete
+                                String publicId = extractPublicIdFromUrl(mediaUrl);
+                                if (publicId != null) {
+                                    cloudinaryService.deleteMedia(publicId, new CloudinaryImageService.MediaDeleteCallback() {
+                                        @Override
+                                        public void onSuccess() {
+                                            Log.d(TAG, "Cloudinary media deleted: " + publicId);
+                                        }
+                                        
+                                        @Override
+                                        public void onError(String error) {
+                                            Log.w(TAG, "Failed to delete Cloudinary media: " + error);
+                                        }
+                                    });
+                                }
+                            }
+                            
+                            // Delete the Firestore document
+                            firebaseProductImageService.deleteProductImage(imageId)
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.d(TAG, "Product image document deleted: " + imageId);
                                 })
                                 .addOnFailureListener(e -> {
-                                    Log.e(TAG, "Error deleting local media file: " + mediaUrl, e);
+                                    Log.e(TAG, "Failed to delete product image document: " + imageId, e);
                                 });
-                        }
-                        
-                        firebaseProductImageService.deleteProductImage(imageId)
-                            .addOnSuccessListener(aVoid -> {
-                                Log.d(TAG, "Product image document deleted: " + imageId);
-                            })
-                            .addOnFailureListener(e -> {
-                                Log.e(TAG, "Failed to delete product image document: " + imageId, e);
-                            });
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e(TAG, "Failed to get product image for deletion: " + imageId, e);
-                    });
+                        })
+                        .addOnFailureListener(e -> {
+                            Log.e(TAG, "Failed to get product image for deletion: " + imageId, e);
+                        });
+                }
             }
         }
-        
-        // Cleanup any remaining files
-        ImageUtils.deleteAllMediaForEntity(context, "product", product.getName())
-            .addOnSuccessListener(deletedCount -> {
-                Log.d(TAG, "Cleaned up " + deletedCount + " additional media files");
-            })
-            .addOnFailureListener(e -> {
-                Log.e(TAG, "Error cleaning up media files", e);
-            });
     }
     
     private void observeProductData() {
@@ -556,6 +623,31 @@ public class ProductManager {
     
     public interface ImageUrlsCallback {
         void onResult(List<String> urls);
+    }
+    
+    private String extractPublicIdFromUrl(String cloudinaryUrl) {
+        if (cloudinaryUrl == null || cloudinaryUrl.isEmpty()) {
+            return null;
+        }
+        
+        try {
+            // Extract public ID from Cloudinary URL
+            // URL format: https://res.cloudinary.com/cloud_name/image/upload/v1234567890/public_id.extension
+            String[] parts = cloudinaryUrl.split("/");
+            if (parts.length >= 2) {
+                String lastPart = parts[parts.length - 1];
+                // Remove file extension
+                int dotIndex = lastPart.lastIndexOf('.');
+                if (dotIndex > 0) {
+                    return lastPart.substring(0, dotIndex);
+                }
+                return lastPart;
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to extract public ID from URL: " + cloudinaryUrl, e);
+        }
+        
+        return null;
     }
 }
 

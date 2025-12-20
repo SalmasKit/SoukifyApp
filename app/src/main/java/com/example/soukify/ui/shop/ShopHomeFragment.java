@@ -28,6 +28,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
@@ -42,6 +44,7 @@ import com.example.soukify.data.repositories.LocationRepository;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,6 +59,7 @@ public class ShopHomeFragment extends Fragment {
     private static final int REQUEST_READ_EXTERNAL_STORAGE = 100;
 
     private ShopViewModel shopViewModel;
+    private ProductViewModel productViewModel;
     private LocationRepository locationRepository;
     private View rootView;
 
@@ -110,10 +114,27 @@ public class ShopHomeFragment extends Fragment {
     }
 
     private boolean isShopOwner() {
-        ShopModel currentShop = shopViewModel.getShop().getValue();
         String currentUserId = shopViewModel.getCurrentUserId();
         
-        if (currentShop == null || currentUserId == null) {
+        if (currentUserId == null) {
+            return false;
+        }
+        
+        // First check if we have external shop data from arguments
+        Bundle args = getArguments();
+        if (args != null && args.containsKey("shopId")) {
+            String externalShopUserId = args.getString("shopUserId");
+            if (externalShopUserId != null) {
+                boolean isOwner = currentUserId.equals(externalShopUserId);
+                android.util.Log.d("ShopHomeFragment", "External shop ownership check - Current user: " + currentUserId + 
+                                  ", Shop owner: " + externalShopUserId + ", Is owner: " + isOwner);
+                return isOwner;
+            }
+        }
+        
+        // Fallback to checking current shop from ViewModel (for user's own shop)
+        ShopModel currentShop = shopViewModel.getShop().getValue();
+        if (currentShop == null) {
             return false;
         }
         
@@ -151,6 +172,8 @@ public class ShopHomeFragment extends Fragment {
 
     private void initializeComponents() {
         shopViewModel = new ViewModelProvider(requireActivity()).get(ShopViewModel.class);
+        productViewModel = new ViewModelProvider(requireActivity(), new ProductViewModel.Factory(requireActivity().getApplication())).get(ProductViewModel.class);
+        productViewModel.setupObservers(getViewLifecycleOwner());
         locationRepository = new LocationRepository(requireActivity().getApplication());
 
         // Initialize toolbar with back button
@@ -158,7 +181,7 @@ public class ShopHomeFragment extends Fragment {
 
         // Initialize product managers
         productManager = new ProductManager(requireActivity().getApplication());
-        productsUIManager = new ProductsUIManager(this, productManager);
+        productsUIManager = new ProductsUIManager(this, productManager, productViewModel);
 
         // Initialize image picker
         initializeImagePicker();
@@ -172,12 +195,25 @@ public class ShopHomeFragment extends Fragment {
         androidx.appcompat.widget.Toolbar toolbar = rootView.findViewById(R.id.toolbar);
         if (toolbar != null) {
             toolbar.setNavigationOnClickListener(v -> {
-                // Navigate back to previous screen
-                if (getFragmentManager() != null) {
-                    getFragmentManager().popBackStack();
-                } else {
-                    // Fallback to navigation controller
-                    Navigation.findNavController(requireView()).navigateUp();
+                // Use NavController for proper navigation
+                try {
+                    NavController navController = Navigation.findNavController(requireView());
+                    navController.navigateUp();
+                    Log.d("ShopHomeFragment", "Back navigation successful");
+                } catch (Exception e) {
+                    Log.e("ShopHomeFragment", "Error with NavController navigation", e);
+                    // Fallback to fragment manager
+                    if (getFragmentManager() != null) {
+                        getFragmentManager().popBackStack();
+                    } else {
+                        // Final fallback - navigate to settings directly
+                        try {
+                            NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment_activity_main);
+                            navController.navigate(R.id.navigation_settings);
+                        } catch (Exception ex) {
+                            Log.e("ShopHomeFragment", "All navigation methods failed", ex);
+                        }
+                    }
                 }
             });
         }
@@ -324,9 +360,46 @@ public class ShopHomeFragment extends Fragment {
         ImageView editShopButton = rootView.findViewById(R.id.editShopButton);
         if (editShopButton != null) {
             editShopButton.setOnClickListener(v -> {
+                android.util.Log.d("ShopHomeFragment", "Edit shop button clicked - starting comprehensive data refresh");
+                
+                // Get current shop for reference
                 ShopModel currentShop = shopViewModel.getShop().getValue();
                 if (currentShop != null) {
-                    showEditShopDialog(currentShop);
+                    android.util.Log.d("ShopHomeFragment", "Current shop data - hasPromotion: " + currentShop.isHasPromotion() + ", hasLivraison: " + currentShop.isHasLivraison());
+                
+                // Use direct fetch for guaranteed fresh data
+                shopViewModel.fetchCurrentShopDirectly();
+                    android.util.Log.d("ShopHomeFragment", "Refreshing shop data before edit dialog");
+                    shopViewModel.fetchCurrentShopDirectly();
+                    // Set up one-time observer for fresh data
+                final boolean[] dialogShown = {false};
+                shopViewModel.getShop().observe(getViewLifecycleOwner(), freshShop -> {
+                    if (freshShop != null && !dialogShown[0]) {
+                        android.util.Log.d("ShopHomeFragment", "Fresh shop data received - hasPromotion: " + freshShop.isHasPromotion() + ", hasLivraison: " + freshShop.isHasLivraison());
+                        
+                        // Only show dialog once
+                        dialogShown[0] = true;
+                        
+                        // Remove observer to prevent multiple calls
+                        shopViewModel.getShop().removeObservers(getViewLifecycleOwner());
+                        
+                        // Show dialog with confirmed fresh data
+                        showEditShopDialog(freshShop);
+                    }
+                });
+                
+                // Fallback: show dialog after 3 seconds even if fresh data not received
+                    new android.os.Handler().postDelayed(() -> {
+                    if (!dialogShown[0]) {
+                        android.util.Log.w("ShopHomeFragment", "Fallback triggered - showing dialog with current data");
+                        dialogShown[0] = true;
+                        shopViewModel.getShop().removeObservers(getViewLifecycleOwner());
+                        // ShopModel refreshedShop = shopViewModel.getShop().getValue(); // Commented out - using LiveData observer instead
+                        // if (refreshedShop != null) { // Commented out - using LiveData observer instead
+                            // android.util.Log.d("ShopHomeFragment", "Refreshed shop data - hasPromotion: " + refreshedShop.isHasPromotion() + ", hasLivraison: " + refreshedShop.isHasLivraison()); // Commented out
+                            // showEditShopDialog(refreshedShop); // Commented out
+                        }
+                    }, 500);
                 }
             });
         }
@@ -366,7 +439,8 @@ public class ShopHomeFragment extends Fragment {
         // Check if dialogs should be hidden based on ownership and navigation source
         Bundle args = getArguments();
         boolean fromSearch = args != null && args.getBoolean("hideDialogs", false);
-        boolean shouldHideDialogs = fromSearch || !isShopOwner();
+        boolean fromFavorites = args != null && "favorites".equals(args.getString("source"));
+        boolean shouldHideDialogs = fromSearch || fromFavorites || !isShopOwner();
         
         if (shouldHideDialogs) {
             hideDialogElements();
@@ -460,6 +534,26 @@ public class ShopHomeFragment extends Fragment {
                 shopCategoryInline.setVisibility(View.VISIBLE);
             } else {
                 shopCategoryInline.setVisibility(View.GONE);
+            }
+        }
+
+        // Set promotion and delivery badges visibility
+        LinearLayout promotionBadge = rootView.findViewById(R.id.promotionBadge);
+        LinearLayout deliveryBadge = rootView.findViewById(R.id.deliveryBadge);
+        
+        if (promotionBadge != null) {
+            if (shop.isHasPromotion()) {
+                promotionBadge.setVisibility(View.VISIBLE);
+            } else {
+                promotionBadge.setVisibility(View.GONE);
+            }
+        }
+        
+        if (deliveryBadge != null) {
+            if (shop.isHasLivraison()) {
+                deliveryBadge.setVisibility(View.VISIBLE);
+            } else {
+                deliveryBadge.setVisibility(View.GONE);
             }
         }
 
@@ -795,6 +889,10 @@ public class ShopHomeFragment extends Fragment {
         ImageView ivShopPreview = dialogView.findViewById(R.id.ivShopPreview);
         LinearLayout imageContainer = dialogView.findViewById(R.id.imageContainer);
 
+        // Switch components for promotion and delivery
+        SwitchMaterial switchPromotion = dialogView.findViewById(R.id.switchPromotion);
+        SwitchMaterial switchDelivery = dialogView.findViewById(R.id.switchDelivery);
+
         // Pre-fill existing data
         etShopName.setText(shop.getName());
         etShopDescription.setText(shop.getDescription());
@@ -804,6 +902,25 @@ public class ShopHomeFragment extends Fragment {
         etShopInstagram.setText(shop.getInstagram());
         etShopFacebook.setText(shop.getFacebook());
         etShopWebsite.setText(shop.getWebsite());
+
+        // Set toggle switch values from shop data
+        switchPromotion.setChecked(shop.isHasPromotion());
+        switchDelivery.setChecked(shop.isHasLivraison());
+        
+        // Add listeners to immediately update badges when toggles change
+        switchPromotion.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            LinearLayout promotionBadge = rootView.findViewById(R.id.promotionBadge);
+            if (promotionBadge != null) {
+                promotionBadge.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            }
+        });
+        
+        switchDelivery.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            LinearLayout deliveryBadge = rootView.findViewById(R.id.deliveryBadge);
+            if (deliveryBadge != null) {
+                deliveryBadge.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            }
+        });
 
         tvShopId.setText("ID: #" + shop.getShopId().substring(0, Math.min(8, shop.getShopId().length())));
 
@@ -843,7 +960,7 @@ public class ShopHomeFragment extends Fragment {
                 .setPositiveButton("Save Changes", (dialogInterface, which) -> {
                     saveShopChanges(dialogView, shop, etShopName, etShopDescription, etShopPhone, etShopEmail,
                             etShopAddress, etShopInstagram, etShopFacebook, etShopWebsite,
-                            etShopCategory, etShopRegion, etShopCity, selectedCategory);
+                            etShopCategory, etShopRegion, etShopCity, selectedCategory, switchPromotion, switchDelivery);
                 })
                 .setNegativeButton("Cancel", (dialogInterface, which) -> {
                     selectedShopImageUri = null;
@@ -992,7 +1109,19 @@ public class ShopHomeFragment extends Fragment {
             try {
                 ivShopPreview.setVisibility(View.VISIBLE);
                 imageContainer.setVisibility(View.GONE);
-                ivShopPreview.setImageURI(Uri.parse(shop.getImageUrl()));
+                
+                // Check if it's a Cloudinary URL (http/https) and load with Glide
+                Uri imageUri = Uri.parse(shop.getImageUrl());
+                if (imageUri.getScheme() != null && (imageUri.getScheme().equals("http") || imageUri.getScheme().equals("https"))) {
+                    Glide.with(requireContext())
+                        .load(imageUri.toString())
+                        .placeholder(R.drawable.ic_image_placeholder)
+                        .error(R.drawable.ic_image_placeholder)
+                        .into(ivShopPreview);
+                } else {
+                    // Handle local file URIs
+                    ivShopPreview.setImageURI(imageUri);
+                }
             } catch (Exception e) {
                 ivShopPreview.setVisibility(View.GONE);
                 imageContainer.setVisibility(View.VISIBLE);
@@ -1018,7 +1147,8 @@ public class ShopHomeFragment extends Fragment {
                                  TextInputEditText etShopAddress, TextInputEditText etShopInstagram,
                                  TextInputEditText etShopFacebook, TextInputEditText etShopWebsite,
                                  AutoCompleteTextView etShopCategory, AutoCompleteTextView etShopRegion,
-                                 AutoCompleteTextView etShopCity, String[] selectedCategory) {
+                                 AutoCompleteTextView etShopCity, String[] selectedCategory,
+                                 SwitchMaterial switchPromotion, SwitchMaterial switchDelivery) {
 
         // Handle shop image upload if a new image was selected
         if (selectedShopImageUri != null) {
@@ -1042,6 +1172,10 @@ public class ShopHomeFragment extends Fragment {
         shop.setFacebook(etShopFacebook.getText().toString());
         shop.setWebsite(etShopWebsite.getText().toString());
         shop.setCategory(selectedCategoryText);
+        
+        // Save toggle switch values
+        shop.setHasPromotion(switchPromotion.isChecked());
+        shop.setHasLivraison(switchDelivery.isChecked());
 
         // Get IDs from names
         String regionId = null;
@@ -1557,6 +1691,16 @@ public class ShopHomeFragment extends Fragment {
         try {
             Bundle args = new Bundle();
             args.putParcelable("product", product);
+            
+            // Check if we need to pass source parameter (from search)
+            Bundle fragmentArgs = getArguments();
+            if (fragmentArgs != null) {
+                boolean fromSearch = fragmentArgs.getBoolean("hideDialogs", false);
+                if (fromSearch) {
+                    args.putString("source", "search");
+                    android.util.Log.d("ShopHomeFragment", "Passing source parameter to product detail: search");
+                }
+            }
             
             // Use the activity's NavController for global navigation
             // This should work regardless of fragment hierarchy

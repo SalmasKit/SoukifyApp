@@ -27,6 +27,7 @@ import com.example.soukify.R;
 import com.example.soukify.ui.settings.SettingItemView;
 import com.example.soukify.ui.shop.ShopViewModel;
 import de.hdodenhof.circleimageview.CircleImageView;
+import com.bumptech.glide.Glide;
 
 public class SettingsFragment extends Fragment {
     
@@ -207,7 +208,15 @@ public class SettingsFragment extends Fragment {
             
             android.net.Uri uri = android.net.Uri.parse(imageUri);
             
-            if (uri.getScheme().equals("file")) {
+            // Check if it's a Cloudinary URL (http/https) or local file
+            if (uri.getScheme() != null && (uri.getScheme().equals("http") || uri.getScheme().equals("https"))) {
+                // Load Cloudinary URL with Glide
+                Glide.with(this)
+                    .load(imageUri)
+                    .placeholder(R.drawable.ic_profile_placeholder)
+                    .error(R.drawable.ic_profile_placeholder)
+                    .into(profileImageView);
+            } else if (uri.getScheme().equals("file")) {
                 profileImageView.setImageURI(uri);
             } else if (uri.getScheme().equals("content")) {
                 if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE) 

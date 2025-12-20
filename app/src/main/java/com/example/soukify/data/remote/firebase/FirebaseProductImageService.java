@@ -112,15 +112,41 @@ public class FirebaseProductImageService {
 
     /**
      * Delete a product image
+     * Handles both Firestore document IDs and Cloudinary URLs
      */
     public Task<Void> deleteProductImage(String imageId) {
+        if (imageId == null || imageId.isEmpty()) {
+            return com.google.android.gms.tasks.Tasks.forResult(null);
+        }
+        
+        // Check if imageId is a URL (Cloudinary) or Firestore document ID
+        if (imageId.startsWith("http://") || imageId.startsWith("https://")) {
+            // This is a Cloudinary URL, no Firestore document to delete
+            // The actual media deletion should be handled by caller
+            return com.google.android.gms.tasks.Tasks.forResult(null);
+        }
+        
+        // Otherwise, treat as Firestore document ID
         return firestore.collection(PRODUCT_IMAGES_COLLECTION).document(imageId).delete();
     }
 
     /**
      * Update a product image
+     * Handles both Firestore document IDs and Cloudinary URLs
      */
     public Task<Void> updateProductImage(String imageId, ProductImageModel productImage) {
+        if (imageId == null || imageId.isEmpty()) {
+            return com.google.android.gms.tasks.Tasks.forResult(null);
+        }
+        
+        // Check if imageId is a URL (Cloudinary) or Firestore document ID
+        if (imageId.startsWith("http://") || imageId.startsWith("https://")) {
+            // This is a Cloudinary URL, no Firestore document to update
+            // The actual media update should be handled by caller
+            return com.google.android.gms.tasks.Tasks.forResult(null);
+        }
+        
+        // Otherwise, treat as Firestore document ID
         return firestore.collection(PRODUCT_IMAGES_COLLECTION).document(imageId).set(productImage);
     }
 
@@ -147,6 +173,15 @@ public class FirebaseProductImageService {
             localImage.setImageId(imageId);
             localImage.setImageUrl(imageId);
             return com.google.android.gms.tasks.Tasks.forResult(localImage);
+        }
+        
+        // Check if imageId is a remote URL (starts with "http://" or "https://")
+        if (imageId.startsWith("http://") || imageId.startsWith("https://")) {
+            // For remote URLs, create a ProductImageModel with the URL
+            ProductImageModel remoteImage = new ProductImageModel();
+            remoteImage.setImageId(imageId);
+            remoteImage.setImageUrl(imageId);
+            return com.google.android.gms.tasks.Tasks.forResult(remoteImage);
         }
         
         // Otherwise, treat as Firestore document ID

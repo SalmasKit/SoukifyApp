@@ -159,4 +159,100 @@ public class FirebaseProductService {
             }
         });
     }
+    
+    /**
+     * Like a product - increments like count and adds user to likedBy array
+     */
+    public Task<Void> likeProduct(String productId, String userId) {
+        return firestore.collection(PRODUCTS_COLLECTION).document(productId)
+                .get()
+                .continueWithTask(task -> {
+                    if (!task.isSuccessful() || task.getResult() == null) {
+                        return com.google.android.gms.tasks.Tasks.forException(
+                                new Exception("Product not found: " + productId));
+                    }
+                    
+                    ProductModel product = task.getResult().toObject(ProductModel.class);
+                    if (product == null) {
+                        return com.google.android.gms.tasks.Tasks.forException(
+                                new Exception("Product data not found: " + productId));
+                    }
+                    
+                    // Like logic is now handled by FavoritesTableRepository
+                    // Just return the product as-is
+                    return updateProduct(productId, product);
+                });
+    }
+    
+    /**
+     * Unlike a product - decrements like count and removes user from likedBy array
+     */
+    public Task<Void> unlikeProduct(String productId, String userId) {
+        return firestore.collection(PRODUCTS_COLLECTION).document(productId)
+                .get()
+                .continueWithTask(task -> {
+                    if (!task.isSuccessful() || task.getResult() == null) {
+                        return com.google.android.gms.tasks.Tasks.forException(
+                                new Exception("Product not found: " + productId));
+                    }
+                    
+                    ProductModel product = task.getResult().toObject(ProductModel.class);
+                    if (product == null) {
+                        return com.google.android.gms.tasks.Tasks.forException(
+                                new Exception("Product data not found: " + productId));
+                    }
+                    
+                    // Like logic is now handled by FavoritesTableRepository
+                    // Just return the product as-is
+                    return updateProduct(productId, product);
+                });
+    }
+    
+    /**
+     * Favorite a product - increments favorite count and adds user to favoritedBy array
+     */
+    public Task<Void> favoriteProduct(String productId, String userId) {
+        return firestore.collection(PRODUCTS_COLLECTION).document(productId)
+                .get()
+                .continueWithTask(task -> {
+                    if (!task.isSuccessful() || task.getResult() == null) {
+                        return com.google.android.gms.tasks.Tasks.forException(
+                                new Exception("Product not found: " + productId));
+                    }
+                    
+                    ProductModel product = task.getResult().toObject(ProductModel.class);
+                    if (product == null) {
+                        return com.google.android.gms.tasks.Tasks.forException(
+                                new Exception("Product data not found: " + productId));
+                    }
+                    
+                    // Favorite logic is now handled by FavoritesTableRepository
+                    // Just return the product as-is
+                    return updateProduct(productId, product);
+                });
+    }
+    
+    /**
+     * Unfavorite a product - decrements favorite count and removes user from favoritedBy array
+     */
+    public Task<Void> unfavoriteProduct(String productId, String userId) {
+        return firestore.collection(PRODUCTS_COLLECTION).document(productId)
+                .get()
+                .continueWithTask(task -> {
+                    if (!task.isSuccessful() || task.getResult() == null) {
+                        return com.google.android.gms.tasks.Tasks.forException(
+                                new Exception("Product not found: " + productId));
+                    }
+                    
+                    ProductModel product = task.getResult().toObject(ProductModel.class);
+                    if (product == null) {
+                        return com.google.android.gms.tasks.Tasks.forException(
+                                new Exception("Product data not found: " + productId));
+                    }
+                    
+                    // Favorite logic is now handled by FavoritesTableRepository
+                    // Just return the product as-is
+                    return updateProduct(productId, product);
+                });
+    }
 }

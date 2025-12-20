@@ -33,6 +33,10 @@ import com.example.soukify.data.models.CityModel;
 import com.example.soukify.data.models.ShopModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.android.material.switchmaterial.SwitchMaterial;
+import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -76,25 +80,117 @@ public class ShopFragment extends Fragment {
         locationRepository = new LocationRepository(requireActivity().getApplication());
         initializeImagePicker();
         
-        String currentUserId = shopViewModel.getCurrentUserId();
-        android.util.Log.d("ShopFragment", "CurrentUserId: " + currentUserId);
-        if (currentUserId != null && !currentUserId.isEmpty()) {
-            android.util.Log.d("ShopFragment", "User is logged in, checking shop status");
-            // Force refresh shop status to ensure latest data
-            shopViewModel.checkShopStatus();
-            
-            // Add a delayed refresh to ensure Firebase has time to sync
-            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-                android.util.Log.d("ShopFragment", "Delayed shop status refresh");
-                shopViewModel.checkShopStatus();
-            }, 1000); // 1 second delay
+        // Check if we have an external shop ID from navigation (e.g., from favorites)
+        String externalShopId = null;
+        if (getArguments() != null) {
+            externalShopId = getArguments().getString("shopId");
+            String source = getArguments().getString("source");
+            android.util.Log.d("ShopFragment", "External navigation - shopId: " + externalShopId + ", source: " + source);
+        }
+        
+        if (externalShopId != null && !externalShopId.isEmpty()) {
+            // Load external shop by ID
+            android.util.Log.d("ShopFragment", "Loading external shop: " + externalShopId);
+            loadExternalShop(externalShopId);
         } else {
-            android.util.Log.d("ShopFragment", "User not logged in or userId is null/empty");
-            Toast.makeText(getContext(), getString(R.string.please_login_to_access_shop), Toast.LENGTH_SHORT).show();
+            // Load current user's shop (normal flow)
+            String currentUserId = shopViewModel.getCurrentUserId();
+            android.util.Log.d("ShopFragment", "CurrentUserId: " + currentUserId);
+            if (currentUserId != null && !currentUserId.isEmpty()) {
+                android.util.Log.d("ShopFragment", "User is logged in, checking shop status");
+                // Force refresh shop status to ensure latest data
+                shopViewModel.checkShopStatus();
+                
+                // Add a delayed refresh to ensure Firebase has time to sync
+                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                    android.util.Log.d("ShopFragment", "Delayed shop status refresh");
+                    shopViewModel.checkShopStatus();
+                }, 1000); // 1 second delay
+            } else {
+                android.util.Log.d("ShopFragment", "User not logged in or userId is null/empty");
+                Toast.makeText(getContext(), getString(R.string.please_login_to_access_shop), Toast.LENGTH_SHORT).show();
+            }
         }
         
         observeViewModel();
         android.util.Log.d("ShopFragment", "=== ShopFragment.onViewCreated COMPLETED ===");
+    }
+    
+    private void loadExternalShop(String shopId) {
+        android.util.Log.d("ShopFragment", "Loading external shop with ID: " + shopId);
+        
+        // Load shop from Firestore by ID
+        FirebaseFirestore.getInstance()
+            .collection("shops")
+            .document(shopId)
+            .get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    ShopModel externalShop = documentSnapshot.toObject(ShopModel.class);
+                    if (externalShop != null) {
+                        externalShop.setShopId(documentSnapshot.getId());
+                        android.util.Log.d("ShopFragment", "External shop loaded: " + externalShop.getName());
+                        
+                        // Show the external shop directly
+                        showExternalShop(externalShop);
+                    } else {
+                        android.util.Log.e("ShopFragment", "Failed to parse external shop data");
+                        Toast.makeText(getContext(), "Shop not found", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    android.util.Log.e("ShopFragment", "External shop not found: " + shopId);
+                    Toast.makeText(getContext(), "Shop not found", Toast.LENGTH_SHORT).show();
+                }
+            })
+            .addOnFailureListener(e -> {
+                android.util.Log.e("ShopFragment", "Error loading external shop: " + e.getMessage(), e);
+                Toast.makeText(getContext(), "Error loading shop", Toast.LENGTH_SHORT).show();
+            });
+    }
+    
+    private void showExternalShop(ShopModel shop) {
+        android.util.Log.d("ShopFragment", "Showing external shop: " + shop.getName());
+        
+        // Create ShopHomeFragment with external shop data
+        ShopHomeFragment shopHomeFragment = new ShopHomeFragment();
+        Bundle args = new Bundle();
+        args.putString("shopId", shop.getShopId() != null ? shop.getShopId() : "");
+        args.putString("shopUserId", shop.getUserId() != null ? shop.getUserId() : ""); // Add owner ID
+        args.putString("shopName", shop.getName() != null ? shop.getName() : "");
+        args.putString("shopCategory", shop.getCategory() != null ? shop.getCategory() : "");
+        args.putString("shopDescription", shop.getDescription() != null ? shop.getDescription() : "");
+        args.putString("shopLocation", shop.getLocation() != null ? shop.getLocation() : "");
+        args.putString("shopPhone", shop.getPhone() != null ? shop.getPhone() : "");
+        args.putString("shopEmail", shop.getEmail() != null ? shop.getEmail() : "");
+        args.putString("shopAddress", shop.getAddress() != null ? shop.getAddress() : "");
+        args.putString("shopImageUrl", shop.getImageUrl() != null ? shop.getImageUrl() : "");
+        args.putString("shopInstagram", shop.getInstagram() != null ? shop.getInstagram() : "");
+        args.putString("shopFacebook", shop.getFacebook() != null ? shop.getFacebook() : "");
+        args.putString("shopWebsite", shop.getWebsite() != null ? shop.getWebsite() : "");
+        args.putString("shopRegionId", shop.getRegionId() != null ? shop.getRegionId() : "");
+        args.putString("shopCityId", shop.getCityId() != null ? shop.getCityId() : "");
+        args.putString("shopCreatedAt", shop.getCreatedAt() != null ? shop.getCreatedAt() : "");
+        args.putLong("shopCreatedAtTimestamp", shop.getCreatedAtTimestamp() > 0 ? shop.getCreatedAtTimestamp() : System.currentTimeMillis());
+        args.putBoolean("hideDialogs", true); // Hide dialogs for external shops by default
+        
+        // Pass source parameter from parent fragment arguments
+        if (getArguments() != null) {
+            String source = getArguments().getString("source");
+            if (source != null) {
+                args.putString("source", source);
+                android.util.Log.d("ShopFragment", "Passing source parameter to ShopHomeFragment: " + source);
+            }
+        }
+        
+        shopHomeFragment.setArguments(args);
+        
+        // Replace the container with the external shop
+        getChildFragmentManager()
+            .beginTransaction()
+            .replace(R.id.shop_container, shopHomeFragment)
+            .commit();
+            
+        android.util.Log.d("ShopFragment", "External ShopHomeFragment transaction committed");
     }
 
     private void observeViewModel() {
@@ -199,6 +295,16 @@ public class ShopFragment extends Fragment {
             args.putString("shopCreatedAt", currentShop.getCreatedAt() != null ? currentShop.getCreatedAt() : "");
             args.putLong("shopCreatedAtTimestamp", currentShop.getCreatedAtTimestamp() > 0 ? currentShop.getCreatedAtTimestamp() : System.currentTimeMillis());
             args.putBoolean("hideDialogs", false); // Show dialogs when opened from settings
+            
+            // Pass source parameter from parent fragment arguments
+            if (getArguments() != null) {
+                String source = getArguments().getString("source");
+                if (source != null) {
+                    args.putString("source", source);
+                    android.util.Log.d("ShopFragment", "Passing source parameter to ShopHomeFragment: " + source);
+                }
+            }
+            
             shopHomeFragment.setArguments(args);
             android.util.Log.d("ShopFragment", "ShopHomeFragment created with shop data: " + currentShop.getName());
         } else {
@@ -287,6 +393,9 @@ public class ShopFragment extends Fragment {
         ImageView ivShopPreview = dialogView.findViewById(R.id.ivShopPreview);
         LinearLayout shopImageContainer = dialogView.findViewById(R.id.imageContainer);
         
+        SwitchMaterial switchPromotion = dialogView.findViewById(R.id.switchPromotion);
+        SwitchMaterial switchDelivery = dialogView.findViewById(R.id.switchDelivery);
+        
         final String[] selectedCategory = {""};
         
         setupCategoryDropdown(etShopCategory, selectedCategory);
@@ -330,7 +439,9 @@ public class ShopFragment extends Fragment {
                     collectWorkingDaysData(dialogView),
                     etShopInstagram.getText().toString(),
                     etShopFacebook.getText().toString(),
-                    etShopWebsite.getText().toString()
+                    etShopWebsite.getText().toString(),
+                    switchPromotion.isChecked(),
+                    switchDelivery.isChecked()
                 );
                 
                 Toast.makeText(requireContext(), "Shop creation initiated!", Toast.LENGTH_SHORT).show();
@@ -349,6 +460,9 @@ public class ShopFragment extends Fragment {
      * Shows the edit shop dialog for an existing shop
      */
     public void showEditShopDialog(ShopModel shop) {
+        // Force refresh shop data to get latest boolean values from Firestore
+        android.util.Log.d("ShopFragment", "Refreshing shop data before edit dialog");
+        shopViewModel.refreshShopData();
         android.util.Log.d("ShopFragment", "showEditShopDialog called for shop: " + shop.getName());
         
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext());
@@ -377,6 +491,10 @@ public class ShopFragment extends Fragment {
         ImageView ivShopPreview = dialogView.findViewById(R.id.ivShopPreview);
         LinearLayout imageContainer = dialogView.findViewById(R.id.imageContainer);
         
+        // Switch components for promotion and delivery
+        SwitchMaterial switchPromotion = dialogView.findViewById(R.id.switchPromotion);
+        SwitchMaterial switchDelivery = dialogView.findViewById(R.id.switchDelivery);
+        
         // Pre-fill data
         etShopName.setText(shop.getName());
         etShopDescription.setText(shop.getDescription());
@@ -386,6 +504,64 @@ public class ShopFragment extends Fragment {
         etShopInstagram.setText(shop.getInstagram());
         etShopFacebook.setText(shop.getFacebook());
         etShopWebsite.setText(shop.getWebsite());
+        
+        // Set switch values from existing shop data
+        android.util.Log.d("ShopFragment", "=== TOGGLE DEBUG START ===");
+        android.util.Log.d("ShopFragment", "Shop data received - Name: " + shop.getName());
+        android.util.Log.d("ShopFragment", "Shop boolean values - hasPromotion: " + shop.isHasPromotion() + ", hasLivraison: " + shop.isHasLivraison());
+        
+        // TEST: Force set to true for debugging
+        android.util.Log.d("ShopFragment", "TEST: Forcing toggles to true for debugging");
+        switchPromotion.setChecked(true);
+        switchDelivery.setChecked(true);
+        android.util.Log.d("ShopFragment", "TEST: After forced true - Promotion: " + switchPromotion.isChecked() + ", Delivery: " + switchDelivery.isChecked());
+        
+        // REAL: Set actual values from shop data
+        android.util.Log.d("ShopFragment", "REAL: Setting actual shop values");
+        switchPromotion.setChecked(shop.isHasPromotion());
+        switchDelivery.setChecked(shop.isHasLivraison());
+        
+        // Add listeners to immediately update badges when toggles change
+        switchPromotion.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            // Find and update promotion badge in the current view
+            View promotionBadge = getView().findViewById(R.id.promotionBadge);
+            if (promotionBadge != null) {
+                promotionBadge.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            }
+        });
+        
+        switchDelivery.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            // Find and update delivery badge in the current view
+            View deliveryBadge = getView().findViewById(R.id.deliveryBadge);
+            if (deliveryBadge != null) {
+                deliveryBadge.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            }
+        });
+        
+        // FALLBACK: Ensure toggles are set correctly with delay
+        new android.os.Handler().postDelayed(() -> {
+            android.util.Log.d("ShopFragment", "FALLBACK: Re-checking toggle states");
+            switchPromotion.setChecked(shop.isHasPromotion());
+            switchDelivery.setChecked(shop.isHasLivraison());
+            android.util.Log.d("ShopFragment", "FALLBACK: Final states - Promotion: " + switchPromotion.isChecked() + ", Delivery: " + switchDelivery.isChecked());
+        }, 500);
+        android.util.Log.d("ShopFragment", "Setting toggle states - hasPromotion: " + shop.isHasPromotion() + ", hasLivraison: " + shop.isHasLivraison());
+        switchPromotion.setChecked(shop.isHasPromotion());
+        android.util.Log.d("ShopFragment", "Promotion switch set to: " + switchPromotion.isChecked());
+        switchDelivery.setChecked(shop.isHasLivraison());
+        
+        // FALLBACK: Ensure toggles are set correctly with delay
+        new android.os.Handler().postDelayed(() -> {
+            android.util.Log.d("ShopFragment", "FALLBACK: Re-checking toggle states");
+            switchPromotion.setChecked(shop.isHasPromotion());
+            switchDelivery.setChecked(shop.isHasLivraison());
+            android.util.Log.d("ShopFragment", "FALLBACK: Final states - Promotion: " + switchPromotion.isChecked() + ", Delivery: " + switchDelivery.isChecked());
+        }, 500);
+        android.util.Log.d("ShopFragment", "Delivery switch set to: " + switchDelivery.isChecked());
+        
+        android.util.Log.d("ShopFragment", "=== TOGGLE STATES SET ===");
+        android.util.Log.d("ShopFragment", "Final toggle states - Promotion: " + switchPromotion.isChecked() + ", Delivery: " + switchDelivery.isChecked());
+        android.util.Log.d("ShopFragment", "Dialog will now show with these toggle states");
         
         tvShopId.setText("ID: #" + shop.getShopId().substring(0, Math.min(8, shop.getShopId().length())));
         if (shop.getCreatedAt() != null) {
@@ -435,7 +611,19 @@ public class ShopFragment extends Fragment {
             try {
                 ivShopPreview.setVisibility(View.VISIBLE);
                 imageContainer.setVisibility(View.GONE);
-                ivShopPreview.setImageURI(Uri.parse(shop.getImageUrl()));
+                
+                // Check if it's a Cloudinary URL (http/https) and load with Glide
+                Uri imageUri = Uri.parse(shop.getImageUrl());
+                if (imageUri.getScheme() != null && (imageUri.getScheme().equals("http") || imageUri.getScheme().equals("https"))) {
+                    Glide.with(requireContext())
+                        .load(imageUri.toString())
+                        .placeholder(R.drawable.ic_image_placeholder)
+                        .error(R.drawable.ic_image_placeholder)
+                        .into(ivShopPreview);
+                } else {
+                    // Handle local file URIs
+                    ivShopPreview.setImageURI(imageUri);
+                }
             } catch (Exception e) {
                 ivShopPreview.setVisibility(View.GONE);
                 imageContainer.setVisibility(View.VISIBLE);
@@ -470,6 +658,14 @@ public class ShopFragment extends Fragment {
                 shop.setWebsite(etShopWebsite.getText().toString());
                 shop.setCategory(selectedCategoryText);
                 shop.setImageUrl(imageUrl);
+                shop.setHasPromotion(switchPromotion.isChecked());
+                shop.setHasLivraison(switchDelivery.isChecked());
+                
+                // Debug logging to verify toggle values before save
+                android.util.Log.d("ShopFragment", "=== EDIT SAVE DEBUG ===");
+                android.util.Log.d("ShopFragment", "Saving shop: " + shop.getName());
+                android.util.Log.d("ShopFragment", "Toggle values being saved - Promotion: " + switchPromotion.isChecked() + ", Delivery: " + switchDelivery.isChecked());
+                android.util.Log.d("ShopFragment", "Shop object values - hasPromotion: " + shop.isHasPromotion() + ", hasLivraison: " + shop.isHasLivraison());
                 
                 // Get IDs from names
                 String regionId = null;

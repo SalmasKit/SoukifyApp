@@ -863,7 +863,7 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
         filteredShops.clear();
 
         for (ShopModel shop : allShops) {
-            if (shop.hasLivraison()) {
+            if (shop.isHasLivraison()) {
                 filteredShops.add(shop);
             }
         }

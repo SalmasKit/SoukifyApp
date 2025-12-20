@@ -2,7 +2,7 @@ package com.example.soukify.data.repositories;
 
 import android.app.Activity;
 import android.app.Application;
-
+import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
@@ -10,11 +10,8 @@ import com.example.soukify.data.models.UserModel;
 import com.example.soukify.data.remote.FirebaseManager;
 import com.example.soukify.data.remote.firebase.FirebaseUserService;
 import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.Tasks;
-import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.EmailAuthProvider;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -23,26 +20,20 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 /**
- * ===== User Repository =====
- * Centralise toutes les opérations Firebase :
- * - Auth Email / Password
- * - Auth Google
- * - Auth Phone
- * - Reset Password
- * - Update Password
- * - Update Profile + Email
- * - Firestore User
- * - Session User
+ * ===== User Repository - FIXED VERSION =====
  */
 public class UserRepository {
 
     private final FirebaseUserService userService;
     private final Application application;
+    private final FirebaseAuth.AuthStateListener authStateListener;
 
     private final MutableLiveData<UserModel> currentUser = new MutableLiveData<>();
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private final MutableLiveData<String> successMessage = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
+    
+    private volatile boolean isUpdating = false;
 
     public UserRepository(Application application) {
         this.application = application;
@@ -51,6 +42,18 @@ public class UserRepository {
                 manager.getAuth(),
                 manager.getFirestore()
         );
+        
+        // Initialize auth state listener for automatic email verification detection
+        this.authStateListener = firebaseAuth -> {
+            FirebaseUser user = firebaseAuth.getCurrentUser();
+            if (user != null && user.isEmailVerified()) {
+                Log.d("UserRepository", "Auth state changed: Email verified detected for " + user.getEmail());
+                checkAndSyncVerifiedEmail(user);
+            }
+        };
+        
+        // Add auth state listener
+        FirebaseAuth.getInstance().addAuthStateListener(authStateListener);
     }
 
     /* ===================== GETTERS ===================== */
@@ -105,12 +108,18 @@ public class UserRepository {
     }
 
     public void signOut() {
+        // Remove auth state listener to prevent memory leaks
+        FirebaseAuth.getInstance().removeAuthStateListener(authStateListener);
+        
         userService.signOut();
         currentUser.postValue(null);
         successMessage.postValue("Signed out successfully");
     }
 
-    
+    public Task<Void> reauthenticate(String email, String password) {
+        return userService.reauthenticate(email, password);
+    }
+
     /* ===================== PASSWORD ===================== */
 
     public void resetPassword(String email) {
@@ -130,106 +139,222 @@ public class UserRepository {
 
         String email = userService.getCurrentUserEmail();
         if (email == null) {
+            Log.e("UserRepository", "No authenticated user found");
             fail("No authenticated user");
             return;
         }
 
+        Log.d("UserRepository", "Starting password update for email: " + email);
+
         userService.reauthenticate(email, currentPassword)
-                .addOnSuccessListener(aVoid ->
-                        userService.updatePassword(newPassword)
-                                .addOnSuccessListener(v -> {
-                                    successMessage.postValue("Password updated successfully");
-                                    stopLoading();
-                                })
-                                .addOnFailureListener(e ->
-                                        fail("Password update failed: " + e.getMessage()))
-                )
-                .addOnFailureListener(e ->
-                        fail("Current password incorrect: " + e.getMessage()));
-    }
-
-    /* ===================== PROFILE ===================== */
-
-    public void updateProfile(UserModel user) {
-        startLoading();
-
-        userService.updateUser(user)
                 .addOnSuccessListener(aVoid -> {
-                    currentUser.postValue(user);
-                    stopLoading();
+                    Log.d("UserRepository", "Reauthentication successful, updating password");
+                    userService.updatePassword(newPassword)
+                            .addOnSuccessListener(v -> {
+                                Log.d("UserRepository", "Password update successful");
+                                successMessage.postValue("Password updated successfully");
+                                stopLoading();
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e("UserRepository", "Password update failed: " + e.getMessage());
+                                fail("Password update failed: " + e.getMessage());
+                            });
                 })
-                .addOnFailureListener(e ->
-                        fail("Profile update failed: " + e.getMessage()));
+                .addOnFailureListener(e -> {
+                    Log.e("UserRepository", "Reauthentication failed: " + e.getMessage());
+                    fail("Current password incorrect: " + e.getMessage());
+                });
     }
 
-    public void updateProfileWithEmail(UserModel user, String newEmail, String password) {
+    /* ===================== PROFILE UPDATE ===================== */
+
+    /**
+     * ✅ FIXED: Main update method
+     * - Updates name, phone, image IMMEDIATELY in Firestore
+     * - Email change sends verification email (verifyBeforeUpdateEmail)
+     * - Email in Firestore stays OLD until user verifies
+     */
+    public void updateProfile(UserModel user, String newEmail, String password) {
+        if (isUpdating) {
+            Log.d("UserRepository", "Update already in progress, skipping");
+            return;
+        }
+        
+        isUpdating = true;
         startLoading();
-
+        
         String currentEmail = userService.getCurrentUserEmail();
+        FirebaseUser firebaseUser = userService.getCurrentUser();
 
-        if (newEmail == null || newEmail.equals(currentEmail)) {
-            updateProfile(user);
+        Log.d("UserRepository", "Updating profile - Name: " + user.getFullName() + 
+              ", Email: " + newEmail + ", Phone: " + user.getPhoneNumber());
+
+        // Check if there's a pending email verification
+        if (firebaseUser != null && firebaseUser.getEmail() != null && 
+            !firebaseUser.getEmail().equals(currentEmail)) {
+            fail("Please verify your previous email change before making another change. Check your inbox for the verification email.");
+            isUpdating = false;
             return;
         }
 
-        userService.reauthenticate(password)
-                .addOnSuccessListener(v ->
-                        userService.updateEmail(newEmail)
-                                .addOnSuccessListener(done ->
-                                        userService.updateUser(user)
-                                                .addOnSuccessListener(ok -> {
-                                                    currentUser.postValue(user);
-                                                    stopLoading();
-                                                })
-                                                .addOnFailureListener(e ->
-                                                        fail("Profile update failed: " + e.getMessage()))
-                                )
-                                .addOnFailureListener(e ->
-                                        fail("Email update failed: " + e.getMessage()))
-                )
-                .addOnFailureListener(e ->
-                        fail("Re-authentication failed: " + e.getMessage()));
+        // Update name, phone, and profile image immediately
+        updateProfileFields(user, currentEmail);
+        
+        // Handle email change separately
+        if (newEmail != null && !newEmail.equals(currentEmail)) {
+            updateEmailOnly(newEmail, password);
+        } else {
+            Log.d("UserRepository", "No email change, profile update complete");
+            successMessage.postValue("Profile updated successfully");
+            stopLoading();
+            isUpdating = false;
+        }
+    }
+    
+    /**
+     * ✅ FIXED: Update profile fields immediately
+     */
+    private void updateProfileFields(UserModel user, String email) {
+        Log.d("UserRepository", "Updating profile fields - Name: " + user.getFullName() + ", Phone: " + user.getPhoneNumber());
+        
+        UserModel updatedUser = new UserModel(
+            user.getFullName(),
+            email, // Current email (not new one yet)
+            user.getPhoneNumber(),
+            user.getPasswordHash()
+        );
+        updatedUser.setUserId(user.getUserId());
+        updatedUser.setProfileImage(user.getProfileImage());
+        
+        userService.updateUser(updatedUser)
+            .addOnSuccessListener(aVoid -> {
+                Log.d("UserRepository", "Profile fields updated successfully in Firestore");
+                currentUser.postValue(updatedUser);
+            })
+            .addOnFailureListener(e -> {
+                Log.e("UserRepository", "Failed to update profile fields", e);
+                fail("Profile update failed: " + e.getMessage());
+                isUpdating = false;
+            });
+    }
+    
+    /**
+     * ✅ FIXED: Complete email update method with proper verification flow
+     */
+    private void updateEmailOnly(String newEmail, String password) {
+        Log.d("UserRepository", "Updating email to: " + newEmail);
+        
+        String currentEmail = userService.getCurrentUserEmail();
+        FirebaseUser firebaseUser = userService.getCurrentUser();
+        
+        if (firebaseUser == null) {
+            fail("No authenticated user");
+            isUpdating = false;
+            return;
+        }
+
+        // Re-authenticate if password provided
+        Task<Void> authTask = (password != null && !password.isEmpty()) 
+            ? userService.reauthenticate(currentEmail, password)
+            : com.google.android.gms.tasks.Tasks.forResult(null);
+
+        authTask.addOnSuccessListener(aVoid -> {
+            Log.d("UserRepository", "Re-authentication successful, sending verification email");
+            
+            // Use verifyBeforeUpdateEmail to send verification
+            firebaseUser.verifyBeforeUpdateEmail(newEmail)
+                    .addOnSuccessListener(done -> {
+                        Log.d("UserRepository", "Email verification request sent successfully");
+                        successMessage.postValue("Verification email sent to " + newEmail + ". Please check your inbox and click the verification link to complete the email change.");
+                        stopLoading();
+                        isUpdating = false;
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e("UserRepository", "Email update failed", e);
+                        String errorMsg = e.getMessage();
+                        if (errorMsg != null && errorMsg.contains("already in use")) {
+                            fail("This email address is already registered. Please use a different email address.");
+                        } else if (errorMsg != null && errorMsg.contains("invalid")) {
+                            fail("Invalid email address format. Please enter a valid email.");
+                        } else {
+                            fail("Email update failed: " + errorMsg);
+                        }
+                        isUpdating = false;
+                    });
+        }).addOnFailureListener(e -> {
+            Log.e("UserRepository", "Re-authentication failed", e);
+            fail("Re-authentication failed: " + e.getMessage());
+            isUpdating = false;
+        });
     }
 
     /* ===================== EMAIL VERIFICATION SYNC ===================== */
 
+    /**
+     * ✅ FIXED: Complete email change after verification
+     */
     public void completeEmailChange() {
+        Log.d("UserRepository", "completeEmailChange() called - Checking for verified email");
+        
+        if (isUpdating) {
+            Log.d("UserRepository", "Update in progress, deferring email sync");
+            return;
+        }
+        
         startLoading();
 
         UserModel localUser = currentUser.getValue();
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
 
+        Log.d("UserRepository", "localUser: " + (localUser != null ? localUser.getEmail() : "null"));
+        Log.d("UserRepository", "firebaseUser: " + (firebaseUser != null ? firebaseUser.getEmail() : "null"));
+
         if (localUser == null || firebaseUser == null) {
+            Log.e("UserRepository", "No user authenticated");
             fail("No user authenticated");
             return;
         }
 
-        String firebaseEmail = firebaseUser.getEmail();
-        if (firebaseEmail == null || firebaseEmail.equals(localUser.getEmail())) {
-            fail("No email change detected");
-            return;
-        }
+        // Force refresh to get latest email verification status
+        firebaseUser.reload().addOnSuccessListener(v -> {
+            String firebaseEmail = firebaseUser.getEmail();
+            Log.d("UserRepository", "Firebase email: " + firebaseEmail + ", Local email: " + localUser.getEmail());
+            
+            if (firebaseEmail == null || firebaseEmail.equals(localUser.getEmail())) {
+                Log.d("UserRepository", "No email change detected or emails are the same");
+                stopLoading();
+                return;
+            }
 
-        UserModel updated = new UserModel(
-                localUser.getFullName(),
-                firebaseEmail,
-                localUser.getPhoneNumber(),
-                localUser.getPasswordHash()
-        );
-        updated.setUserId(localUser.getUserId());
-        updated.setProfileImage(localUser.getProfileImage());
+            // Update Firestore with verified email
+            UserModel updated = new UserModel(
+                    localUser.getFullName(),
+                    firebaseEmail,
+                    localUser.getPhoneNumber(),
+                    localUser.getPasswordHash()
+            );
+            updated.setUserId(localUser.getUserId());
+            updated.setProfileImage(localUser.getProfileImage());
 
-        FirebaseFirestore.getInstance()
-                .collection("users")
-                .document(localUser.getUserId())
-                .set(updated)
-                .addOnSuccessListener(v -> {
-                    currentUser.postValue(updated);
-                    successMessage.postValue("Email updated successfully");
-                    stopLoading();
-                })
-                .addOnFailureListener(e ->
-                        fail("Firestore update failed: " + e.getMessage()));
+            Log.d("UserRepository", "Updating Firestore document with email: " + firebaseEmail);
+            FirebaseFirestore.getInstance()
+                    .collection("users")
+                    .document(localUser.getUserId())
+                    .set(updated)
+                    .addOnSuccessListener(done -> {
+                        Log.d("UserRepository", "Firestore document updated successfully");
+                        currentUser.postValue(updated);
+                        successMessage.postValue("Email updated successfully to " + firebaseEmail);
+                        stopLoading();
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e("UserRepository", "Firestore update failed", e);
+                        fail("Firestore update failed: " + e.getMessage());
+                    });
+        }).addOnFailureListener(e -> {
+            Log.e("UserRepository", "Failed to reload user", e);
+            fail("Failed to reload user: " + e.getMessage());
+        });
     }
 
     /* ===================== PHONE AUTH ===================== */
@@ -278,7 +403,8 @@ public class UserRepository {
                                 UserModel newUser = new UserModel(
                                         firebase.getDisplayName(),
                                         firebase.getEmail(),
-                                        firebase.getPhotoUrl() != null ? firebase.getPhotoUrl().toString() : ""
+                                        firebase.getPhotoUrl() != null ? 
+                                            firebase.getPhotoUrl().toString() : ""
                                 );
                                 newUser.setUserId(uid);
 
@@ -302,14 +428,144 @@ public class UserRepository {
         if (uid != null) loadUserProfile(uid);
     }
 
+    /**
+     * Manual sync trigger
+     */
+    public void syncVerifiedEmail() {
+        Log.d("UserRepository", "Manual email sync requested");
+        completeEmailChange();
+    }
+
+    /**
+     * ✅ FIXED: Load profile with auto email sync check
+     */
     private void loadUserProfile(String uid) {
+        if (isUpdating) {
+            Log.d("UserRepository", "Update in progress, skipping profile load");
+            return;
+        }
+        
+        Log.d("UserRepository", "Loading user profile for uid: " + uid);
+        
         userService.getUser(uid)
                 .addOnSuccessListener(user -> {
+                    if (user == null) {
+                        fail("User not found");
+                        return;
+                    }
+                    
+                    Log.d("UserRepository", "Loaded from Firestore - Name: " + 
+                          user.getFullName() + ", Email: " + user.getEmail());
+                    
                     currentUser.postValue(user);
+                    
+                    // Check if email verification needs to be synced
+                    FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+                    if (firebaseUser != null && firebaseUser.isEmailVerified() && 
+                        user != null && !user.getEmail().equals(firebaseUser.getEmail())) {
+                        Log.d("UserRepository", "Detected verified email mismatch, syncing Firestore");
+                        completeEmailChange();
+                    } else {
+                        stopLoading();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("UserRepository", "Failed to load user profile", e);
+                    fail("Failed to load profile: " + e.getMessage());
+                });
+    }
+
+    /* ===================== EMAIL UPDATE API ===================== */
+
+    /**
+     * Public method for email change requests
+     */
+    public void updateEmail(String newEmail) {
+        Log.d("UserRepository", "Public updateEmail called with: " + newEmail);
+        
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (firebaseUser == null) {
+            fail("No user logged in");
+            return;
+        }
+
+        String currentEmail = firebaseUser.getEmail();
+        if (currentEmail == null || currentEmail.equals(newEmail)) {
+            fail("Email is the same as current email");
+            return;
+        }
+
+        updateEmailOnly(newEmail, null);
+    }
+
+    /**
+     * Public method to sync email status
+     */
+    public void syncEmailStatus() {
+        Log.d("UserRepository", "Public syncEmailStatus called");
+        
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (firebaseUser == null) {
+            fail("No user logged in");
+            return;
+        }
+
+        startLoading();
+        
+        firebaseUser.reload()
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("UserRepository", "Firebase user reloaded successfully");
+                    checkAndSyncVerifiedEmail(firebaseUser);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("UserRepository", "Failed to reload Firebase user", e);
+                    fail("Failed to sync email status: " + e.getMessage());
+                });
+    }
+
+    /**
+     * ✅ FIXED: Check and sync verified email changes
+     */
+    private void checkAndSyncVerifiedEmail(FirebaseUser firebaseUser) {
+        Log.d("UserRepository", "checkAndSyncVerifiedEmail called");
+        
+        if (firebaseUser == null || !firebaseUser.isEmailVerified()) {
+            Log.d("UserRepository", "Email not verified or user null");
+            stopLoading();
+            return;
+        }
+
+        UserModel localUser = currentUser.getValue();
+        if (localUser == null) {
+            Log.d("UserRepository", "Local user null, loading profile first");
+            loadUserProfile(firebaseUser.getUid());
+            return;
+        }
+
+        String firebaseEmail = firebaseUser.getEmail();
+        String localEmail = localUser.getEmail();
+        
+        Log.d("UserRepository", "Firebase email: " + firebaseEmail + ", Local email: " + localEmail);
+
+        if (firebaseEmail == null || firebaseEmail.equals(localEmail)) {
+            Log.d("UserRepository", "No email change detected");
+            stopLoading();
+            return;
+        }
+
+        // Update Firestore with the new verified email
+        localUser.setEmail(firebaseEmail);
+        userService.updateUser(localUser)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("UserRepository", "Firestore updated with new email: " + firebaseEmail);
+                    currentUser.postValue(localUser);
+                    successMessage.postValue("Email updated successfully to " + firebaseEmail);
                     stopLoading();
                 })
-                .addOnFailureListener(e ->
-                        fail("Load profile failed: " + e.getMessage()));
+                .addOnFailureListener(e -> {
+                    Log.e("UserRepository", "Failed to update Firestore with new email", e);
+                    fail("Failed to update email in database: " + e.getMessage());
+                });
     }
 
     /* ===================== UTILS ===================== */
@@ -340,6 +596,11 @@ public class UserRepository {
             return null;
         }
     }
-
-
+    
+    /**
+     * Cleanup method - call this when repository is no longer needed
+     */
+    public void cleanup() {
+        FirebaseAuth.getInstance().removeAuthStateListener(authStateListener);
+    }
 }

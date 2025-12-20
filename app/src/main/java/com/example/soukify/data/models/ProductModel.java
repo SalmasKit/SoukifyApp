@@ -22,9 +22,6 @@ public class ProductModel implements Parcelable {
     private List<String> imageIds;   // List of image IDs for carousel - NEW FIELD
     private String createdAt;        // TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     private int likesCount;         // INTEGER DEFAULT 0 - Number of likes
-    private int favoritesCount;     // INTEGER DEFAULT 0 - Number of favorites
-    private boolean isLiked;        // BOOLEAN DEFAULT FALSE - Current user liked status
-    private boolean isFavorited;    // BOOLEAN DEFAULT FALSE - Current user favorited status
     
     // Optional product details
     private Double weight;            // Weight in kg
@@ -38,9 +35,6 @@ public class ProductModel implements Parcelable {
     public ProductModel() {
         this.imageIds = new ArrayList<>(); // Initialize empty list
         this.likesCount = 0;         // Initialize likes count
-        this.favoritesCount = 0;      // Initialize favorites count
-        this.isLiked = false;          // Initialize liked status
-        this.isFavorited = false;      // Initialize favorited status
     }
     
     public ProductModel(String shopId, String name, String description, String productType, 
@@ -240,30 +234,7 @@ public class ProductModel implements Parcelable {
         this.likesCount = likesCount;
     }
     
-    public int getFavoritesCount() {
-        return favoritesCount;
-    }
-    
-    public void setFavoritesCount(int favoritesCount) {
-        this.favoritesCount = favoritesCount;
-    }
-    
-    public boolean isLiked() {
-        return isLiked;
-    }
-    
-    public void setLiked(boolean liked) {
-        this.isLiked = liked;
-    }
-    
-    public boolean isFavorited() {
-        return isFavorited;
-    }
-    
-    public void setFavorited(boolean favorited) {
-        this.isFavorited = favorited;
-    }
-    
+        
     // Helper method to check if product has any details
     public boolean hasDetails() {
         return (weight != null && weight > 0) ||
@@ -318,9 +289,6 @@ public class ProductModel implements Parcelable {
         imageIds = in.createStringArrayList();
         createdAt = in.readString();
         likesCount = in.readInt();
-        favoritesCount = in.readInt();
-        isLiked = in.readByte() != 0;
-        isFavorited = in.readByte() != 0;
         // Optional details
         weight = in.readByte() == 1 ? in.readDouble() : null;
         length = in.readByte() == 1 ? in.readDouble() : null;
@@ -359,9 +327,6 @@ public class ProductModel implements Parcelable {
         dest.writeStringList(imageIds);
         dest.writeString(createdAt);
         dest.writeInt(likesCount);
-        dest.writeInt(favoritesCount);
-        dest.writeByte((byte) (isLiked ? 1 : 0));
-        dest.writeByte((byte) (isFavorited ? 1 : 0));
         // Optional details
         if (weight != null) {
             dest.writeByte((byte) 1);

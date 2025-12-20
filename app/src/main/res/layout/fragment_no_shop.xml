@@ -1,79 +1,124 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/noShopCard"
-    style="@style/Widget.MaterialComponents.CardView"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginHorizontal="24dp"
-    android:layout_gravity="center"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="4dp"
-    app:cardUseCompatPadding="true"
+    android:layout_height="match_parent"
     tools:context=".ui.shop.NoShopFragment">
 
-    <LinearLayout
-        android:id="@+id/noShopLayout"
+    <!-- App Bar with Back Button -->
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:padding="32dp">
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:elevation="0dp">
 
-        <ImageView
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:src="@drawable/ic_store"
-            android:contentDescription="@string/no_shop_icon"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="16dp"
-            app:tint="?attr/colorPrimary"/>
-
-        <TextView
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:gravity="center"
-            android:text="@string/no_shop_title"
-            android:textAppearance="?attr/textAppearanceHeadline6"
-            android:textColor="?android:attr/textColorPrimary"
-            android:textSize="20sp"
+            android:layout_height="?attr/actionBarSize"
+            android:background="#F5E5D8"
+            android:elevation="4dp"
+            app:navigationIcon="@drawable/ic_back_arrow"
+            app:navigationIconTint="#E85F4C"
+            app:title="Create Your Shop"
+            app:titleTextColor="#000000"
             android:textStyle="bold" />
 
-        <TextView
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Main Content -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:scrollbars="vertical"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:orientation="vertical"
             android:gravity="center"
-            android:text="@string/no_shop_subtitle"
-            android:textAlignment="center"
-            android:textAppearance="?attr/textAppearanceBody2"
-            android:textColor="?android:attr/textColorSecondary"
-            android:lineSpacingMultiplier="1.2"
-            android:paddingHorizontal="16dp"
-            android:textSize="14sp" />
+            android:padding="32dp">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/createShopButton"
-            style="@style/Widget.MaterialComponents.Button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:paddingStart="24dp"
-            android:paddingEnd="24dp"
-            android:text="@string/action_create_shop"
-            android:textAllCaps="false"
-            android:textSize="15sp"
-            app:cornerRadius="24dp"
-            app:icon="@drawable/ic_baseline_add_24"
-            app:iconGravity="textStart"
-            app:iconPadding="8dp"
-            app:iconTint="@android:color/white"
-            app:rippleColor="#33FFFFFF"
-            app:strokeColor="?attr/colorPrimary"
-            app:strokeWidth="0dp" />
-    </LinearLayout>
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="24dp"
+                android:layout_gravity="center"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:cardUseCompatPadding="true">
 
-</com.google.android.material.card.MaterialCardView>
+                <LinearLayout
+                    android:id="@+id/noShopLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="32dp">
+
+                    <ImageView
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
+                        android:src="@drawable/ic_store"
+                        android:contentDescription="@string/no_shop_icon"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:padding="16dp"
+                        app:tint="?attr/colorPrimary"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="24dp"
+                        android:gravity="center"
+                        android:text="@string/no_shop_title"
+                        android:textAppearance="?attr/textAppearanceHeadline6"
+                        android:textColor="?android:attr/textColorPrimary"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center"
+                        android:text="@string/no_shop_subtitle"
+                        android:textAlignment="center"
+                        android:textAppearance="?attr/textAppearanceBody2"
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:lineSpacingMultiplier="1.2"
+                        android:paddingHorizontal="16dp"
+                        android:textSize="14sp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/createShopButton"
+                        style="@style/Widget.MaterialComponents.Button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="32dp"
+                        android:paddingStart="24dp"
+                        android:paddingEnd="24dp"
+                        android:text="@string/action_create_shop"
+                        android:textAllCaps="false"
+                        android:textSize="15sp"
+                        app:cornerRadius="24dp"
+                        app:icon="@drawable/ic_baseline_add_24"
+                        app:iconGravity="textStart"
+                        app:iconPadding="8dp"
+                        app:iconTint="@android:color/white"
+                        app:rippleColor="#33FFFFFF"
+                        app:strokeColor="?attr/colorPrimary"
+                        app:strokeWidth="0dp" />
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -2,7 +2,7 @@
     <string name="app_name">Soukify</string>
     
     <!-- Google Sign-In -->
-    <string name="default_web_client_id">YOUR_GOOGLE_CLIENT_ID_HERE</string>
+    <string name="default_web_client_id">1018315867996-nsrrbkvbaqaqqr9o41lecv35tr04s6c4.apps.googleusercontent.com</string>
     
     <!-- Common Messages -->
     <string name="please_enter_email_and_password">Please enter email and password</string>
@@ -224,7 +224,15 @@
     <string name="current_password_hint">Current Password</string>
     <string name="enter_current_password">Enter your current password</string>
     <string name="password_required">Password required</string>
-<!-- Privacy Policy -->
+    <string name="new_password_required">New password is required</string>
+    <string name="current_password_short">Current password seems too short</string>
+    <string name="new_password_different">New password must be different from current password</string>
+    <string name="choose_stronger_password">Please choose a stronger password</string>
+    <string name="password_letters_numbers">Password must contain both letters and numbers</string>
+    <string name="new_password_length">New password must be at least 6 characters long</string>
+    <string name="confirm_new_password">Please confirm your new password</string>
+
+    <!-- Privacy Policy -->
     <string name="privacy_last_updated">Last updated: December 2025</string>
     <string name="information_we_collect">Information We Collect</string>
     <string name="information_we_collect_desc">We collect information you provide directly to us, such as when you create an account, set up your shop, or contact us for support. This includes:\n\n• Account information (name, email, phone)\n• Shop details (shop name, description, location)\n• Product information (name, description, price)\n• Communications with our support team</string>

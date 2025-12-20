@@ -96,6 +96,8 @@ public class ShopModel {
         this.instagram = "";
         this.facebook = "";
         this.website = "";
+        this.hasPromotion = false;
+        this.hasLivraison = false;
     }
     
     public ShopModel(String shopId, String userId, String name, String category, String phone, String email, String address, String location, String imageUrl, String regionId, String cityId) {
@@ -122,6 +124,8 @@ public class ShopModel {
         this.instagram = "";
         this.facebook = "";
         this.website = "";
+        this.hasPromotion = false;
+        this.hasLivraison = false;
     }
     
     // Helper method to format current date consistently
@@ -362,12 +366,12 @@ public class ShopModel {
     }
     
     // Missing methods required by SearchFragment
-    public boolean hasLivraison() {
+    public boolean isHasLivraison() {
         return hasLivraison;
     }
     
-    public void setHasLivraison(Boolean hasLivraison) {
-        this.hasLivraison = hasLivraison != null ? hasLivraison : false;
+    public void setHasLivraison(boolean hasLivraison) {
+        this.hasLivraison = hasLivraison;
     }
     
     public ArrayList<String> getLikedByUserIds() {
@@ -404,3 +408,5 @@ public class ShopModel {
         this.rating = count > 0 ? sum / count : 0.0;
     }
 }
+
+

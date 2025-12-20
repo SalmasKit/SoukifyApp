@@ -182,6 +182,21 @@ public class ShopViewModel extends AndroidViewModel {
         android.util.Log.d("ShopViewModel", "=== checkShopStatus COMPLETED ===");
     }
     
+    public void fetchCurrentShopDirectly() {
+        ShopModel shopData = currentShop.getValue();
+        if (shopData != null && shopData.getShopId() != null) {
+            android.util.Log.d("ShopViewModel", "Direct fetch of shop: " + shopData.getShopId());
+            loadShopById(shopData.getShopId());
+        } else {
+            android.util.Log.d("ShopViewModel", "No current shop available for direct fetch");
+        }
+    }
+    
+    public void refreshShopData() {
+        android.util.Log.d("ShopViewModel", "refreshShopData called - forcing refresh from Firestore");
+        loadUserShops();
+    }
+    
     private void loadUserShops() {
         android.util.Log.d("ShopViewModel", "loadUserShops called");
         isLoading.postValue(true);
@@ -220,7 +235,8 @@ public class ShopViewModel extends AndroidViewModel {
     
     public void createShop(String name, String description, String phone, String email, 
                          String regionName, String cityName, String address, String imageUrl, String category,
-                         String workingHours, String workingDays, String instagram, String facebook, String website) {
+                         String workingHours, String workingDays, String instagram, String facebook, String website,
+                         boolean hasPromotion, boolean hasLivraison) {
         android.util.Log.d("ShopViewModel", "createShop called with: " + name + ", " + category);
         
         // Validate inputs
@@ -243,7 +259,8 @@ public class ShopViewModel extends AndroidViewModel {
                         public void onSuccess(String mediaUrl) {
                             Log.d("ShopViewModel", "Shop media uploaded to Cloudinary: " + mediaUrl);
                             proceedWithShopCreation(name, description, phone, email, regionName, cityName, address, 
-                                                  mediaUrl, category, workingHours, workingDays, instagram, facebook, website);
+                                                  mediaUrl, category, workingHours, workingDays, instagram, facebook, website,
+                                                  hasPromotion, hasLivraison);
                         }
                         
                         @Override
@@ -266,12 +283,14 @@ public class ShopViewModel extends AndroidViewModel {
         
         // No image or image URL is empty, proceed without image
         proceedWithShopCreation(name, description, phone, email, regionName, cityName, address, 
-                              finalImageUrl, category, workingHours, workingDays, instagram, facebook, website);
+                              finalImageUrl, category, workingHours, workingDays, instagram, facebook, website,
+                              hasPromotion, hasLivraison);
     }
     
     private void proceedWithShopCreation(String name, String description, String phone, String email,
                                        String regionName, String cityName, String address, String imageUrl, String category,
-                                       String workingHours, String workingDays, String instagram, String facebook, String website) {
+                                       String workingHours, String workingDays, String instagram, String facebook, String website,
+                                       boolean hasPromotion, boolean hasLivraison) {
         
         // Create location string
         String location = address + ", " + cityName + ", " + regionName;
@@ -302,7 +321,7 @@ public class ShopViewModel extends AndroidViewModel {
             }
         }
         
-        shopRepository.createShop(name, description, category, phone, email, address, location, imageUrl, regionId, cityId, workingHours, workingDays, instagram, facebook, website);
+        shopRepository.createShop(name, description, category, phone, email, address, location, imageUrl, regionId, cityId, workingHours, workingDays, instagram, facebook, website, hasPromotion, hasLivraison);
         
         // Force refresh shop status after creation
         android.util.Log.d("ShopViewModel", "Shop creation initiated, forcing status refresh");
@@ -392,6 +411,10 @@ public class ShopViewModel extends AndroidViewModel {
             errorMessage.postValue("Shop name is required");
             return;
         }
+        
+        android.util.Log.d("ShopViewModel", "=== UPDATE SHOP DEBUG ===");
+        android.util.Log.d("ShopViewModel", "Updating shop: " + shop.getName());
+        android.util.Log.d("ShopViewModel", "Toggle values in shop object - hasPromotion: " + shop.isHasPromotion() + ", hasLivraison: " + shop.isHasLivraison());
         
         shopRepository.updateShop(shop);
         

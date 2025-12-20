@@ -206,6 +206,81 @@
 
                                     </LinearLayout>
 
+                                    <!-- Promotion and Delivery Indicators -->
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal"
+                                        android:layout_marginTop="8dp"
+                                        android:gravity="center_vertical">
+
+                                        <!-- Promotion Badge -->
+                                        <LinearLayout
+                                            android:id="@+id/promotionBadge"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal"
+                                            android:gravity="center_vertical"
+                                            android:background="@drawable/promotion_badge_background"
+                                            android:paddingStart="8dp"
+                                            android:paddingEnd="8dp"
+                                            android:paddingTop="4dp"
+                                            android:paddingBottom="4dp"
+                                            android:layout_marginEnd="8dp"
+                                            android:visibility="gone">
+
+                                            <ImageView
+                                                android:layout_width="16dp"
+                                                android:layout_height="16dp"
+                                                android:src="@drawable/ic_baseline_local_offer_24"
+                                                android:tint="#FFFFFF"
+                                                android:layout_marginEnd="4dp" />
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:text="Promotion"
+                                                android:textColor="#FFFFFF"
+                                                android:textSize="12sp"
+                                                android:textStyle="bold"
+                                                android:includeFontPadding="false" />
+
+                                        </LinearLayout>
+
+                                        <!-- Delivery Badge -->
+                                        <LinearLayout
+                                            android:id="@+id/deliveryBadge"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal"
+                                            android:gravity="center_vertical"
+                                            android:background="@drawable/delivery_badge_background"
+                                            android:paddingStart="8dp"
+                                            android:paddingEnd="8dp"
+                                            android:paddingTop="4dp"
+                                            android:paddingBottom="4dp"
+                                            android:visibility="gone">
+
+                                            <ImageView
+                                                android:layout_width="16dp"
+                                                android:layout_height="16dp"
+                                                android:src="@drawable/ic_baseline_delivery_dining_24"
+                                                android:tint="#FFFFFF"
+                                                android:layout_marginEnd="4dp" />
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:text="Delivery"
+                                                android:textColor="#FFFFFF"
+                                                android:textSize="12sp"
+                                                android:textStyle="bold"
+                                                android:includeFontPadding="false" />
+
+                                        </LinearLayout>
+
+                                    </LinearLayout>
+
                                 </LinearLayout>
 
                             </LinearLayout>

@@ -220,7 +220,7 @@ public class LoginActivityViewModel extends AndroidViewModel {
             errorMessage.setValue("Invalid user data");
             return;
         }
-        userRepository.updateProfile(user);
+        userRepository.updateProfile(user, null, null);
         successMessage.setValue("Profile updated");
     }
 

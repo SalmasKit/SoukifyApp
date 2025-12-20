@@ -14,7 +14,10 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -22,13 +25,15 @@ import com.example.soukify.R;
 import com.example.soukify.ui.chat.ChatActivity;
 import com.example.soukify.ui.search.ShopAdapter;
 import com.example.soukify.ui.shop.CleanProductsAdapter;
-import com.example.soukify.data.repositories.FavoritesRepository;
+import com.example.soukify.ui.shop.ProductViewModel;
+import com.example.soukify.data.repositories.FavoritesTableRepository;
 import com.example.soukify.data.repositories.UserProductPreferencesRepository;
 import com.example.soukify.data.models.ShopModel;
 import com.example.soukify.data.models.ProductModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import androidx.lifecycle.ViewModelProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,8 +57,9 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
     private List<ProductModel> favoriteProducts = new ArrayList<>();
 
     // Repository
-    private FavoritesRepository favoritesRepository;
+    private FavoritesTableRepository favoritesTableRepository;
     private UserProductPreferencesRepository userPreferences;
+    private ProductViewModel productViewModel;
 
     // Current selection
     private boolean showingBoutiques = true;
@@ -77,8 +83,10 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
 
             // Initialize FavoritesRepository
             if (getContext() != null && isAdded()) {
-                favoritesRepository = new FavoritesRepository(requireActivity().getApplication());
+                favoritesTableRepository = new FavoritesTableRepository(requireActivity().getApplication());
                 userPreferences = new UserProductPreferencesRepository(requireContext());
+                productViewModel = new ViewModelProvider(requireActivity(), new ProductViewModel.Factory(requireActivity().getApplication())).get(ProductViewModel.class);
+                productViewModel.setupObservers(getViewLifecycleOwner());
                 observeViewModel();
                 loadFavoriteShops();
             } else {
@@ -146,7 +154,7 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
 
             // Setup RecyclerView pour produits
             if (recyclerViewProducts != null && getContext() != null) {
-                recyclerViewProducts.setLayoutManager(new LinearLayoutManager(getContext()));
+                recyclerViewProducts.setLayoutManager(new GridLayoutManager(getContext(), 2));
                 productAdapter = new CleanProductsAdapter(getContext(), new CleanProductsAdapter.OnProductClickListener() {
                     @Override
                     public void onProductClick(ProductModel product) {
@@ -161,7 +169,10 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
                             Toast.makeText(getContext(), "Long pressed: " + product.getName(), Toast.LENGTH_SHORT).show();
                         }
                     }
-                });
+                }, productViewModel, true); // true = favorites context
+                
+                // Set lifecycle owner for proper observer management
+                productAdapter.setLifecycleOwner(getViewLifecycleOwner());
                 recyclerViewProducts.setAdapter(productAdapter);
             } else {
                 Log.w(TAG, "recyclerViewProducts is null or context is null");
@@ -240,8 +251,8 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
 
     private void loadFavoriteShops() {
         try {
-            if (favoritesRepository != null) {
-                favoritesRepository.loadFavoriteShops();
+            if (favoritesTableRepository != null) {
+                favoritesTableRepository.loadFavoriteShops();
             }
         } catch (Exception e) {
             Log.e(TAG, "Error loading favorite shops", e);
@@ -279,88 +290,11 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
 
     private void loadFavoriteProducts() {
         try {
-            String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ? 
-                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
-            
-            if (currentUserId == null) {
-                Log.w(TAG, "User not logged in, cannot load favorite products");
-                if (getContext() != null) {
-                    Toast.makeText(getContext(), "Please login to see favorite products", Toast.LENGTH_SHORT).show();
-                }
-                return;
+            if (favoritesTableRepository != null) {
+                favoritesTableRepository.loadFavoriteProducts();
             }
-
-            showLoading(true);
-            
-            // Get user's favorited product IDs from SharedPreferences
-            java.util.Set<String> favoritedProductIds = userPreferences.getFavoritedProducts();
-            
-            if (favoritedProductIds.isEmpty()) {
-                Log.d(TAG, "No favorited products found");
-                favoriteProducts.clear();
-                if (productAdapter != null) {
-                    productAdapter.updateProducts(favoriteProducts);
-                }
-                if (getContext() != null) {
-                    Toast.makeText(getContext(), "No favorite products found", Toast.LENGTH_SHORT).show();
-                }
-                showLoading(false);
-                return;
-            }
-            
-            // Query products that are in user's favorites list
-            FirebaseFirestore.getInstance()
-                .collection("products")
-                .whereIn("productId", new ArrayList<>(favoritedProductIds))
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    try {
-                        favoriteProducts.clear();
-                        
-                        for (com.google.firebase.firestore.DocumentSnapshot document : queryDocumentSnapshots) {
-                            ProductModel product = document.toObject(ProductModel.class);
-                            if (product != null) {
-                                product.setProductId(document.getId());
-                                
-                                // Set favorited status based on user preferences
-                                product.setFavorited(userPreferences.isProductFavorited(product.getProductId()));
-                                favoriteProducts.add(product);
-                            }
-                        }
-                        
-                        if (productAdapter != null) {
-                            productAdapter.updateProducts(favoriteProducts);
-                        }
-                        
-                        if (getContext() != null) {
-                            if (favoriteProducts.isEmpty()) {
-                                Toast.makeText(getContext(), "No favorite products found", Toast.LENGTH_SHORT).show();
-                            } else {
-                                Toast.makeText(getContext(), favoriteProducts.size() + " favorite products loaded", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                        
-                        Log.d(TAG, "Loaded " + favoriteProducts.size() + " favorite products");
-                    } catch (Exception e) {
-                        Log.e(TAG, "Error processing favorite products", e);
-                        if (getContext() != null) {
-                            Toast.makeText(getContext(), "Error loading favorite products", Toast.LENGTH_SHORT).show();
-                        }
-                    } finally {
-                        showLoading(false);
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error loading favorite products", e);
-                    showLoading(false);
-                    if (getContext() != null) {
-                        Toast.makeText(getContext(), "Failed to load favorite products", Toast.LENGTH_SHORT).show();
-                    }
-                });
-                
         } catch (Exception e) {
-            Log.e(TAG, "Error in loadFavoriteProducts", e);
-            showLoading(false);
+            Log.e(TAG, "Error loading favorite products", e);
         }
     }
 
@@ -389,14 +323,14 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
     }
 
     private void observeViewModel() {
-        if (favoritesRepository == null || getViewLifecycleOwner() == null) {
+        if (favoritesTableRepository == null || getViewLifecycleOwner() == null) {
             Log.e(TAG, "Cannot observe ViewModel - repository or lifecycle owner is null");
             return;
         }
 
         try {
             // Observe favorite shops
-            favoritesRepository.getFavoriteShops().observe(getViewLifecycleOwner(), shops -> {
+            favoritesTableRepository.getFavoriteShops().observe(getViewLifecycleOwner(), shops -> {
                 try {
                     if (shops != null) {
                         favoriteShops.clear();
@@ -414,8 +348,27 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
                 }
             });
 
+            // Observe favorite products
+            favoritesTableRepository.getFavoriteProducts().observe(getViewLifecycleOwner(), products -> {
+                try {
+                    if (products != null) {
+                        favoriteProducts.clear();
+                        favoriteProducts.addAll(products);
+                        if (productAdapter != null) {
+                            productAdapter.updateProducts(favoriteProducts);
+                        }
+
+                        if (products.isEmpty() && getContext() != null) {
+                            Toast.makeText(getContext(), "No favorite products found", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Error in products observer", e);
+                }
+            });
+
             // Observe loading state
-            favoritesRepository.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            favoritesTableRepository.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
                 try {
                     showLoading(isLoading != null && isLoading);
                 } catch (Exception e) {
@@ -424,7 +377,7 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
             });
 
             // Observe errors
-            favoritesRepository.getErrorMessage().observe(getViewLifecycleOwner(), errorMessage -> {
+            favoritesTableRepository.getErrorMessage().observe(getViewLifecycleOwner(), errorMessage -> {
                 try {
                     if (errorMessage != null && !errorMessage.isEmpty()) {
                         showError(errorMessage);
@@ -441,8 +394,15 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
     @Override
     public void onFavoriteClick(ShopModel shopModel, int position) {
         try {
-            if (favoritesRepository != null) {
-                favoritesRepository.toggleFavorite(shopModel);
+            if (favoritesTableRepository != null) {
+                // Toggle favorite status
+                favoritesTableRepository.isShopFavorite(shopModel.getShopId()).observe(getViewLifecycleOwner(), isFavorite -> {
+                    if (isFavorite != null && isFavorite) {
+                        favoritesTableRepository.removeShopFromFavorites(shopModel.getShopId());
+                    } else {
+                        favoritesTableRepository.addShopToFavorites(shopModel);
+                    }
+                });
             }
         } catch (Exception e) {
             Log.e(TAG, "Error toggling favorite", e);
@@ -457,9 +417,33 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
     }
 
     @Override
-    public void onShopClick(ShopModel shopModel, int position) {
-        if (getContext() != null && shopModel != null) {
-            Toast.makeText(getContext(), "Sélectionné: " + shopModel.getName(), Toast.LENGTH_SHORT).show();
+    public void onShopClick(ShopModel shop, int position) {
+        if (isAdded() && shop != null) {
+            // Pass shop data as individual strings (ShopModel is not Parcelable)
+            Bundle args = new Bundle();
+            args.putString("shopId", shop.getShopId() != null ? shop.getShopId() : "");
+            args.putString("shopName", shop.getName() != null ? shop.getName() : "");
+            args.putString("shopCategory", shop.getCategory() != null ? shop.getCategory() : "");
+            args.putString("shopDescription", shop.getDescription() != null ? shop.getDescription() : "");
+            args.putString("shopLocation", shop.getLocation() != null ? shop.getLocation() : "");
+            args.putString("shopPhone", shop.getPhone() != null ? shop.getPhone() : "");
+            args.putString("shopEmail", shop.getEmail() != null ? shop.getEmail() : "");
+            args.putString("shopAddress", shop.getAddress() != null ? shop.getAddress() : "");
+            args.putString("shopImageUrl", shop.getImageUrl() != null ? shop.getImageUrl() : "");
+            args.putString("shopInstagram", shop.getInstagram() != null ? shop.getInstagram() : "");
+            args.putString("shopFacebook", shop.getFacebook() != null ? shop.getFacebook() : "");
+            args.putString("shopWebsite", shop.getWebsite() != null ? shop.getWebsite() : "");
+            args.putString("shopRegionId", shop.getRegionId() != null ? shop.getRegionId() : "");
+            args.putString("shopCityId", shop.getCityId() != null ? shop.getCityId() : "");
+            args.putString("shopCreatedAt", shop.getCreatedAt() != null ? shop.getCreatedAt() : "");
+            args.putLong("shopCreatedAtTimestamp", shop.getCreatedAtTimestamp() > 0 ? shop.getCreatedAtTimestamp() : System.currentTimeMillis());
+            args.putBoolean("hideDialogs", true); // Flag to hide dialogs and FAB
+            
+            // Navigate to ShopHomeFragment using Navigation Component
+            NavController navController = Navigation.findNavController(requireView());
+            navController.navigate(R.id.action_navigation_favorites_to_shopHome, args);
+            
+            Log.d(TAG, "Navigated to shop: " + shop.getName());
         }
     }
     // 🌟 Nouvelle méthode pour ouvrir le chat

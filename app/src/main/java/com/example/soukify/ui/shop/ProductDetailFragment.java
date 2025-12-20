@@ -50,10 +50,14 @@ import java.util.List;
 public class ProductDetailFragment extends Fragment implements ProductDialogHelper.OnProductUpdatedListener {
     
     private static final String ARG_PRODUCT = "product";
+    private static final String ARG_SOURCE = "source";
+    private static final String SOURCE_FAVORITES = "favorites";
 
     private ProductModel product;
+    private String source;
     private FirebaseProductImageService imageService;
     private ShopViewModel shopViewModel;
+    private ProductViewModel productViewModel;
     private ShopModel currentShop;
     private ProductManager productManager;
 
@@ -114,6 +118,7 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
         // Handle Navigation Component arguments
         if (getArguments() != null) {
             product = getArguments().getParcelable(ARG_PRODUCT);
+            source = getArguments().getString(ARG_SOURCE);
             // Fallback for Navigation Component
             if (product == null) {
                 product = getArguments().getParcelable("product");
@@ -124,6 +129,14 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
 
         // Initialize ShopViewModel to get current shop data
         shopViewModel = new ViewModelProvider(requireActivity()).get(ShopViewModel.class);
+        
+        // Initialize ProductViewModel for like/favorite functionality
+        productViewModel = new ViewModelProvider(requireActivity(), new ProductViewModel.Factory(requireActivity().getApplication())).get(ProductViewModel.class);
+        
+        // Load current product into ProductViewModel for like/favorite synchronization
+        if (product != null) {
+            productViewModel.loadProduct(product.getProductId());
+        }
 
         // Initialize ProductDialogHelper for edit functionality
         productManager = new ProductManager(requireActivity().getApplication());
@@ -163,6 +176,7 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
         loadProductImage();
         observeCurrentShop();
         observeProductUpdates();
+        observeProductViewModel();
         setupClickListeners();
 
         return view;
@@ -182,6 +196,12 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
         emailButton = view.findViewById(R.id.emailButton);
         editButton = view.findViewById(R.id.editButton);
         deleteButton = view.findViewById(R.id.deleteButton);
+        
+        // Hide edit and delete buttons if accessed from favorites
+        if (SOURCE_FAVORITES.equals(source)) {
+            editButton.setVisibility(View.GONE);
+            deleteButton.setVisibility(View.GONE);
+        }
         likeButton = view.findViewById(R.id.likeButton);
         favoriteButton = view.findViewById(R.id.favoriteButton);
         likesCount = view.findViewById(R.id.likesCount);
@@ -226,21 +246,20 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
     }
     
     private void setupLikeAndFavoriteButtons() {
-        if (product != null && userPreferences != null) {
-            // Set like button state using user preferences
-            boolean isLiked = userPreferences.isProductLiked(product.getProductId());
-            likeButton.setImageResource(isLiked ? R.drawable.ic_heart_filled : R.drawable.ic_heart_outline);
+        if (product != null && productViewModel != null) {
+            // Set like button state - handled by repository
+            likeButton.setImageResource(R.drawable.ic_heart_outline);
             
-            // Set favorite button state using user preferences
-            boolean isFavorited = userPreferences.isProductFavorited(product.getProductId());
-            favoriteButton.setImageResource(isFavorited ? R.drawable.ic_star_filled : R.drawable.ic_star_outline);
+            // Set favorite button state - handled by repository
+            favoriteButton.setImageResource(R.drawable.ic_star_outline);
             
             // Set like and favorite counts
             if (likesCount != null) {
                 likesCount.setText(String.valueOf(product.getLikesCount()));
             }
             if (favoritesCount != null) {
-                favoritesCount.setText(String.valueOf(product.getFavoritesCount()));
+                // Favorites count is handled by FavoritesTableRepository
+                favoritesCount.setText("0"); // Will be updated by repository
             }
             
             // Set like button click listener
@@ -256,24 +275,16 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
     }
     
     private void toggleLike() {
-        if (product != null && userPreferences != null) {
-            // Use UserProductPreferencesRepository for persistence
-            userPreferences.toggleLike(product.getProductId());
-            
-            // Update UI immediately based on new state
-            boolean isLiked = userPreferences.isProductLiked(product.getProductId());
-            likeButton.setImageResource(isLiked ? R.drawable.ic_heart_filled : R.drawable.ic_heart_outline);
+        if (product != null && productViewModel != null) {
+            // Use ProductViewModel for Firebase synchronization
+            productViewModel.toggleLikeProduct(product.getProductId());
         }
     }
     
     private void toggleFavorite() {
-        if (product != null && userPreferences != null) {
-            // Use UserProductPreferencesRepository for persistence
-            userPreferences.toggleFavorite(product.getProductId());
-            
-            // Update UI immediately based on new state
-            boolean isFavorited = userPreferences.isProductFavorited(product.getProductId());
-            favoriteButton.setImageResource(isFavorited ? R.drawable.ic_star_filled : R.drawable.ic_star_outline);
+        if (product != null && productViewModel != null) {
+            // Use ProductViewModel for Firebase synchronization
+            productViewModel.toggleFavoriteProduct(product.getProductId());
         }
     }
 
@@ -559,14 +570,86 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
     }
 
     private void observeCurrentShop() {
-        // TODO: Implement shop observation when ShopViewModel methods are available
-        // For now, assume we have a current shop
-        updateShopDependentUI();
+        // Observe current shop from ShopViewModel
+        shopViewModel.getShop().observe(getViewLifecycleOwner(), shop -> {
+            currentShop = shop;
+            updateShopDependentUI();
+        });
     }
 
     private void observeProductUpdates() {
         // TODO: Implement product updates observation when ShopViewModel methods are available
         // For now, this will be handled by onProductUpdated callback
+    }
+    
+    private void observeProductViewModel() {
+        if (productViewModel == null) return;
+        
+        // Observe current product for like/favorite updates
+        productViewModel.getCurrentProduct().observe(getViewLifecycleOwner(), updatedProduct -> {
+            if (updatedProduct != null && product != null && 
+                updatedProduct.getProductId().equals(product.getProductId())) {
+                // Update the local product reference
+                product = updatedProduct;
+                
+                // Update like/favorite UI
+                updateLikeFavoriteUI();
+            }
+        });
+        
+        // Observe loading states for like/favorite operations
+        productViewModel.getLikeOperationInProgress().observe(getViewLifecycleOwner(), isInProgress -> {
+            if (isInProgress != null && likeButton != null) {
+                likeButton.setEnabled(!isInProgress);
+            }
+        });
+        
+        // Observe product favorite states changes
+        productViewModel.getProductFavoriteStates().observe(getViewLifecycleOwner(), favoriteStates -> {
+            if (favoriteStates != null && product != null) {
+                Boolean isFavorited = favoriteStates.get(product.getProductId());
+                if (isFavorited != null && favoriteButton != null) {
+                    favoriteButton.setImageResource(isFavorited ? R.drawable.ic_star_filled : R.drawable.ic_star_outline);
+                }
+            }
+        });
+        
+        productViewModel.getFavoriteOperationInProgress().observe(getViewLifecycleOwner(), isInProgress -> {
+            if (isInProgress != null && favoriteButton != null) {
+                favoriteButton.setEnabled(!isInProgress);
+            }
+        });
+        
+        // Observe error messages
+        productViewModel.getErrorMessage().observe(getViewLifecycleOwner(), errorMessage -> {
+            if (errorMessage != null && !errorMessage.isEmpty() && getContext() != null) {
+                Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                productViewModel.clearError();
+            }
+        });
+    }
+    
+    private void updateLikeFavoriteUI() {
+        if (product == null) return;
+        
+        // Update like button state - handled by repository
+        if (likeButton != null) {
+            likeButton.setImageResource(R.drawable.ic_heart_outline);
+        }
+        
+        // Update favorite button state - handled by repository
+        if (favoriteButton != null) {
+            favoriteButton.setImageResource(R.drawable.ic_star_outline);
+        }
+        
+        // Update counts
+        if (likesCount != null) {
+            likesCount.setText(String.valueOf(product.getLikesCount()));
+        }
+        if (favoritesCount != null) {
+            // Favorites count is handled by FavoritesTableRepository
+            favoritesCount.setText("0"); // Will be updated by repository
+        }
     }
 
     private void setupClickListeners() {
@@ -626,14 +709,26 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
     }
 
     private void updateShopDependentUI() {
-        // Update edit/delete buttons based on shop ownership
-        boolean isOwner = currentShop != null && product != null;
+        // Check if user owns this shop
+        boolean isOwner = false;
+        if (currentShop != null && product != null) {
+            // Check if the product belongs to the current shop
+            isOwner = currentShop.getShopId() != null && 
+                     currentShop.getShopId().equals(product.getShopId());
+        }
+        
+        // Update edit/delete buttons based on shop ownership and source
+        boolean shouldShowButtons = isOwner && !SOURCE_FAVORITES.equals(source);
         if (editButton != null) {
-            editButton.setVisibility(isOwner ? View.VISIBLE : View.GONE);
+            editButton.setVisibility(shouldShowButtons ? View.VISIBLE : View.GONE);
         }
         if (deleteButton != null) {
-            deleteButton.setVisibility(isOwner ? View.VISIBLE : View.GONE);
+            deleteButton.setVisibility(shouldShowButtons ? View.VISIBLE : View.GONE);
         }
+        
+        Log.d("ProductDetailFragment", "Edit/Delete buttons visibility: " + (isOwner ? "VISIBLE" : "GONE") + 
+              " (currentShopId: " + (currentShop != null ? currentShop.getShopId() : "null") + 
+              ", productShopId: " + (product != null ? product.getShopId() : "null") + ")");
     }
 
     private void showEditProductDialog() {
@@ -657,12 +752,43 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
 
     private void deleteProduct() {
         if (productManager != null && product != null) {
-            // For now, just show a message since we need to check ProductManager API
             Log.d("ProductDetailFragment", "Delete requested for product: " + product.getProductId());
+            
+            // Show loading indicator
             if (getContext() != null) {
-                Toast.makeText(getContext(), "Delete functionality not yet implemented", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Deleting product...", Toast.LENGTH_SHORT).show();
             }
-            // TODO: Implement proper delete when ProductManager API is confirmed
+            
+            // Use a flag to prevent multiple message handling
+            final boolean[] messageHandled = {false};
+            
+            // Observe the success and error messages from ProductManager
+            productManager.getSuccessMessage().observe(getViewLifecycleOwner(), message -> {
+                if (!messageHandled[0] && message != null && !message.isEmpty()) {
+                    messageHandled[0] = true; // Mark as handled
+                    // Product deleted successfully
+                    if (getContext() != null) {
+                        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+                    }
+                    // Navigate back to previous screen
+                    if (getActivity() != null) {
+                        getActivity().onBackPressed();
+                    }
+                }
+            });
+            
+            productManager.getErrorMessage().observe(getViewLifecycleOwner(), message -> {
+                if (!messageHandled[0] && message != null && !message.isEmpty()) {
+                    messageHandled[0] = true; // Mark as handled
+                    // Error occurred during deletion
+                    if (getContext() != null) {
+                        Toast.makeText(getContext(), "Error: " + message, Toast.LENGTH_LONG).show();
+                    }
+                }
+            });
+            
+            // Call ProductManager's delete method
+            productManager.deleteProduct(product);
         }
     }
 
