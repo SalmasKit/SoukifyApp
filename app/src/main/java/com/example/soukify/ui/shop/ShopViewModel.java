@@ -167,6 +167,57 @@ public class ShopViewModel extends AndroidViewModel {
         locationRepository.loadCitiesByRegion(regionName);
     }
     
+    /**
+     * Load cities by region ID - converts regionId to region name first
+     */
+    public void loadCitiesByRegionName(String regionId) {
+        android.util.Log.d("ShopViewModel", "loadCitiesByRegionName called with regionId: " + regionId);
+        
+        if (regionId == null || regionId.isEmpty()) {
+            android.util.Log.w("ShopViewModel", "regionId is null or empty, cannot load cities");
+            return;
+        }
+        
+        // Check if regions are already available
+        List<RegionModel> currentRegions = getRegions().getValue();
+        if (currentRegions != null && !currentRegions.isEmpty()) {
+            // Regions are available, find the region name and load cities
+            for (RegionModel region : currentRegions) {
+                if (region.getRegionId().equals(regionId) || 
+                    region.getRegionId().equals(String.valueOf(regionId))) {
+                    String regionName = region.getName();
+                    android.util.Log.d("ShopViewModel", "Found region name: " + regionName + " for regionId: " + regionId);
+                    loadCitiesByRegion(regionName);
+                    return;
+                }
+            }
+            android.util.Log.w("ShopViewModel", "Region not found for ID: " + regionId);
+        } else {
+            // Regions not loaded yet, set up a one-time observer
+            android.util.Log.d("ShopViewModel", "Regions not available yet, setting up observer");
+            getRegions().observeForever(new androidx.lifecycle.Observer<List<RegionModel>>() {
+                @Override
+                public void onChanged(List<RegionModel> regions) {
+                    if (regions != null && !regions.isEmpty()) {
+                        // Remove this observer immediately to avoid multiple calls
+                        getRegions().removeObserver(this);
+                        
+                        for (RegionModel region : regions) {
+                            if (region.getRegionId().equals(regionId) || 
+                                region.getRegionId().equals(String.valueOf(regionId))) {
+                                String regionName = region.getName();
+                                android.util.Log.d("ShopViewModel", "Found region name: " + regionName + " for regionId: " + regionId);
+                                loadCitiesByRegion(regionName);
+                                return;
+                            }
+                        }
+                        android.util.Log.w("ShopViewModel", "Region not found for ID: " + regionId);
+                    }
+                }
+            });
+        }
+    }
+    
     public void checkShopStatus() {
         android.util.Log.d("ShopViewModel", "=== checkShopStatus STARTED ===");
         String userId = getCurrentUserId();
@@ -214,12 +265,20 @@ public class ShopViewModel extends AndroidViewModel {
             return;
         }
         
+        // Load regions and cities data to ensure location can be resolved
+        loadRegions();
+        
         shopRepository.getShopById(shopId)
             .addOnSuccessListener(documentSnapshot -> {
                 if (documentSnapshot.exists()) {
                     ShopModel shop = shopRepository.deserializeShop(documentSnapshot);
                     currentShop.postValue(shop);
                     android.util.Log.d("ShopViewModel", "Shop loaded successfully: " + shop.getName());
+                    
+                    // Load cities for the shop's region if regionId is available
+                    if (shop.getRegionId() != null && !shop.getRegionId().isEmpty()) {
+                        loadCitiesByRegionName(shop.getRegionId());
+                    }
                 } else {
                     errorMessage.postValue("Shop not found");
                     currentShop.postValue(null);
@@ -423,6 +482,9 @@ public class ShopViewModel extends AndroidViewModel {
         
         // Force refresh to ensure UI updates
         loadUserShops();
+        
+        // Also immediately update current shop LiveData for instant UI refresh
+        currentShop.postValue(shop);
     }
     
     public void deleteShop(String shopId, String password) {
@@ -481,43 +543,47 @@ public class ShopViewModel extends AndroidViewModel {
     public void setErrorMessage(String message) {
         errorMessage.postValue(message);
     }
-    
+
     public void addProduct(String productName, String productDescription, double price) {
         // Validate inputs
         if (productName == null || productName.trim().isEmpty()) {
             errorMessage.postValue("Product name is required");
             return;
         }
-        
+
         ShopModel currentShopData = currentShop.getValue();
         if (currentShopData == null) {
             errorMessage.postValue("No shop found to add product to");
             return;
         }
-        
+
         // Implement product addition using ProductRepository
         ProductRepository productRepository = new ProductRepository(getApplication());
-        ProductImageRepository productImageRepository = new ProductImageRepository(getApplication());
-        
-        // Add product using Firebase
-        productRepository.createProduct(
-            currentShopData.getShopId(),
-            productName,
-            productDescription,
-            "General", // Default category - can be parameterized later
-            price,
-            0 // Default stock - can be parameterized later
-        );
-        
+
+        // ✅ Obtenir le shopId depuis le shop actuel
+        String shopId = currentShopData.getShopId();
+
+        // ✅ Définir les variables manquantes
+        String name = productName;
+        String description = productDescription;
+        String productType = "General"; // Valeur par défaut ou à ajouter en paramètre
+        String currency = "MAD"; // Devise par défaut
+
+        // ✅ Créer le ProductModel avec les bonnes variables
+        ProductModel product = new ProductModel(shopId, name, description, productType, price, currency);
+
+        // ✅ Appeler createProduct avec le modèle
+        productRepository.createProduct(product);
+
         // Observe the result using LiveData
         productRepository.getErrorMessage().observeForever(error -> {
             if (error != null) {
                 errorMessage.postValue(error);
             }
         });
-        
-        productRepository.getCurrentProduct().observeForever(product -> {
-            if (product != null && product.getName().equals(productName)) {
+
+        productRepository.getCurrentProduct().observeForever(prod -> {
+            if (prod != null && prod.getName().equals(productName)) {
                 successMessage.postValue("Product added successfully!");
             }
         });

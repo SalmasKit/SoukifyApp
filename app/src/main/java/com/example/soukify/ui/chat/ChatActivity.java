@@ -1,126 +1,201 @@
 package com.example.soukify.ui.chat;
 
 import android.os.Bundle;
-import android.text.TextUtils;
-import android.view.View;
+import android.util.Log;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ProgressBar;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.soukify.R;
-import com.example.soukify.data.models.Message;
-
-import java.util.ArrayList;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class ChatActivity extends AppCompatActivity {
 
-    private RecyclerView rvMessages;
-    private EditText etMessage;
-    private ImageButton btnSend;
-    private ProgressBar progressBar;
-    private TextView tvEmptyMessages;
-    private Toolbar toolbar;
+    private static final String TAG = "ChatActivity";
+
+    public static final String EXTRA_CONVERSATION_ID = "conversation_id";
+    public static final String EXTRA_SHOP_NAME = "shop_name";
+    public static final String EXTRA_SHOP_ID = "shop_id";
+    public static final String EXTRA_SELLER_ID = "seller_id";
+    public static final String EXTRA_SHOP_IMAGE = "shop_image";
+    public static final String EXTRA_OTHER_USER_NAME = "extra_other_user_name";
+    public static final String EXTRA_IS_SELLER_VIEW = "extra_is_seller_view";
 
     private ChatViewModel viewModel;
     private MessagesAdapter adapter;
-    private ArrayList<Message> messagesList;
+
+    private EditText etMessage;
+    private ImageButton btnSend;
+    private RecyclerView rvMessages;
+    private MaterialToolbar toolbar;
+    private TextView tvTitle;
+
+    private String conversationId;
+    private String currentUserId;
+    private boolean isSellerView;
+    private String contactName; // nom de l'autre utilisateur (shop ou client)
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
-        // Récupérer les extras (id de la boutique et vendeur)
-        String shopId = getIntent().getStringExtra("shopId");
-        String shopName = getIntent().getStringExtra("shopName");
-        String shopImage = getIntent().getStringExtra("shopImage");
-        String sellerId = getIntent().getStringExtra("sellerId");
+        currentUserId = FirebaseAuth.getInstance().getUid();
+        if (currentUserId == null || currentUserId.isEmpty()) {
+            Toast.makeText(this, "❌ Vous devez être connecté", Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
 
-        // Initialiser les vues
+        // ==========================
+        // SETUP VIEWS
+        // ==========================
         toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
+        }
+
+        tvTitle = findViewById(R.id.tvTitle);
+        ImageView ivBack = findViewById(R.id.ivBack);
+        ivBack.setOnClickListener(v -> finish());
+
         rvMessages = findViewById(R.id.rvMessages);
         etMessage = findViewById(R.id.etMessage);
         btnSend = findViewById(R.id.btnSend);
-        progressBar = findViewById(R.id.progressBar);
-        tvEmptyMessages = findViewById(R.id.tvEmptyMessages);
 
-        // Configurer Toolbar
-        toolbar.setTitle(shopName != null ? shopName : "Chat");
-        setSupportActionBar(toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
-        toolbar.setNavigationOnClickListener(v -> onBackPressed());
-
-        // Initialiser la liste et l'adapter
-        messagesList = new ArrayList<>();
-        adapter = new MessagesAdapter(messagesList);
-        rvMessages.setLayoutManager(new LinearLayoutManager(this));
-        rvMessages.setAdapter(adapter);
-
-        // Initialiser ViewModel
+        // ==========================
+        // SETUP VIEWMODEL & ADAPTER
+        // ==========================
         viewModel = new ViewModelProvider(this).get(ChatViewModel.class);
+        setupRecyclerView();
+        observeViewModel();
+        setupSendButton();
 
-        // Initialiser la conversation
-        viewModel.initializeConversation(shopId, shopName, shopImage, sellerId);
+        // ==========================
+        // 🔥 RÉCUPÉRATION DES EXTRAS
+        // ==========================
+        conversationId = getIntent().getStringExtra(EXTRA_CONVERSATION_ID);
+        String shopName = getIntent().getStringExtra(EXTRA_SHOP_NAME);
+        String otherUserName = getIntent().getStringExtra(EXTRA_OTHER_USER_NAME); // 🔥 Nom passé depuis ConversationsListActivity
+        isSellerView = getIntent().getBooleanExtra(EXTRA_IS_SELLER_VIEW, false);
 
-        // Observer l'état de chargement
-        viewModel.getIsLoading().observe(this, isLoading ->
-                progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE)
-        );
+        Log.e(TAG, "════════════════════════════════════════");
+        Log.e(TAG, "🚀 ChatActivity créée");
+        Log.e(TAG, "   conversationId: " + conversationId);
+        Log.e(TAG, "   shopName: " + shopName);
+        Log.e(TAG, "   otherUserName: " + otherUserName);
+        Log.e(TAG, "   isSellerView: " + isSellerView);
+        Log.e(TAG, "════════════════════════════════════════");
 
-        // Observer les messages
-        viewModel.getMessages().observe(this, messages -> {
-            messagesList.clear();
-            if (messages != null && !messages.isEmpty()) {
-                messagesList.addAll(messages);
-                tvEmptyMessages.setVisibility(View.GONE);
+        // 🔥 DÉTERMINER LE NOM À AFFICHER DANS LA TOOLBAR
+        if (otherUserName != null && !otherUserName.isEmpty()) {
+            // Nom passé explicitement par ConversationsListActivity
+            contactName = otherUserName;
+        } else if (isSellerView) {
+            // Fallback : si c'est le vendeur, afficher "Client"
+            contactName = "Client";
+        } else {
+            // Fallback : si c'est l'acheteur, afficher le nom du shop
+            contactName = shopName != null ? shopName : "💬 Chat";
+        }
 
-                // Scroll vers le dernier message
-                rvMessages.scrollToPosition(messagesList.size() - 1);
-            } else {
-                tvEmptyMessages.setVisibility(View.VISIBLE);
+        // 🔥 PROTECTION CONTRE NULL
+        if (tvTitle != null) {
+            tvTitle.setText(contactName);
+        } else {
+            Log.e(TAG, "❌ tvTitle est NULL - vérifiez activity_chat.xml");
+        }
+
+        // ==========================
+        // CHARGER LA CONVERSATION
+        // ==========================
+        if (conversationId != null && !conversationId.isEmpty()) {
+            // Conversation existante
+            Log.d(TAG, "✅ Chargement conversation existante: " + conversationId);
+            viewModel.setConversationId(conversationId);
+        } else {
+            // Nouvelle conversation
+            String shopId = getIntent().getStringExtra(EXTRA_SHOP_ID);
+            String sellerId = getIntent().getStringExtra(EXTRA_SELLER_ID);
+            String shopImage = getIntent().getStringExtra(EXTRA_SHOP_IMAGE);
+
+            if (shopId == null || sellerId == null) {
+                Toast.makeText(this, "❌ Données manquantes", Toast.LENGTH_LONG).show();
+                finish();
+                return;
             }
-            adapter.notifyDataSetChanged();
-        });
 
-        // Observer les erreurs
-        viewModel.getError().observe(this, error -> {
-            if (error != null && !error.isEmpty()) {
-                tvEmptyMessages.setText(error);
-                tvEmptyMessages.setVisibility(View.VISIBLE);
-            }
-        });
-
-        // Envoyer message
-        btnSend.setOnClickListener(v -> sendMessage());
+            Log.d(TAG, "🆕 Initialisation nouvelle conversation");
+            viewModel.initializeConversation(shopId, shopName, shopImage, sellerId);
+        }
     }
 
-    private void sendMessage() {
-        String text = etMessage.getText().toString().trim();
-        if (!TextUtils.isEmpty(text)) {
-            // Nom de l'utilisateur "Vous" ou récupérer depuis profil
-            viewModel.sendMessage(text, "Vous");
-            etMessage.setText("");
+    // ==========================
+    // SETUP RECYCLERVIEW
+    // ==========================
+    private void setupRecyclerView() {
+        adapter = new MessagesAdapter(currentUserId);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        layoutManager.setStackFromEnd(true);
+        rvMessages.setLayoutManager(layoutManager);
+        rvMessages.setAdapter(adapter);
+    }
 
-            // Scroll vers le bas après envoi
-            rvMessages.scrollToPosition(messagesList.size() - 1);
-        }
+    // ==========================
+    // OBSERVER VIEWMODEL
+    // ==========================
+    private void observeViewModel() {
+        viewModel.getMessages().observe(this, messages -> {
+            if (messages != null) {
+                Log.d(TAG, "📨 Messages reçus: " + messages.size());
+                adapter.submitList(messages);
+                if (!messages.isEmpty()) {
+                    rvMessages.scrollToPosition(messages.size() - 1);
+                }
+            }
+        });
+
+        viewModel.getError().observe(this, error -> {
+            if (error != null && !error.isEmpty()) {
+                Log.e(TAG, "❌ Erreur: " + error);
+                Toast.makeText(this, "❌ " + error, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    // ==========================
+    // 🔥 SETUP BOUTON ENVOI (CORRIGÉ)
+    // ==========================
+    private void setupSendButton() {
+        btnSend.setOnClickListener(v -> {
+            String text = etMessage.getText().toString().trim();
+
+            if (text.isEmpty()) {
+                Toast.makeText(this, "⚠️ Message vide", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Log.d(TAG, "📤 Envoi message: " + text);
+
+            // 🔥 APPEL CORRIGÉ : senderName est récupéré automatiquement par le repository
+            viewModel.sendMessage(text);
+
+            etMessage.setText("");
+        });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        // Marquer les messages comme lus à chaque ouverture
         viewModel.markMessagesAsRead();
     }
 }
-

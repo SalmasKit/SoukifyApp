@@ -1,26 +1,225 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout 
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/scroll_content"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:scrollbars="none">
 
-    android:padding="16dp"
-    tools:context=".ui.home.HomeFragment">
-
-    <TextView
-        android:id="@+id/text_home"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:textAlignment="center"
-        android:textSize="20sp"
-        android:textColor="?android:attr/textColorPrimary"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+        android:layout_height="wrap_content">
+
+        <!-- Image Carousel Section (Logo as first image) -->
+        <RelativeLayout
+            android:id="@+id/carousel_container"
+            android:layout_width="match_parent"
+            android:layout_height="350dp"
+            android:background="#F5E6D8">
+
+            <!-- ViewPager2 for Carousel -->
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/image_carousel"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:clipChildren="false" />
+
+            <!-- Carousel Indicators -->
+            <LinearLayout
+                android:id="@+id/carousel_indicators"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="20dp"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:elevation="4dp">
+                <!-- Dots will be added programmatically -->
+            </LinearLayout>
+
+        </RelativeLayout>
+
+        <!-- Blended Content Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/carousel_container"
+            android:orientation="vertical"
+            android:layout_marginTop="-80dp"
+            android:paddingBottom="80dp">
+
+            <!-- Introduction Card with Blend -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/intro_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="28dp"
+                app:cardElevation="12dp"
+                android:elevation="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="28dp"
+                    android:background="@drawable/card_gradient_bg">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Discover Authentic Moroccan Businesses"
+                        android:textSize="28sp"
+                        android:textStyle="bold"
+                        android:textColor="#FFFFFF"
+                        android:fontFamily="serif"
+                        android:letterSpacing="-0.01"
+                        android:layout_marginBottom="12dp"
+                        android:lineHeight="34dp"
+                        android:shadowColor="#40000000"
+                        android:shadowDx="0"
+                        android:shadowDy="2"
+                        android:shadowRadius="4"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Explore local shops, traditional crafts, and unique products from across Morocco. Support small businesses and discover the richness of Moroccan culture."
+                        android:textSize="16sp"
+                        android:textColor="#F0F0F0"
+                        android:lineSpacingExtra="6dp"
+                        android:lineHeight="24dp"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Map Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:paddingBottom="24dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp"
+                    android:fontFamily="serif"
+                    android:text="Select Your Location"
+                    android:textColor="#1A1A1A"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <!-- Interactive Map Container -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="420dp"
+                    android:layout_marginBottom="20dp"
+                    app:cardCornerRadius="28dp"
+                    app:cardElevation="12dp"
+                    android:elevation="12dp">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+
+                        <!-- Map Container (OSMDroid map will be inserted here) -->
+                        <LinearLayout
+                            android:id="@+id/map_container"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical" />
+
+                        <!-- GPS Location Button (Floating) -->
+                        <com.google.android.material.floatingactionbutton.FloatingActionButton
+                            android:id="@+id/btn_gps_location"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_alignParentTop="true"
+                            android:layout_margin="16dp"
+                            android:src="@drawable/ic_my_location"
+                            android:contentDescription="Find my location"
+                            app:tint="#FFFFFF"
+                            app:backgroundTint="#FF6B35"
+                            app:elevation="8dp"
+                            app:borderWidth="0dp"
+                            app:fabSize="normal" />
+
+                        <!-- Selected Location Overlay -->
+                        <LinearLayout
+                            android:id="@+id/selected_location_overlay"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentBottom="true"
+                            android:layout_margin="16dp"
+                            android:background="@drawable/location_overlay_gradient"
+                            android:orientation="horizontal"
+                            android:padding="20dp"
+                            android:visibility="gone"
+                            android:elevation="4dp"
+                            tools:visibility="visible">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:layout_gravity="center_vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Selected Location"
+                                    android:textColor="#F0F0F0"
+                                    android:textSize="12sp"
+                                    android:layout_marginBottom="4dp" />
+
+                                <TextView
+                                    android:id="@+id/selected_city_text"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Casablanca"
+                                    android:textColor="#FFFFFF"
+                                    android:textSize="20sp"
+                                    android:textStyle="bold"
+                                    android:fontFamily="serif"
+                                    android:shadowColor="#40000000"
+                                    android:shadowDx="0"
+                                    android:shadowDy="2"
+                                    android:shadowRadius="4"
+                                    tools:text="Marrakech" />
+                            </LinearLayout>
+
+                            <Button
+                                android:id="@+id/btn_confirm_location"
+                                android:layout_width="wrap_content"
+                                android:layout_height="50dp"
+                                android:backgroundTint="#FFFFFF"
+                                android:paddingStart="28dp"
+                                android:paddingEnd="28dp"
+                                android:text="Confirm"
+                                android:textAllCaps="false"
+                                android:textColor="#E85F4C"
+                                android:textSize="15sp"
+                                android:textStyle="bold"
+                                android:elevation="2dp"
+                                android:layout_gravity="center_vertical" />
+                        </LinearLayout>
+
+                    </RelativeLayout>
+                </androidx.cardview.widget.CardView>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </RelativeLayout>
+</ScrollView>

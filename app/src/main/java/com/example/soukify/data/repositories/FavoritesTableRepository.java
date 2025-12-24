@@ -344,6 +344,36 @@ public class FavoritesTableRepository {
         
         return result;
     }
+
+    /**
+     * One-shot favorite check with callback to avoid callers using observeForever.
+     */
+    public interface OnFavoriteCheckedListener {
+        void onChecked(boolean isFavorited);
+        void onError(String error);
+    }
+
+    public void checkProductFavoriteOnce(String productId, OnFavoriteCheckedListener listener) {
+        String userId = getCurrentUserId();
+        if (userId == null || productId == null) {
+            if (listener != null) listener.onChecked(false);
+            return;
+        }
+
+        firestore.collection(FAVORITES_COLLECTION)
+            .whereEqualTo("userId", userId)
+            .whereEqualTo("itemId", productId)
+            .whereEqualTo("itemType", "product")
+            .limit(1)
+            .get()
+            .addOnSuccessListener(querySnapshot -> {
+                if (listener != null) listener.onChecked(!querySnapshot.isEmpty());
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error checking product favorite status", e);
+                if (listener != null) listener.onError(e.getMessage());
+            });
+    }
     
     /**
      * Load shop details from IDs

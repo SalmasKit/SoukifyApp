@@ -1,0 +1,407 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Name -->
+    <string name="app_name">Soukify</string>
+
+    <!-- ==================== AUTHENTICATION ==================== -->
+    <string name="please_enter_email_and_password">Veuillez entrer l\'email et le mot de passe</string>
+    <string name="please_enter_valid_email">Veuillez entrer une adresse email valide</string>
+    <string name="login_successful">Connexion réussie !</string>
+    <string name="signup_successful">Inscription réussie !</string>
+    <string name="all_fields_required">Tous les champs sont requis</string>
+    <string name="all_fields_obligatory">Tous les champs sont obligatoires</string>
+    <string name="invalid_email">Email invalide</string>
+    <string name="passwords_do_not_match_fr">Les mots de passe ne correspondent pas</string>
+    <string name="error_prefix">Erreur : %1$s</string>
+
+    <!-- ==================== NAVIGATION ==================== -->
+    <string name="title_home">Accueil</string>
+    <string name="title_dashboard">Tableau de bord</string>
+    <string name="title_notifications">Notifications</string>
+
+    <!-- ==================== SEARCH SCREEN ==================== -->
+    <string name="pageTitle">Produits</string>
+    <string name="location"> </string>
+    <string name="searchHint">Rechercher dans ...</string>
+    <string name="buttonSearch">Rechercher</string>
+    <string name="Pro">Pro</string>
+    <string name="Type">Type</string>
+    <string name="Sort">Trier</string>
+    <string name="Top">Top</string>
+    <string name="item_not_found">Article non trouvé</string>
+    <string name="item_not_found_fr">Article non trouvé</string>
+
+    <!-- ==================== CATEGORIES ==================== -->
+    <string name="category">Catégorie</string>
+    <string name="category_label">Catégorie</string>
+    <string name="category_label_en">Catégorie</string>
+    <string name="category_pottery">Poterie &amp; Céramique</string>
+    <string name="category_textile">Textiles &amp; Tapisserie</string>
+    <string name="category_food">Produits Gourmet &amp; Locaux</string>
+    <string name="category_wellness">Produits de Bien-être Naturels</string>
+    <string name="category_jewelry">Bijoux &amp; Accessoires</string>
+    <string name="category_metal">Artisanat Métallique &amp; en Laiton</string>
+    <string name="category_painting">Peinture &amp; Calligraphie</string>
+    <string name="category_woodwork">Menuiserie</string>
+    <string name="tapestry">Textiles &amp; Tapisserie</string>
+    <string name="food">Produits Gourmet &amp; Locaux</string>
+    <string name="pottery">Poterie &amp; Céramique</string>
+    <string name="traditional_wear">Vêtements Traditionnels</string>
+    <string name="naturalProducts">Produits de Bien-être Naturels</string>
+    <string name="jewellery">Bijoux &amp; Accessoires</string>
+    <string name="metal">Artisanat Métallique &amp; en Laiton</string>
+    <string name="paintings">Peinture &amp; Calligraphie</string>
+    <string name="woodwork">Menuiserie</string>
+    <string name="leather_crafts">Artisanat en Cuir</string>
+
+    <!-- ==================== SHOP ==================== -->
+    <string name="shop_name">Nom de la Boutique</string>
+    <string name="shop_banner">Ma Boutique</string>
+    <string name="shop_banner_text">Ajouter une Bannière</string>
+    <string name="shop_cover_photo">Photo de Couverture</string>
+    <string name="shop_description_placeholder">La description de votre boutique apparaît ici...</string>
+    <string name="shop_details">Détails de la Boutique</string>
+    <string name="shop_information">Informations de la Boutique</string>
+    <string name="shop_name_placeholder">Poterie Mohammed</string>
+    <string name="shop_options">Options de la Boutique</string>
+    <string name="action_create_shop">Créer une Boutique</string>
+    <string name="add_cover_image">Ajouter une Image de Couverture</string>
+    <string name="add_cover_photo">Ajouter une Photo de Couverture</string>
+    <string name="ratio_recommended">Ratio 16:9 recommandé</string>
+    <string name="clear_shop">Effacer la Boutique</string>
+    <string name="enable_promotion">Activer la Promotion</string>
+    <string name="enable_delivery">Activer la Livraison</string>
+    <string name="no_shop_icon">Aucune Icône de Boutique</string>
+    <string name="no_shop_title">Aucune Boutique</string>
+    <string name="no_shop_subtitle">Créez votre boutique pour commencer à vendre</string>
+    <string name="visit_shop">Visiter la Boutique</string>
+
+    <!-- Shop Messages -->
+    <string name="shop_cleared_database">Boutique supprimée de la base de données</string>
+    <string name="location_not_specified">Localisation non spécifiée</string>
+    <string name="location_unavailable">Localisation indisponible</string>
+    <string name="location_ids_invalid">IDs de localisation invalides</string>
+    <string name="unknown_location">Localisation inconnue</string>
+    <string name="unknown_region">Région inconnue</string>
+    <string name="cover_photo_removed">Photo de couverture supprimée</string>
+    <string name="cover_image_updated">Image de couverture mise à jour avec succès</string>
+    <string name="image_selection_cancelled">Sélection d\'image annulée</string>
+    <string name="storage_permission_required">L\'autorisation de stockage est requise pour télécharger des images</string>
+    <string name="please_login_to_access_shop">Veuillez vous connecter pour accéder à votre boutique</string>
+    <string name="debug_shop_fragment_called">Debug : ShopFragment showCreateShopDialog appelé</string>
+
+    <!-- Shop Details Form -->
+    <string name="description">Description</string>
+    <string name="phone">Téléphone</string>
+    <string name="email_hint">Email</string>
+    <string name="region">Région</string>
+    <string name="city">Ville</string>
+    <string name="address">Adresse</string>
+    <string name="address_optional">Rue, Quartier, Points de repère... (Optionnel)</string>
+    <string name="instagram">Instagram</string>
+    <string name="instagram_optional">@nom_utilisateur (Optionnel)</string>
+    <string name="facebook">Facebook</string>
+    <string name="facebook_optional">Nom de la page ou URL (Optionnel)</string>
+    <string name="website">Site Web</string>
+    <string name="website_hint">Site Web</string>
+    <string name="website_optional">https://exemple.com (Optionnel)</string>
+
+    <!-- Working Hours -->
+    <string name="working_hours">Heures d\'Ouverture</string>
+    <string name="monday">Lundi</string>
+    <string name="tuesday">Mardi</string>
+    <string name="wednesday">Mercredi</string>
+    <string name="thursday">Jeudi</string>
+    <string name="friday">Vendredi</string>
+    <string name="saturday">Samedi</string>
+    <string name="sunday">Dimanche</string>
+    <string name="from">De</string>
+    <string name="to">À</string>
+    <string name="time_separator"> - </string>
+
+    <!-- ==================== PRODUCTS ==================== -->
+    <string name="products">Produits</string>
+    <string name="add_product">Ajouter un Produit</string>
+    <string name="add_first_product">Ajoutez votre premier produit pour commencer</string>
+    <string name="no_products_yet">Aucun produit pour le moment</string>
+    <string name="product_name_placeholder">Nom du Produit</string>
+    <string name="product_type_placeholder">Type de Produit</string>
+    <string name="product_description_placeholder">Description du produit...</string>
+    <string name="product_price_placeholder">0,00 MAD</string>
+    <string name="product_item_count">0 articles</string>
+    <string name="edit_product">Modifier le Produit</string>
+    <string name="delete_product">Supprimer le Produit</string>
+    <string name="deleting_product">Suppression du produit...</string>
+    <string name="product_deleted_successfully">Produit supprimé avec succès</string>
+
+    <!-- Product Details -->
+    <string name="weight_label">Poids</string>
+    <string name="weight_placeholder">0 kg</string>
+    <string name="length_label">Longueur</string>
+    <string name="length_placeholder">0 cm</string>
+    <string name="width_label">Largeur</string>
+    <string name="width_placeholder">0 cm</string>
+    <string name="height_label">Hauteur</string>
+    <string name="height_placeholder">0 cm</string>
+    <string name="color_label">Couleur</string>
+    <string name="color_placeholder">N/A</string>
+    <string name="material_label">Matériau</string>
+    <string name="material_placeholder">N/A</string>
+    <string name="no_image">Aucune Image</string>
+
+    <!-- ==================== LOCATION ==================== -->
+    <string name="location_label">Localisation</string>
+    <string name="location_label_en">Localisation</string>
+    <string name="location_text">Localisation</string>
+    <string name="map_label">Carte</string>
+
+    <!-- ==================== CONTACT ==================== -->
+    <string name="contact_information">Informations de Contact</string>
+    <string name="contact_seller">Contacter le Vendeur</string>
+    <string name="contact_support">Contacter le Support</string>
+    <string name="call_seller">Appeler le Vendeur</string>
+    <string name="email_seller">Envoyer un Email</string>
+    <string name="loading_contact_info">Chargement des informations de contact...</string>
+    <string name="phone_number">Numéro de Téléphone</string>
+    <string name="phone_placeholder">+212 600-000-000</string>
+    <string name="phone_placeholder_format">+212 600-000-000</string>
+    <string name="email">Email</string>
+    <string name="email_placeholder">bksalma26@gmail.com</string>
+
+    <!-- ==================== ACTIONS ==================== -->
+    <string name="like_action">J\'aime</string>
+    <string name="favorite_action">Favori</string>
+    <string name="share_action">Partager</string>
+    <string name="chat_action">Chat</string>
+
+    <!-- ==================== LABELS & DISPLAY ==================== -->
+    <string name="promo_label">PROMO</string>
+    <string name="promotion_label">Promotion</string>
+    <string name="delivery_label">Livraison</string>
+    <string name="rating_placeholder">4,5</string>
+    <string name="rating_format">0,0</string>
+    <string name="reviews_placeholder">(120 avis)</string>
+    <string name="reviews_label">(120 avis)</string>
+    <string name="created_label">Créé : Chargement...</string>
+    <string name="created_just_now">Créé : À l\'instant</string>
+    <string name="follow_us">Suivez-nous</string>
+    <string name="price_placeholder">0,00</string>
+    <string name="zero">0</string>
+    <string name="zero_decimal">0,00</string>
+
+    <!-- ==================== SETTINGS ==================== -->
+    <string name="profile_image">Photo de Profil</string>
+    <string name="user_name">Salma Barrak</string>
+    <string name="edit_profile">Ouvrir une Boutique</string>
+    <string name="open_shop_stacked">Ouvrir\nBoutique</string>
+    <string name="open_shop">Ouvrir une Boutique</string>
+    <string name="account_settings">Paramètres du Compte</string>
+    <string name="notifications">Notifications</string>
+    <string name="privacy">Confidentialité</string>
+    <string name="help_support">Aide &amp; Support</string>
+    <string name="about">À propos</string>
+    <string name="logout">Se déconnecter</string>
+    <string name="appearance">Apparence</string>
+    <string name="language_and_currency">Langue &amp; Devise</string>
+
+    <!-- Account Settings -->
+    <string name="change_photo">Changer la Photo</string>
+    <string name="personal_information">Informations Personnelles</string>
+    <string name="full_name">Nom Complet</string>
+    <string name="change_password">Changer le Mot de Passe</string>
+    <string name="save_changes">Enregistrer les Modifications</string>
+
+    <!-- Language & Currency -->
+    <string name="select_language">Sélectionner la Langue</string>
+    <string name="select_currency">Sélectionner la Devise</string>
+    <string name="language">Langue</string>
+    <string name="use_device_language">Utiliser la langue de l\'appareil</string>
+    <string name="device_language">Langue de l\'Appareil</string>
+    <string name="currency">Devise</string>
+    <string name="currency_mad">MAD</string>
+    <string name="preview_example">Aperçu</string>
+    <string name="preview_example_format">Aperçu : %1$s</string>
+    <string name="lang_english">Anglais</string>
+    <string name="lang_arabic">Arabe</string>
+    <string name="lang_french">Français</string>
+
+    <!-- Notifications Settings -->
+    <string name="enable_push_notifications">Activer les notifications push</string>
+    <string name="enable_email_notifications">Activer les notifications email</string>
+    <string name="enable_sms_notifications">Activer les notifications SMS</string>
+    <string name="general_notifications">Général</string>
+    <string name="enable_sound">Activer le son</string>
+    <string name="enable_vibration">Activer la vibration</string>
+    <string name="notification_categories">Catégories</string>
+    <string name="order_updates">Mises à jour des commandes</string>
+    <string name="promotions_and_offers">Promotions &amp; Offres</string>
+    <string name="app_updates">Mises à jour de l\'app</string>
+    <string name="quiet_hours">Heures silencieuses</string>
+    <string name="quiet_start">Heure de début</string>
+    <string name="quiet_end">Heure de fin</string>
+    <string name="pick_time">Choisir l\'heure</string>
+    <string name="open_system_notification_settings">Ouvrir les paramètres système</string>
+    <string name="notification_preferences_saved">Préférences de notifications enregistrées</string>
+    <string name="unable_to_open_system_settings">Impossible d\'ouvrir les paramètres système</string>
+
+    <!-- Privacy Settings -->
+    <string name="privacy_preferences">Préférences de confidentialité</string>
+    <string name="personalized_ads">Publicités personnalisées</string>
+    <string name="allow_analytics">Autoriser les analyses</string>
+    <string name="limit_ad_tracking">Limiter le suivi des publicités</string>
+    <string name="permissions">Permissions</string>
+    <string name="open_app_settings">Ouvrir les paramètres de l\'app</string>
+    <string name="clear_app_data">Effacer les données de l\'app</string>
+    <string name="clear_app_data_desc">Cela effacera les fichiers en cache et les préférences. Vous devrez peut-être vous reconnecter.</string>
+    <string name="clear">Effacer</string>
+    <string name="data_cleared">Données de l\'app effacées</string>
+
+    <!-- Theme Options -->
+    <string name="theme_system_default">Par défaut système</string>
+    <string name="theme_light">Clair</string>
+    <string name="theme_dark">Sombre</string>
+
+    <!-- ==================== PHOTO/IMAGE SELECTION ==================== -->
+    <string name="choose_photo">Choisir une Photo</string>
+    <string name="choose_from_gallery">Choisir depuis la Galerie</string>
+    <string name="from_gallery">Depuis la Galerie</string>
+    <string name="take_photo">Prendre une Photo</string>
+    <string name="remove_photo">Supprimer la Photo</string>
+    <string name="no_gallery_app">Aucune app de galerie trouvée</string>
+
+    <!-- ==================== PASSWORD ==================== -->
+    <string name="current_password">Mot de Passe Actuel</string>
+    <string name="current_password_hint">Mot de Passe Actuel</string>
+    <string name="new_password">Nouveau Mot de Passe</string>
+    <string name="confirm_password">Confirmer le Nouveau Mot de Passe</string>
+    <string name="enter_current_password">Entrez votre mot de passe actuel</string>
+    <string name="current_password_required">Le mot de passe actuel est requis</string>
+    <string name="current_password_short">Le mot de passe actuel semble trop court</string>
+    <string name="new_password_required">Le nouveau mot de passe est requis</string>
+    <string name="new_password_different">Le nouveau mot de passe doit être différent de l\'actuel</string>
+    <string name="new_password_length">Le nouveau mot de passe doit comporter au moins 6 caractères</string>
+    <string name="confirm_new_password">Veuillez confirmer votre nouveau mot de passe</string>
+    <string name="choose_stronger_password">Veuillez choisir un mot de passe plus fort</string>
+    <string name="password_letters_numbers">Le mot de passe doit contenir des lettres et des chiffres</string>
+    <string name="password_required">Le mot de passe est requis</string>
+    <string name="password_too_short">Le mot de passe doit comporter au moins 6 caractères</string>
+    <string name="passwords_do_not_match">Les mots de passe ne correspondent pas</string>
+    <string name="password_updated">Mot de passe mis à jour</string>
+
+    <!-- ==================== PROFILE/SETTINGS MESSAGES ==================== -->
+    <string name="confirm_email_change">Confirmer le Changement d\'Email</string>
+    <string name="confirm_email_change_message">Pour changer votre email, veuillez entrer votre mot de passe actuel pour des raisons de sécurité.</string>
+    <string name="error_updating_profile">Erreur de mise à jour du profil</string>
+    <string name="error_updating_user_profile">Erreur de mise à jour du profil utilisateur</string>
+    <string name="profile_update_success">Profil mis à jour avec succès</string>
+    <string name="please_fill_required_fields">Veuillez remplir les champs obligatoires</string>
+    <string name="error_unable_to_save_settings">Erreur : Impossible d\'enregistrer les paramètres</string>
+    <string name="please_select_both_language_and_currency">Veuillez sélectionner la langue et la devise</string>
+    <string name="saved_format">Enregistré : %1$s, %2$s</string>
+
+    <!-- ==================== HELP & SUPPORT ==================== -->
+    <string name="help_and_support">Aide &amp; Support</string>
+    <string name="help_support_description">Trouvez des réponses aux questions fréquentes sur l\'utilisation de Soukify ou contactez notre équipe d\'assistance pour obtenir de l\'aide.</string>
+    <string name="frequently_asked_questions">Questions Fréquemment Posées</string>
+    <string name="view_faq">Voir les FAQ</string>
+
+    <!-- FAQ Questions & Answers -->
+    <string name="faq_question1">Comment créer une boutique sur Soukify ?</string>
+    <string name="faq_answer1">Pour créer une boutique, accédez à l\'onglet \"Boutique\" et appuyez sur le bouton \"Créer une Boutique\". Remplissez les détails de votre boutique incluant le nom, la description, la catégorie, la localisation et les informations de contact. Une fois soumis, votre boutique sera visible par les autres utilisateurs.</string>
+
+    <string name="faq_question2">Quelles catégories de produits puis-je vendre ?</string>
+    <string name="faq_answer2">Soukify prend en charge diverses catégories incluant : Poterie &amp; Céramique, Textiles &amp; Tapisserie, Produits Gourmet &amp; Locaux, Produits de Bien-être Naturels, Bijoux &amp; Accessoires, Artisanat Métallique &amp; en Laiton, Peinture &amp; Calligraphie, et Menuiserie.</string>
+
+    <string name="faq_question3">Comment ajouter des produits à ma boutique ?</string>
+    <string name="faq_answer3">Après avoir créé votre boutique, vous pouvez ajouter des produits en allant sur votre page boutique et en appuyant sur le bouton \"Ajouter un Produit\". Entrez les détails du produit comme le nom, la description et le prix. Vous pouvez ajouter plusieurs produits pour présenter votre inventaire.</string>
+
+    <string name="faq_question4">Puis-je modifier les informations de ma boutique après sa création ?</string>
+    <string name="faq_answer4">Oui, vous pouvez modifier les informations de votre boutique à tout moment. Allez sur votre page boutique et cherchez les options de modification. Vous pouvez mettre à jour le nom de votre boutique, la description, les informations de contact et d\'autres détails pour tenir vos clients informés.</string>
+
+    <string name="faq_question5">Comment les clients trouvent-ils et contactent-ils ma boutique ?</string>
+    <string name="faq_answer5">Les clients peuvent découvrir votre boutique en parcourant les catégories, en recherchant par localisation ou en utilisant la fonction de recherche. Ils peuvent voir les détails de votre boutique, vos produits et vous contacter en utilisant les informations que vous fournissez (téléphone, email ou adresse). Assurez-vous que vos informations de contact sont précises et à jour.</string>
+
+    <string name="faq_question6">Soukify est-il gratuit pour les vendeurs ?</string>
+    <string name="faq_answer6">Oui, Soukify est entièrement gratuit pour les vendeurs. Il n\'y a pas de frais d\'installation, de frais mensuels ou de commissions. Vous pouvez créer une boutique, lister des produits et gérer votre entreprise sans aucun coût.</string>
+
+    <string name="faq_question7">Comment gérer les commandes et les paiements ?</string>
+    <string name="faq_answer7">Soukify se concentre sur la mise en relation des acheteurs avec les artisans et commerçants locaux. Lorsque les clients sont intéressés par vos produits, ils peuvent vous contacter directement par téléphone, email ou les informations d\'adresse que vous fournissez. Vous gérez les commandes et paiements directement avec les clients, ce qui vous donne un contrôle total sur vos relations commerciales et transactions.</string>
+
+    <string name="faq_question8">Puis-je vendre des produits dans plusieurs catégories ?</string>
+    <string name="faq_answer8">Oui, vous pouvez lister des produits dans plusieurs catégories tant qu\'ils correspondent aux exigences des catégories. Chaque produit doit être listé dans la catégorie la plus appropriée pour aider les clients à trouver facilement ce qu\'ils recherchent.</string>
+
+    <string name="faq_question9">Comment supprimer ma boutique ou mon compte ?</string>
+    <string name="faq_answer9">Vous pouvez supprimer votre boutique ou votre compte via le menu des paramètres. Allez dans \"Paramètres du Compte\", descendez et sélectionnez \"Supprimer le Compte\" ou \"Fermer la Boutique\". Veuillez noter que cette action est permanente et ne peut pas être annulée.</string>
+
+    <string name="faq_question10">Quelles sont les meilleures pratiques pour vendre avec succès ?</string>
+    <string name="faq_answer10">Pour réussir sur Soukify : 1) Prenez des photos claires et de haute qualité de vos produits, 2) Rédigez des descriptions détaillées incluant dimensions et matériaux, 3) Fixez des prix compétitifs, 4) Répondez rapidement aux demandes des clients, 5) Maintenez de bonnes évaluations en fournissant un excellent service, et 6) Mettez à jour votre inventaire régulièrement.</string>
+
+    <!-- ==================== ABOUT ==================== -->
+    <string name="app_version_placeholder">Version : %1$s</string>
+    <string name="rate_app">Évaluer l\'App</string>
+    <string name="share_app">Partager l\'App</string>
+
+    <!-- ==================== PRIVACY POLICY ==================== -->
+    <string name="privacy_policy">Politique de Confidentialité</string>
+    <string name="privacy_last_updated">Dernière mise à jour : décembre 2025</string>
+
+    <string name="information_we_collect">Informations que Nous Collectons</string>
+    <string name="information_we_collect_desc">Nous collectons les informations que vous nous fournissez directement, comme lorsque vous créez un compte, configurez votre boutique ou nous contactez pour obtenir du support. Cela inclut :\n\n• Informations du compte (nom, email, téléphone)\n• Détails de la boutique (nom, description, localisation)\n• Informations produit (nom, description, prix)\n• Communications avec notre équipe de support</string>
+
+    <string name="how_we_use_information">Comment Nous Utilisons Vos Informations</string>
+    <string name="how_we_use_information_desc">Nous utilisons les informations collectées pour :\n\n• Fournir et maintenir le service Soukify\n• Traiter et gérer vos listes de boutique\n• Vous connecter avec des clients potentiels\n• Répondre à vos questions et demandes de support\n• Améliorer nos services et développer de nouvelles fonctionnalités</string>
+
+    <string name="data_sharing">Partage de Données</string>
+    <string name="data_sharing_desc">Nous ne vendons, n\'échangeons ni ne transférons vos informations personnelles à des tiers sans votre consentement, sauf comme décrit dans cette Politique de Confidentialité. Nous pouvons partager des informations avec :\n\n• Prestataires de services qui nous aident à exploiter notre service\n• Autorités légales lorsque la loi l\'exige\n• Partenaires commerciaux avec votre consentement explicite</string>
+
+    <string name="data_security">Sécurité des Données</string>
+    <string name="data_security_desc">Nous mettons en œuvre des mesures techniques et organisationnelles appropriées pour protéger vos informations personnelles contre l\'accès non autorisé, l\'altération, la divulgation ou la destruction. Cependant, aucune transmission sur Internet n\'est totalement sécurisée.</string>
+
+    <string name="your_rights">Vos Droits</string>
+    <string name="your_rights_desc">Vous avez le droit de :\n\n• Accéder et mettre à jour vos informations personnelles\n• Supprimer votre compte et les données associées\n• Vous désinscrire des communications non essentielles\n• Demander une copie de vos données\n• Nous contacter avec des préoccupations de confidentialité</string>
+
+    <string name="contact_privacy">Nous Contacter à Propos de la Confidentialité</string>
+    <string name="contact_privacy_desc">Si vous avez des questions ou des préoccupations concernant cette Politique de Confidentialité, veuillez nous contacter à bksalma26@gmail.com. Nous répondrons à votre demande dans les plus brefs délais.</string>
+    <string name="contact_privacy_button">Contacter le Support Confidentialité</string>
+
+    <!-- ==================== TERMS OF SERVICE ==================== -->
+    <string name="terms_of_service">Conditions d\'Utilisation</string>
+    <string name="terms_last_updated">Dernière mise à jour : décembre 2025</string>
+
+    <string name="acceptance_of_terms">Acceptation des Conditions</string>
+    <string name="acceptance_of_terms_desc">En téléchargeant, installant ou utilisant Soukify, vous acceptez d\'être lié par ces Conditions d\'Utilisation. Si vous n\'acceptez pas ces conditions, veuillez ne pas utiliser notre service.</string>
+
+    <string name="use_of_service">Utilisation du Service</string>
+    <string name="use_of_service_desc">Soukify fournit une plateforme pour que les artisans et les commerçants présentent leurs produits et se connectent avec les clients. Vous pouvez utiliser notre service uniquement à des fins légales et conformément à ces Conditions.</string>
+
+    <string name="user_responsibilities">Responsabilités de l\'Utilisateur</string>
+    <string name="user_responsibilities_desc">En tant qu\'utilisateur de Soukify, vous acceptez de :\n\n• Fournir des informations exactes et véridiques\n• Ne pas publier de contenu frauduleux ou trompeur\n• Respecter les droits de propriété intellectuelle d\'autrui\n• Ne pas vous engager dans des activités nuisibles ou illégales\n• Maintenir une communication professionnelle avec les autres utilisateurs</string>
+
+    <string name="intellectual_property">Propriété Intellectuelle</string>
+    <string name="intellectual_property_desc">Vous conservez la propriété du contenu que vous publiez sur Soukify. En publiant du contenu, vous nous accordez une licence pour utiliser, afficher et distribuer votre contenu uniquement dans le but d\'exploiter et d\'améliorer notre service.</string>
+
+    <string name="disclaimer">Clause de Non-Responsabilité</string>
+    <string name="disclaimer_desc">Soukify fonctionne comme une plateforme pour connecter acheteurs et vendeurs. Nous ne garantissons pas la qualité, la sécurité ou la légalité des produits ou services offerts via notre plateforme. Toutes les transactions sont à vos risques.</string>
+
+    <string name="termination">Résiliation</string>
+    <string name="termination_desc">Nous nous réservons le droit de suspendre ou de résilier votre compte si vous violez ces Conditions d\'Utilisation. Vous pouvez également fermer votre compte à tout moment via les paramètres de l\'application.</string>
+
+    <string name="contact_terms">Nous Contacter à Propos des Conditions</string>
+    <string name="contact_terms_desc">Si vous avez des questions concernant ces Conditions d\'Utilisation, veuillez nous contacter à bksalma26@gmail.com.</string>
+    <string name="contact_terms_button">Contacter le Support Conditions</string>
+
+    <!-- ==================== DIALOGS & COMMON ACTIONS ==================== -->
+    <string name="save">Enregistrer</string>
+    <string name="delete">Supprimer</string>
+    <string name="edit">Modifier</string>
+    <string name="ok">OK</string>
+    <string name="yes">Oui</string>
+    <string name="no">Non</string>
+    <string name="close">Fermer</string>
+    <string name="cancel">Annuler</string>
+    <string name="update">Mettre à jour</string>
+
+    <!-- Logout Dialog -->
+    <string name="logout_confirm_title">Se déconnecter</string>
+    <string name="logout_confirm_message">Êtes-vous sûr de vouloir vous déconnecter ?</string>
+</resources>

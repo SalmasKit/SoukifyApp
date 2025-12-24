@@ -374,6 +374,10 @@ public class ShopModel {
         this.hasLivraison = hasLivraison;
     }
     
+    public boolean hasLivraison() {
+        return hasLivraison;
+    }
+    
     public ArrayList<String> getLikedByUserIds() {
         return likedByUserIds;
     }

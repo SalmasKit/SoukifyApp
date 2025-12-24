@@ -23,7 +23,7 @@
                 android:layout_height="200dp"
                 android:scaleType="centerCrop"
                 android:adjustViewBounds="false"
-                android:contentDescription="Shop Cover Photo"
+                android:contentDescription="@string/shop_cover_photo"
                 android:visibility="gone"
                 android:background="@drawable/rounded_image_placeholder" />
 
@@ -49,7 +49,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Add Cover Photo"
+                    android:text="@string/add_cover_photo"
                     android:textSize="17sp"
                     android:textStyle="bold"
                     android:textColor="@color/colorPrimaryDark" />
@@ -57,7 +57,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="16:9 ratio recommended"
+                    android:text="@string/ratio_recommended"
                     android:layout_marginTop="4dp"
                     android:textSize="13sp"
                     android:textColor="@color/text_secondary" />
@@ -74,7 +74,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/EnhancedInput"
-                android:hint="Shop Name"
+                android:hint="@string/shop_name"
                 app:startIconDrawable="@drawable/ic_store_24dp"
                 app:startIconTint="@color/colorPrimary">
 
@@ -87,7 +87,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/EnhancedInput"
-                android:hint="Description"
+                android:hint="@string/description"
                 app:startIconDrawable="@drawable/ic_baseline_description_24"
                 app:startIconTint="@color/colorPrimary">
 
@@ -101,7 +101,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/EnhancedInput"
-                android:hint="Phone"
+                android:hint="@string/phone"
                 app:startIconDrawable="@drawable/ic_baseline_phone_24"
                 app:startIconTint="@color/colorPrimary">
 
@@ -114,7 +114,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/EnhancedInput"
-                android:hint="Email"
+                android:hint="@string/email_hint"
                 app:startIconDrawable="@drawable/ic_baseline_email_24"
                 app:startIconTint="@color/colorPrimary">
 
@@ -131,7 +131,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:hint="Category"
+                android:hint="@string/category"
                 android:minHeight="60dp"
                 app:startIconDrawable="@drawable/ic_category_grid_24"
                 app:startIconTint="@color/colorPrimary"
@@ -156,7 +156,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:hint="Region"
+                android:hint="@string/region"
                 android:minHeight="60dp"
                 app:startIconDrawable="@drawable/ic_place_24dp"
                 app:startIconTint="@color/colorPrimary"
@@ -181,7 +181,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:hint="City"
+                android:hint="@string/city"
                 android:minHeight="60dp"
                 app:startIconDrawable="@drawable/ic_location_city_24dp"
                 app:startIconTint="@color/colorPrimary"
@@ -202,8 +202,8 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/EnhancedInput"
-                android:hint="Address"
-                app:placeholderText="Street, Neighborhood, Landmarks... (Optional)"
+                android:hint="@string/address"
+                app:placeholderText="@string/address_optional"
                 app:startIconDrawable="@drawable/ic_baseline_map_24"
                 app:startIconTint="@color/colorPrimary">
 
@@ -220,8 +220,8 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/EnhancedInput"
-                android:hint="Instagram"
-                app:placeholderText="@username (Optional)"
+                android:hint="@string/instagram"
+                app:placeholderText="@string/instagram_optional"
                 app:startIconDrawable="@drawable/ic_instagram_24dp"
                 app:startIconTint="@color/colorPrimary">
 
@@ -235,8 +235,8 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/EnhancedInput"
-                android:hint="Facebook"
-                app:placeholderText="Page name or URL (Optional)"
+                android:hint="@string/facebook"
+                app:placeholderText="@string/facebook_optional"
                 app:startIconDrawable="@drawable/ic_facebook_24dp"
                 app:startIconTint="@color/colorPrimary">
 
@@ -250,8 +250,8 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/EnhancedInput"
-                android:hint="Website"
-                app:placeholderText="https://example.com (Optional)"
+                android:hint="@string/website_hint"
+                app:placeholderText="@string/website_optional"
                 app:startIconDrawable="@drawable/ic_website_24dp"
                 app:startIconTint="@color/colorPrimary">
 
@@ -276,7 +276,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Shop Options"
+                    android:text="@string/shop_options"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:textColor="@color/text_primary"
@@ -301,7 +301,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="12dp"
-                        android:text="Enable Promotion"
+                        android:text="@string/enable_promotion"
                         android:textSize="15sp"
                         android:textColor="@color/text_primary" />
 
@@ -330,7 +330,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="12dp"
-                        android:text="Enable Delivery"
+                        android:text="@string/enable_delivery"
                         android:textSize="15sp"
                         android:textColor="@color/text_primary" />
 

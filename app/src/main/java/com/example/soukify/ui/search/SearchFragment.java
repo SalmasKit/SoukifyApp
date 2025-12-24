@@ -31,9 +31,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.soukify.R;
 import com.example.soukify.data.remote.FirebaseManager;
 import com.example.soukify.data.remote.firebase.FirebaseShopService;
-import com.example.soukify.data.repositories.FavoritesRepository;
+import com.example.soukify.data.repositories.FavoritesTableRepository;
 import com.example.soukify.data.models.ShopModel;
 import com.example.soukify.ui.chat.ChatActivity;
+import com.example.soukify.ui.conversations.ConversationsListActivity;
 import com.example.soukify.ui.shop.ShopHomeFragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -63,7 +64,7 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
     private String selectedCity = null;
 
     private FirebaseShopService shopService;
-    private FavoritesRepository favoritesRepository;
+    private FavoritesTableRepository favoritesRepository;
     private final List<String> favoriteShopIds = new ArrayList<>();
 
     private ListView suggestionsList;
@@ -77,6 +78,10 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
     private com.google.firebase.firestore.ListenerRegistration shopsListener;
     private TextView textViewNotFound;
 
+    // City name -> list of cityIds mapping (normalized names as keys)
+    private final java.util.Map<String, java.util.List<String>> cityNameToIds = new java.util.HashMap<>();
+    private boolean cityMapLoaded = false;
+
     // Variable de classe pour garder l'état du tri actuel
     private boolean isSortedByRecent = true;
 
@@ -89,7 +94,7 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
 
         FirebaseManager firebaseManager = FirebaseManager.getInstance(requireActivity().getApplication());
         shopService = new FirebaseShopService(firebaseManager.getFirestore());
-        favoritesRepository = new FavoritesRepository(requireActivity().getApplication());
+        favoritesRepository = new FavoritesTableRepository(requireActivity().getApplication());
 
         initViews(view);
 
@@ -98,6 +103,16 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
             if (selectedCity != null && textViewVille != null) {
                 textViewVille.setText(selectedCity);
             }
+        }
+
+        // ✅ AJOUTEZ LE BOUTON MESSAGES ICI (AVANT le return view)
+        Button btnMessages = view.findViewById(R.id.btnChat); // ✅ view.findViewById()
+        if (btnMessages != null) { // ✅ Vérifier que le bouton existe
+            btnMessages.setOnClickListener(v -> {
+                Intent intent = new Intent(requireActivity(), ConversationsListActivity.class);
+                intent.putExtra(ConversationsListActivity.EXTRA_IS_SELLER_VIEW, true);
+                startActivity(intent);
+            });
         }
 
         setupRecyclerView();
@@ -109,7 +124,7 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
         loadFavorites();
         loadShopsFromFirebase();
 
-        return view;
+        return view; // ✅ Le return est à la fin
     }
 
     private void initViews(View view) {
@@ -175,12 +190,16 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
 
     private void loadShopsFromFirebase() {
         showLoading(true);
-        shopsLoaded = false;
-        shopService.getAllShops().addSnapshotListener((querySnapshot, error) -> {
-            // Gérer les erreurs
+        
+        // Récupérer l'ID de l'utilisateur actuel
+        final String currentUserId = FirebaseManager.getInstance(requireActivity().getApplication()).getCurrentUserId();
+        
+        // Créer un listener en temps réel pour synchroniser les likes
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        shopsListener = db.collection("shops").addSnapshotListener((querySnapshot, error) -> {
             if (error != null) {
-                showLoading(false);
-                safeToast("Erreur lors du chargement des boutiques: " + error.getMessage());
+                Log.e("SearchFragment", "Firestore listener error", error);
+                showError("Erreur de connexion: " + error.getMessage());
                 return;
             }
 
@@ -252,6 +271,29 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
                     if (v instanceof Number) shop.setLikesCount(((Number) v).intValue());
                 }
 
+                // ✅ NOUVEAU : Charger le statut "liked" pour l'utilisateur actuel
+                if (document.contains("likedByUserIds")) {
+                    Object likedByUserIdsObj = document.get("likedByUserIds");
+                    if (likedByUserIdsObj instanceof List) {
+                        ArrayList<String> likedByUserIds = new ArrayList<>((List<String>) likedByUserIdsObj);
+                        shop.setLikedByUserIds(likedByUserIds);
+
+                        // Vérifier si l'utilisateur actuel a liké ce shop
+                        if (currentUserId != null && likedByUserIds.contains(currentUserId)) {
+                            shop.setLiked(true);
+                            Log.d("SearchFragment", "✅ Shop " + shop.getName() + " is liked by current user");
+                        } else {
+                            shop.setLiked(false);
+                        }
+                    } else {
+                        shop.setLikedByUserIds(new ArrayList<>());
+                        shop.setLiked(false);
+                    }
+                } else {
+                    shop.setLikedByUserIds(new ArrayList<>());
+                    shop.setLiked(false);
+                }
+
                 if (document.contains("favoritesCount")) {
                     Object v = document.get("favoritesCount");
                     if (v instanceof Number) shop.setFavoritesCount(((Number) v).intValue());
@@ -281,7 +323,7 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
                     }
                 }
 
-// 🌟 CRITIQUE : Charger la Map des évaluations par utilisateur
+                // 🌟 CRITIQUE : Charger la Map des évaluations par utilisateur
                 if (document.contains("userRatings")) {
                     Map<String, Object> userRatingsObj = (Map<String, Object>) document.get("userRatings");
                     if (userRatingsObj != null) {
@@ -303,17 +345,8 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
             }
 
             if (selectedCity != null && !selectedCity.isEmpty()) {
-                for (ShopModel shop : allShops) {
-                    String shopLocation = safeString(shop.getLocation()).trim();
-                    if (shopLocation.equalsIgnoreCase(selectedCity.trim())) {
-                        filteredShops.add(shop);
-                    }
-                }
-                if (filteredShops.isEmpty()) {
-                    safeToast("Aucune boutique trouvée à " + selectedCity);
-                } else {
-                    safeToast(filteredShops.size() + " boutique(s) à " + selectedCity);
-                }
+                // Use robust city filtering that handles accents and variations
+                filterShopsByCity(selectedCity);
             } else {
                 filteredShops.addAll(allShops);
                 if (!shopsLoaded) {
@@ -321,13 +354,15 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
                 }
             }
 
-            shopAdapter.notifyDataSetChanged();
+            // Notify in case the branch didn't already refresh
+            if (shopAdapter != null) shopAdapter.notifyDataSetChanged();
             showLoading(false);
             shopsLoaded = true;
 
             if (favoritesLoaded) updateFavoriteStatusForShops();
         });
     }
+
     private void showError(String message) {
         if (isAdded()) {
             requireActivity().runOnUiThread(() -> {
@@ -378,6 +413,7 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
         }
     }
 
+
     private void showLoading(boolean show) {
         if (isAdded()) {
             progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
@@ -403,13 +439,14 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
 
         if (shopAdapter != null) shopAdapter.notifyItemChanged(position);
 
-        favoritesRepository.toggleFavorite(shop);
-
+        // Use FavoritesTableRepository methods
         if (newFavoriteState) {
+            favoritesRepository.addShopToFavorites(shop);
             if (shop.getShopId() != null && !favoriteShopIds.contains(shop.getShopId())) {
                 favoriteShopIds.add(shop.getShopId());
             }
         } else {
+            favoritesRepository.removeShopFromFavorites(shop.getShopId());
             if (shop.getShopId() != null) favoriteShopIds.remove(shop.getShopId());
         }
 
@@ -418,7 +455,7 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
         android.util.Log.d("SearchFragment", "Favorite toggled - New status: " + newFavoriteState);
     }
 
-    // 🌟 Méthode obligatoire pour le bouton chat
+    // Méthode obligatoire pour le bouton chat
     @Override
     public void onChatClick(ShopModel shop, int position) {
         if (getContext() != null && shop != null) {
@@ -440,77 +477,82 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
             return;
         }
 
+        // ✅ Les valeurs sont déjà mises à jour par l'adapter
+        final boolean newLikedStatus = shop.isLiked();
+        final int newLikesCount = shop.getLikesCount();
+
+        Log.d("SearchFragment", "Like status updated - newLikedStatus: " + newLikedStatus + ", newLikesCount: " + newLikesCount);
+
+        // ✅ Préparer la liste des utilisateurs qui ont liké
+        ArrayList<String> likedByUserIds = shop.getLikedByUserIds();
+        if (likedByUserIds == null) {
+            likedByUserIds = new ArrayList<>();
+        }
+
+        final ArrayList<String> newLikedUsers = new ArrayList<>(likedByUserIds);
+        if (newLikedStatus && !newLikedUsers.contains(currentUserId)) {
+            newLikedUsers.add(currentUserId);
+        } else if (!newLikedStatus && newLikedUsers.contains(currentUserId)) {
+            newLikedUsers.remove(currentUserId);
+        }
+
+        shop.setLikedByUserIds(newLikedUsers);
+
+        // ✅ Mise à jour dans Firestore (en arrière-plan, sans toucher à l'UI)
         final FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("shops").document(shop.getShopId())
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (!documentSnapshot.exists()) {
-                        safeToast("Boutique introuvable");
-                        return;
+                .update(
+                        "likedByUserIds", newLikedUsers,
+                        "likesCount", newLikesCount
+                )
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("SearchFragment", "✅ Like updated in Firestore successfully");
+
+                    // ✅ Mettre à jour la liste allShops pour cohérence
+                    for (ShopModel s : allShops) {
+                        if (s.getShopId().equals(shop.getShopId())) {
+                            s.setLiked(newLikedStatus);
+                            s.setLikesCount(newLikesCount);
+                            s.setLikedByUserIds(new ArrayList<>(newLikedUsers));
+                            break;
+                        }
                     }
 
-                    List<String> likedUsersList = (List<String>) documentSnapshot.get("likedByUserIds");
-                    if (likedUsersList == null) likedUsersList = new ArrayList<>();
-                    final List<String> likedUsers = new ArrayList<>(likedUsersList);
-
-                    Object likesCountObj = documentSnapshot.get("likesCount");
-                    final int currentLikesCount = likesCountObj instanceof Number ? ((Number) likesCountObj).intValue() : 0;
-
-                    final boolean alreadyLiked = likedUsers.contains(currentUserId);
-
-                    final List<String> newLikedUsers = new ArrayList<>(likedUsers);
-                    final int newLikesCount;
-                    final boolean newLikedStatus;
-
-                    if (alreadyLiked) {
-                        newLikedUsers.remove(currentUserId);
-                        newLikesCount = Math.max(0, currentLikesCount - 1);
-                        newLikedStatus = false;
-                    } else {
-                        newLikedUsers.add(currentUserId);
-                        newLikesCount = currentLikesCount + 1;
-                        newLikedStatus = true;
-                    }
-
-                    shop.setLiked(newLikedStatus);
-                    shop.setLikesCount(newLikesCount);
-                    shop.setLikedByUserIds(new ArrayList<>(newLikedUsers));
-                    
-                    // Debug logging
-                    Log.d("SearchFragment", "Like status updated - newLikedStatus: " + newLikedStatus + ", newLikesCount: " + newLikesCount);
-                    
-                    if (shopAdapter != null) {
-                        shopAdapter.notifyItemChanged(position);
-                        Log.d("SearchFragment", "Notified adapter for position: " + position);
-                    }
-
-                    db.collection("shops").document(shop.getShopId())
-                            .update(
-                                    "likedByUserIds", newLikedUsers,
-                                    "likesCount", newLikesCount
-                            )
-                            .addOnSuccessListener(aVoid -> {
-                                for (ShopModel s : allShops) {
-                                    if (s.getShopId().equals(shop.getShopId())) {
-                                        s.setLiked(newLikedStatus);
-                                        s.setLikesCount(newLikesCount);
-                                        s.setLikedByUserIds(new ArrayList<>(newLikedUsers));
-                                        break;
-                                    }
-                                }
-
-                                String message = alreadyLiked ?
-                                        "Like retiré (" + newLikesCount + " like" + (newLikesCount > 1 ? "s" : "") + ")" :
-                                        "Vous avez liké! (" + newLikesCount + " like" + (newLikesCount > 1 ? "s" : "") + ")";
-                                safeToast(message);
-                            })
-                            .addOnFailureListener(e -> {
-                                safeToast("Erreur lors de la mise à jour du like");
-                            });
+                    // ✅ Message de confirmation
+                    String message = newLikedStatus ?
+                            "Vous avez liké! (" + newLikesCount + " like" + (newLikesCount > 1 ? "s" : "") + ")" :
+                            "Like retiré (" + newLikesCount + " like" + (newLikesCount > 1 ? "s" : "") + ")";
+                    safeToast(message);
                 })
                 .addOnFailureListener(e -> {
-                    safeToast("Erreur lors de la récupération des données");
+                    Log.e("SearchFragment", "❌ Error updating like in Firestore: " + e.getMessage());
+
+                    // ❌ En cas d'erreur, annuler les changements
+                    shop.setLiked(!newLikedStatus);
+                    shop.setLikesCount(newLikedStatus ? newLikesCount - 1 : newLikesCount + 1);
+
+                    // Restaurer la liste des utilisateurs
+                    ArrayList<String> revertedList = new ArrayList<>(newLikedUsers);
+                    if (newLikedStatus) {
+                        revertedList.remove(currentUserId);
+                    } else {
+                        if (!revertedList.contains(currentUserId)) {
+                            revertedList.add(currentUserId);
+                        }
+                    }
+                    shop.setLikedByUserIds(revertedList);
+
+                    // ⚠️ Seulement en cas d'erreur, on notifie l'adapter pour restaurer l'UI
+                    if (shopAdapter != null) {
+                        shopAdapter.notifyItemChanged(position);
+                    }
+
+                    safeToast("Erreur lors de la mise à jour du like");
                 });
+
+        // ❌ SUPPRIMÉ : shopAdapter.notifyItemChanged(position)
+        // ❌ SUPPRIMÉ : Log pour "Notified adapter for position"
+        // ✅ L'UI a déjà été mise à jour par l'adapter lui-même !
     }
 
     @Override
@@ -535,7 +577,7 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
             args.putString("shopCreatedAt", shop.getCreatedAt() != null ? shop.getCreatedAt() : "");
             args.putLong("shopCreatedAtTimestamp", shop.getCreatedAtTimestamp() > 0 ? shop.getCreatedAtTimestamp() : System.currentTimeMillis());
             args.putBoolean("hideDialogs", true); // Flag to hide dialogs and FAB
-            
+
             // Navigate to ShopHomeFragment using Navigation Component
             NavController navController = Navigation.findNavController(requireView());
             navController.navigate(R.id.action_navigation_search_to_shopHome, args);
@@ -584,6 +626,98 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
             android.util.Log.d("SearchFragment", "Catégories disponibles dans la BD: " + availableCategories);
         } else {
             safeToast(filteredShops.size() + " boutique(s) - " + category);
+        }
+    }
+    private void filterShopsByCity(String cityName) {
+        if (!cityMapLoaded) {
+            loadCityNameMap(() -> filterShopsByCity(cityName));
+            return;
+        }
+
+        filteredShops.clear();
+
+        String normCity = normalizeCity(cityName);
+        java.util.List<String> matchingCityIds = cityNameToIds.get(normCity);
+
+        for (ShopModel shop : allShops) {
+            boolean matched = false;
+
+            // Prefer matching by cityId if we have IDs for the name
+            if (matchingCityIds != null && !matchingCityIds.isEmpty()) {
+                String shopCityId = safeString(shop.getCityId()).trim();
+                matched = !shopCityId.isEmpty() && matchingCityIds.contains(shopCityId);
+            }
+
+            // Fallback to location text matching if cityId path didn't match
+            if (!matched) {
+                String rawLocation = safeString(shop.getLocation()).trim();
+                if (!rawLocation.isEmpty()) {
+                    String[] parts = rawLocation.split(",");
+                    for (String part : parts) {
+                        String segment = normalizeCity(part.trim());
+                        if (!segment.isEmpty() && (
+                                segment.equals(normCity) ||
+                                segment.contains(normCity) ||
+                                normCity.contains(segment)
+                        )) {
+                            matched = true;
+                            break;
+                        }
+                    }
+                    if (!matched && parts.length == 1) {
+                        String normLocation = normalizeCity(rawLocation);
+                        matched = !normLocation.isEmpty() && (
+                                normLocation.equals(normCity) ||
+                                normLocation.contains(normCity) ||
+                                normCity.contains(normLocation)
+                        );
+                    }
+                }
+            }
+
+            if (matched) {
+                filteredShops.add(shop);
+            }
+        }
+
+        if (shopAdapter != null) {
+            shopAdapter.notifyDataSetChanged();
+        }
+
+        if (filteredShops.isEmpty()) {
+            showNotFoundMessage();
+            safeToast("Aucune boutique trouvée à " + cityName);
+        } else {
+            hideNotFoundMessage();
+            safeToast(filteredShops.size() + " boutique(s) à " + cityName);
+        }
+    }
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (getActivity() != null) {
+            String pendingCity = getActivity()
+                    .getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
+                    .getString("pending_city_filter", null);
+
+            if (pendingCity != null && !pendingCity.isEmpty()) {
+                selectedCity = pendingCity;
+
+                if (textViewVille != null) {
+                    textViewVille.setText(pendingCity);
+                }
+
+                if (shopsLoaded) {
+                    filterShopsByCity(pendingCity);
+                }
+
+                getActivity()
+                        .getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
+                        .edit()
+                        .remove("pending_city_filter")
+                        .apply();
+            }
         }
     }
 
@@ -863,7 +997,7 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
         filteredShops.clear();
 
         for (ShopModel shop : allShops) {
-            if (shop.isHasLivraison()) {
+            if (shop.hasLivraison()) {
                 filteredShops.add(shop);
             }
         }
@@ -936,7 +1070,7 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
     }
 
 
-  // Tri du plus ancien au plus récent (AMÉLIORÉ)
+    // Tri du plus ancien au plus récent (AMÉLIORÉ)
     private void sortByDateAscending() {
         Collections.sort(filteredShops, (s1, s2) -> {
             try {
@@ -988,6 +1122,104 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
     // Méthode helper pour éviter les null
     private String safeString(String str) {
         return str != null ? str : "";
+    }
+
+    // Normalize a city string: lower-case, remove accents/diacritics, trim extra spaces
+    private String normalizeCity(String input) {
+        if (input == null) return "";
+        String lower = input.toLowerCase(java.util.Locale.ROOT).trim();
+        // Remove diacritics (e.g., "Fès" -> "fes")
+        String normalized = java.text.Normalizer.normalize(lower, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        // Collapse multiple spaces and remove non-letter characters at ends
+        normalized = normalized.replaceAll("\\s+", " ").trim();
+        return normalized;
+    }
+
+    // Load a mapping of normalized city name -> list of cityIds from Firestore
+    private void loadCityNameMap(Runnable onLoaded) {
+        if (cityMapLoaded) {
+            if (onLoaded != null) onLoaded.run();
+            return;
+        }
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Try flat "cities" collection first
+        db.collection("cities")
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    boolean foundAny = false;
+                    if (snapshot != null && !snapshot.isEmpty()) {
+                        for (com.google.firebase.firestore.DocumentSnapshot doc : snapshot.getDocuments()) {
+                            String cityId = doc.getId();
+                            String name = doc.getString("name");
+                            if (name != null) {
+                                String key = normalizeCity(name);
+                                cityNameToIds.computeIfAbsent(key, k -> new java.util.ArrayList<>()).add(cityId);
+                                foundAny = true;
+                            }
+                        }
+                    }
+                    if (foundAny) {
+                        cityMapLoaded = true;
+                        if (onLoaded != null) onLoaded.run();
+                    } else {
+                        // Fallback: traverse regions/{regionId}/cities subcollections
+                        loadCitiesFromRegions(onLoaded);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    // Fallback on error
+                    loadCitiesFromRegions(onLoaded);
+                });
+    }
+
+    private void loadCitiesFromRegions(Runnable onLoaded) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("regions")
+                .get()
+                .addOnSuccessListener(regionSnapshot -> {
+                    if (regionSnapshot == null || regionSnapshot.isEmpty()) {
+                        cityMapLoaded = true; // mark as loaded to avoid infinite attempts
+                        if (onLoaded != null) onLoaded.run();
+                        return;
+                    }
+
+                    final int[] remaining = {regionSnapshot.size()};
+                    for (com.google.firebase.firestore.DocumentSnapshot regionDoc : regionSnapshot.getDocuments()) {
+                        String regionId = regionDoc.getId();
+                        db.collection("regions")
+                                .document(regionId)
+                                .collection("cities")
+                                .get()
+                                .addOnSuccessListener(citiesSnap -> {
+                                    if (citiesSnap != null && !citiesSnap.isEmpty()) {
+                                        for (com.google.firebase.firestore.DocumentSnapshot cityDoc : citiesSnap.getDocuments()) {
+                                            String cityId = cityDoc.getId();
+                                            String name = cityDoc.getString("name");
+                                            if (name != null) {
+                                                String key = normalizeCity(name);
+                                                cityNameToIds.computeIfAbsent(key, k -> new java.util.ArrayList<>()).add(cityId);
+                                            }
+                                        }
+                                    }
+                                    if (--remaining[0] == 0) {
+                                        cityMapLoaded = true;
+                                        if (onLoaded != null) onLoaded.run();
+                                    }
+                                })
+                                .addOnFailureListener(err -> {
+                                    if (--remaining[0] == 0) {
+                                        cityMapLoaded = true;
+                                        if (onLoaded != null) onLoaded.run();
+                                    }
+                                });
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    cityMapLoaded = true;
+                    if (onLoaded != null) onLoaded.run();
+                });
     }
 
     private void safeToast(String message) {

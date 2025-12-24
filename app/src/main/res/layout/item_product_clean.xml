@@ -78,7 +78,7 @@
                     android:scaleType="centerCrop"
                     android:contentDescription="Favorite" />
 
-                <!-- Favorites Count -->
+                <!-- Favorites Count (hidden since favoritesCount field was removed) -->
                 <TextView
                     android:id="@+id/favoritesCount"
                     android:layout_width="wrap_content"
@@ -86,7 +86,8 @@
                     android:text="0"
                     android:textSize="12sp"
                     android:layout_marginEnd="8dp"
-                    android:textColor="#757575" />
+                    android:textColor="#757575"
+                    android:visibility="gone" />
 
                 <!-- Shop Link Button -->
                 <ImageButton

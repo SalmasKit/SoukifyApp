@@ -4,32 +4,24 @@
     android:id="@+id/item_shop_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="4dp"
+    android:layout_margin="6dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="3dp"
     android:background="?attr/selectableItemBackground"
     android:descendantFocusability="blocksDescendants">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:background="#FFFFFF">
 
-        <!-- Image de la boutique -->
-        <ImageView
-            android:id="@+id/shop_image"
-            android:layout_width="match_parent"
-            android:layout_height="180dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/ic_launcher_background" />
-
-        <!-- Overlay pour le nom et le bouton favoris -->
+        <!-- En-tête compact avec le nom de la boutique -->
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="-50dp"
             android:background="#E8574D"
-            android:padding="12dp">
+            android:padding="10dp">
 
             <!-- Nom de la boutique -->
             <TextView
@@ -38,37 +30,102 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentStart="true"
                 android:layout_centerVertical="true"
-                android:layout_toStartOf="@+id/actions_container"
+                android:layout_toStartOf="@+id/promotion_badge"
                 android:text="@string/shop_name_placeholder"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFF"
-                android:maxLines="2"
-                android:ellipsize="end" />
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:layout_marginEnd="8dp" />
 
-            <!-- Conteneur pour Like et Favoris -->
-            <LinearLayout
-                android:id="@+id/actions_container"
+            <!-- Promotion Badge -->
+            <TextView
+                android:id="@+id/promotion_badge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
+                android:text="@string/promo_label"
+                android:textSize="10sp"
+                android:textColor="#E8574D"
+                android:background="#FFFFFF"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp"
+                android:visibility="gone" />
+        </RelativeLayout>
+
+        <!-- Image de la boutique -->
+        <ImageView
+            android:id="@+id/shop_image"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_launcher_background" />
+
+        <!-- Rating, Reviews et Actions -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="6dp">
+
+            <!-- RatingBar -->
+            <RatingBar
+                android:id="@+id/shop_rating_bar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:numStars="5"
+                android:stepSize="1.0"
+                android:rating="0"
+                android:isIndicator="false"
+                android:progressTint="#FF6B35"
+                android:progressBackgroundTint="#CCCCCC"
+                android:secondaryProgressTint="#FF6B35"
+                style="?android:attr/ratingBarStyleSmall"
+                android:scaleX="1.0"
+                android:scaleY="1.0"
+                android:layout_marginEnd="6dp" />
+
+            <!-- Note moyenne -->
+            <TextView
+                android:id="@+id/shop_rating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0.0"
+                android:textSize="13sp"
+                android:textColor="#FF6B35"
+                android:textStyle="bold"
+                android:layout_marginEnd="4dp" />
+
+
+            <!-- Actions: Like, Favoris, Share, Chat -->
+            <LinearLayout
+                android:id="@+id/actions_container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
                 <!-- Like -->
                 <androidx.appcompat.widget.AppCompatImageButton
                     android:id="@+id/btn_like"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:padding="8dp"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:padding="6dp"
                     android:background="@android:color/transparent"
                     android:scaleType="centerInside"
                     android:src="@drawable/like_outline"
                     android:contentDescription="Like"
                     android:focusable="false"
                     android:focusableInTouchMode="false"
-                    android:tint="#FFFFFF" />
+                    android:tint="#E8574D" />
 
                 <!-- Nombre de likes -->
                 <TextView
@@ -76,160 +133,184 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="0"
-                    android:textSize="14sp"
-                    android:paddingStart="4dp"
-                    android:paddingEnd="8dp"
-                    android:textColor="#FFFFFF" />
+                    android:textSize="11sp"
+                    android:paddingEnd="4dp"
+                    android:textColor="#666666" />
 
-                <!-- Chat -->
-                <androidx.appcompat.widget.AppCompatImageButton
-                    android:id="@+id/btnChat"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:padding="8dp"
-                    android:background="@android:color/transparent"
-                    android:scaleType="centerInside"
-                    android:src="@android:drawable/ic_dialog_email"
-                    android:contentDescription="Chat"
-                    android:focusable="false"
-                    android:focusableInTouchMode="false"
-                    android:tint="#FFFFFF" />
-
-                <!-- Favoris (étoile) -->
+                <!-- Favoris -->
                 <androidx.appcompat.widget.AppCompatImageButton
                     android:id="@+id/btn_favorite"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:padding="8dp"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:padding="6dp"
                     android:background="@android:color/transparent"
                     android:scaleType="centerInside"
                     android:src="@drawable/star_outline"
                     android:contentDescription="Favorite"
                     android:focusable="false"
                     android:focusableInTouchMode="false"
-                    android:tint="#FFFFFF" />
+                    android:tint="#FFC107"
+                    android:layout_marginStart="2dp" />
 
-                <!-- Nombre de favoris -->
-                <TextView
-                    android:id="@+id/favorites_count"
+                <!-- Share -->
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/btn_share"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:padding="6dp"
+                    android:background="@android:color/transparent"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_share"
+                    android:contentDescription="Share"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:tint="#666666"
+                    android:layout_marginStart="2dp" />
+
+                <!-- Chat avec Badge -->
+                <FrameLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="0"
-                    android:textSize="14sp"
-                    android:paddingStart="4dp"
-                    android:paddingEnd="8dp"
-                    android:textColor="#FFFFFF" />
-            </LinearLayout>
-        </RelativeLayout>
+                    android:layout_marginStart="2dp">
 
-        <!-- Informations supplémentaires -->
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:id="@+id/btnChat"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:padding="6dp"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/ic_chat"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Chat"
+                        android:tint="#666666" />
+
+                    <!-- Badge de messages non lus -->
+                    <TextView
+                        android:id="@+id/chat_badge"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_gravity="top|end"
+                        android:background="@drawable/bg_unread_badge"
+                        android:gravity="center"
+                        android:text="0"
+                        android:textColor="#FFFFFF"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+                </FrameLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Séparateur -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#EEEEEE"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="6dp" />
+
+        <!-- Informations de la boutique - AMÉLIORÉES -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="12dp"
-            android:background="#FFFFFF">
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="10dp"
+            android:background="#FAFAFA">
 
-            <!-- Rating et Reviews -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingBottom="4dp">
-
-                <RatingBar
-                    android:id="@+id/shop_rating_bar"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:numStars="5"
-                    android:stepSize="0.1"
-                    android:rating="4.5"
-                    android:scaleX="0.5"
-                    android:scaleY="0.5"
-                    style="?android:attr/ratingBarStyleSmall" />
-
-                <TextView
-                    android:id="@+id/shop_rating"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/rating_placeholder"
-                    android:textSize="12sp"
-                    android:textColor="#FF6B35"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/shop_reviews"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/reviews_placeholder"
-                    android:textSize="12sp"
-                    android:textColor="#666666"
-                    android:layout_marginStart="8dp" />
-
-                <!-- Promotion Badge -->
-                <TextView
-                    android:id="@+id/promotion_badge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/promo_label"
-                    android:textSize="10sp"
-                    android:textColor="#FFFFFF"
-                    android:background="#E8574D"
-                    android:padding="4dp"
-                    android:layout_marginStart="8dp"
-                    android:visibility="gone" />
-            </LinearLayout>
-
-            <!-- Catégorie -->
+            <!-- Catégorie - Plus visible -->
             <TextView
                 android:id="@+id/shop_category"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/category_label"
                 android:textSize="13sp"
-                android:textColor="#666666"
-                android:paddingBottom="2dp" />
+                android:textColor="#333333"
+                android:textStyle="bold"
+                android:paddingBottom="6dp"
+                android:drawablePadding="6dp" />
 
-            <!-- Localisation -->
-            <TextView
-                android:id="@+id/shop_location"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/location_label"
-                android:textSize="13sp"
-                android:textColor="#666666"
-                android:paddingBottom="2dp" />
-
-            <!-- Contact Info -->
+            <!-- Localisation - Plus visible avec icône -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:paddingTop="4dp">
+                android:gravity="center_vertical"
+                android:paddingBottom="6dp">
+
 
                 <TextView
-                    android:id="@+id/shop_phone"
-                    android:layout_width="0dp"
+                    android:id="@+id/shop_location"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text=" +212 600-000-000"
-                    android:textSize="11sp"
-                    android:textColor="#888888"
+                    android:text="@string/location_label"
+                    android:textSize="12sp"
+                    android:textColor="#555555"
                     android:maxLines="1"
                     android:ellipsize="end" />
+            </LinearLayout>
 
-                <TextView
-                    android:id="@+id/shop_email"
-                    android:layout_width="0dp"
+            <!-- Contact Info - Séparés verticalement pour meilleure lisibilité -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="#FFFFFF"
+                android:padding="8dp"
+                android:elevation="1dp">
+
+                <!-- Téléphone -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text=" email@shop.com"
-                    android:textSize="11sp"
-                    android:textColor="#888888"
-                    android:maxLines="1"
-                    android:ellipsize="end"
-                    android:layout_marginStart="8dp" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingBottom="4dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                        android:layout_marginEnd="6dp" />
+
+                    <TextView
+                        android:id="@+id/shop_phone"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="+212 600-000-000"
+                        android:textSize="12sp"
+                        android:textColor="#333333"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Email -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                        android:layout_marginEnd="6dp" />
+
+                    <TextView
+                        android:id="@+id/shop_email"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="email@shop.com"
+                        android:textSize="12sp"
+                        android:textColor="#333333"
+                        android:maxLines="1"
+                        android:ellipsize="end" />
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>

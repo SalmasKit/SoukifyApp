@@ -88,7 +88,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="8dp"
-                                android:text="Add Shop Banner"
+                                android:text="@string/shop_banner_text"
                                 android:textColor="@android:color/white"
                                 android:textSize="14sp" />
 

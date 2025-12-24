@@ -72,4 +72,21 @@
         <item name="android:textColorHint">@color/text_secondary</item>
         <item name="startIconTint">@color/colorPrimary</item>
     </style>
+    <!-- ================= SPLASH THEME ================= -->
+    <style name="Theme.Soukify.Splash" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+
+        <!-- Fond du splash -->
+        <item name="android:windowBackground">@drawable/splash_background</item>
+
+        <!-- Plein écran -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowTranslucentStatus">true</item>
+
+        <!-- Pas d’ActionBar -->
+        <item name="windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+
+    </style>
+
 </resources>

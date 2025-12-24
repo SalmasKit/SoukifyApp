@@ -8,6 +8,8 @@ import androidx.lifecycle.MutableLiveData;
 import com.example.soukify.data.models.Conversation;
 import com.example.soukify.data.models.Message;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -21,6 +23,9 @@ import java.util.Map;
 public class ChatRepository {
 
     private static final String TAG = "ChatRepository";
+    private static final String COLLECTION_CONVERSATIONS = "Conversation";
+    private static final String COLLECTION_MESSAGES = "messages";
+    private static final String COLLECTION_USERS = "users";
 
     private final FirebaseFirestore db;
     private final FirebaseAuth auth;
@@ -35,86 +40,204 @@ public class ChatRepository {
     }
 
     // ==========================
-    // Conversation
+    // INTERFACES CALLBACK
     // ==========================
-    public void getOrCreateConversation(String shopId, String shopName,
-                                        String shopImage, String sellerId,
-                                        ConversationCallback callback) {
-        String buyerId = getCurrentUserId();
-        if (buyerId.isEmpty()) {
-            callback.onError("Utilisateur non connecté");
-            return;
-        }
+    public interface OnConversationLoadedListener {
+        void onSuccess(Conversation conversation);
+        void onFailure(String error);
+    }
 
-        db.collection("conversations")
-                .whereEqualTo("buyerId", buyerId)
-                .whereEqualTo("shopId", shopId)
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    if (!querySnapshot.isEmpty()) {
-                        String conversationId = querySnapshot.getDocuments().get(0).getId();
-                        callback.onSuccess(conversationId);
-                    } else {
-                        // Créer nouvelle conversation
-                        Map<String, Object> conversation = new HashMap<>();
-                        conversation.put("buyerId", buyerId);
-                        conversation.put("sellerId", sellerId);
-                        conversation.put("shopId", shopId);
-                        conversation.put("shopName", shopName);
-                        conversation.put("shopImage", shopImage);
-                        conversation.put("lastMessage", "");
-                        conversation.put("lastMessageTimestamp", System.currentTimeMillis());
-                        conversation.put("unreadCountBuyer", 0);
-                        conversation.put("unreadCountSeller", 0);
-                        conversation.put("createdAt", FieldValue.serverTimestamp());
-
-                        db.collection("conversations")
-                                .add(conversation)
-                                .addOnSuccessListener(documentReference ->
-                                        callback.onSuccess(documentReference.getId()))
-                                .addOnFailureListener(e ->
-                                        callback.onError("Erreur création conversation: " + e.getMessage()));
-                    }
-                })
-                .addOnFailureListener(e ->
-                        callback.onError("Erreur récupération conversation: " + e.getMessage()));
+    public interface SendMessageCallback {
+        void onSuccess();
+        void onError(String error);
     }
 
     // ==========================
-    // Envoyer message
+    // 🔥 RÉCUPÉRER LE fullName D'UN UTILISATEUR
     // ==========================
-    public void sendMessage(String conversationId, String text, String senderName,
-                            SendMessageCallback callback) {
+    private void getUserFullName(String userId, OnUserNameLoadedListener listener) {
+        if (userId == null || userId.isEmpty()) {
+            listener.onLoaded("Utilisateur");
+            return;
+        }
+
+        Log.d(TAG, "🔍 Récupération fullName pour userId: " + userId);
+
+        db.collection(COLLECTION_USERS)
+                .document(userId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        // 🔥 RÉCUPÉRER fullName (pas "name")
+                        String fullName = doc.getString("fullName");
+
+                        Log.d(TAG, "✅ fullName récupéré: " + fullName);
+
+                        if (fullName != null && !fullName.isEmpty()) {
+                            listener.onLoaded(fullName);
+                        } else {
+                            // Fallback sur "name" si fullName n'existe pas
+                            String name = doc.getString("name");
+                            if (name != null && !name.isEmpty()) {
+                                listener.onLoaded(name);
+                            } else {
+                                listener.onLoaded("Utilisateur");
+                            }
+                        }
+                    } else {
+                        Log.w(TAG, "⚠️ Document utilisateur inexistant");
+                        listener.onLoaded("Utilisateur");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Erreur récupération fullName", e);
+                    listener.onLoaded("Utilisateur");
+                });
+    }
+
+    private interface OnUserNameLoadedListener {
+        void onLoaded(String name);
+    }
+
+    // ==========================
+    // ✅ CRÉER/RÉCUPÉRER CONVERSATION
+    // ==========================
+    public void getOrCreateConversation(String buyerId,
+                                        String sellerId,
+                                        String shopId,
+                                        String shopName,
+                                        String shopImage,
+                                        OnConversationLoadedListener listener) {
+
+        if (buyerId == null || sellerId == null || shopId == null) {
+            Log.e(TAG, "❌ Données manquantes");
+            listener.onFailure("Données manquantes");
+            return;
+        }
+
+        String conversationId = "conv_" + buyerId + "_" + shopId;
+
+        Log.e(TAG, "════════════════════════════════════════");
+        Log.e(TAG, "🔍 CRÉATION/RÉCUPÉRATION CONVERSATION");
+        Log.e(TAG, "   conversationId: " + conversationId);
+        Log.e(TAG, "   buyerId: " + buyerId);
+        Log.e(TAG, "   sellerId: " + sellerId);
+        Log.e(TAG, "   shopId: " + shopId);
+        Log.e(TAG, "════════════════════════════════════════");
+
+        DocumentReference conversationRef =
+                db.collection(COLLECTION_CONVERSATIONS).document(conversationId);
+
+        conversationRef.get().addOnSuccessListener(snapshot -> {
+
+            if (snapshot.exists()) {
+                Log.e(TAG, "✅ Conversation existante trouvée");
+                Conversation conversation = snapshot.toObject(Conversation.class);
+                if (conversation != null) {
+                    conversation.setId(conversationId);
+                    listener.onSuccess(conversation);
+                }
+                return;
+            }
+
+            // 🆕 CRÉATION NOUVELLE CONVERSATION
+            Log.e(TAG, "🆕 Création nouvelle conversation");
+
+            // 🔥 RÉCUPÉRER LE fullName DE L'ACHETEUR
+            getUserFullName(buyerId, buyerFullName -> {
+                Log.e(TAG, "✅ fullName acheteur récupéré: " + buyerFullName);
+
+                Map<String, Object> data = new HashMap<>();
+                data.put("id", conversationId);
+                data.put("buyerId", buyerId);
+                data.put("buyerName", buyerFullName); // 🔥 fullName de l'acheteur
+                data.put("sellerId", sellerId);
+                data.put("shopId", shopId);
+                data.put("shopName", shopName);
+                data.put("shopImage", shopImage != null ? shopImage : "");
+                data.put("lastMessage", "");
+                data.put("lastMessageTimestamp", System.currentTimeMillis());
+                data.put("unreadCountBuyer", 0);
+                data.put("unreadCountSeller", 0);
+                data.put("createdAt", FieldValue.serverTimestamp());
+
+                conversationRef.set(data)
+                        .addOnSuccessListener(v -> {
+                            Log.e(TAG, "✅ Conversation créée avec buyerName: " + buyerFullName);
+                            Conversation c = new Conversation();
+                            c.setId(conversationId);
+                            c.setBuyerId(buyerId);
+                            c.setBuyerName(buyerFullName);
+                            c.setSellerId(sellerId);
+                            c.setShopId(shopId);
+                            c.setShopName(shopName);
+                            c.setShopImage(shopImage);
+                            listener.onSuccess(c);
+                        })
+                        .addOnFailureListener(e -> {
+                            Log.e(TAG, "❌ Erreur création", e);
+                            listener.onFailure(e.getMessage());
+                        });
+            });
+
+        }).addOnFailureListener(e -> {
+            Log.e(TAG, "❌ Erreur recherche", e);
+            listener.onFailure(e.getMessage());
+        });
+    }
+
+    // ==========================
+    // 🔥 ENVOYER MESSAGE (AVEC fullName AUTO)
+    // ==========================
+    public void sendMessage(String conversationId, String text, SendMessageCallback callback) {
         String senderId = getCurrentUserId();
         if (senderId.isEmpty() || text.trim().isEmpty()) {
             callback.onError("Données invalides");
             return;
         }
 
-        Map<String, Object> message = new HashMap<>();
-        message.put("conversationId", conversationId);
-        message.put("senderId", senderId);
-        message.put("senderName", senderName);
-        message.put("text", text.trim());
-        message.put("timestamp", System.currentTimeMillis());
-        message.put("isRead", false);
-        message.put("createdAt", FieldValue.serverTimestamp());
+        Log.e(TAG, "════════════════════════════════════════");
+        Log.e(TAG, "📤 ENVOI MESSAGE");
+        Log.e(TAG, "   ConversationId: " + conversationId);
+        Log.e(TAG, "   SenderId: " + senderId);
+        Log.e(TAG, "   Text: " + text.trim());
+        Log.e(TAG, "════════════════════════════════════════");
 
-        // CHEMIN CORRECT: messages/{conversationId}/messages/{messageId}
-        db.collection("messages")
-                .document(conversationId)
-                .collection("messages")
-                .add(message)
-                .addOnSuccessListener(docRef -> {
-                    updateConversationAfterMessage(conversationId, text.trim(), senderId);
-                    callback.onSuccess();
-                })
-                .addOnFailureListener(e -> callback.onError("Erreur d'envoi: " + e.getMessage()));
+        // 🔥 RÉCUPÉRER LE fullName DE L'EXPÉDITEUR AUTOMATIQUEMENT
+        getUserFullName(senderId, senderFullName -> {
+            Log.e(TAG, "✅ fullName expéditeur récupéré: " + senderFullName);
+
+            Map<String, Object> message = new HashMap<>();
+            message.put("conversationId", conversationId);
+            message.put("senderId", senderId);
+            message.put("senderName", senderFullName); // 🔥 fullName auto
+            message.put("text", text.trim());
+            message.put("timestamp", System.currentTimeMillis());
+            message.put("isRead", false);
+            message.put("createdAt", FieldValue.serverTimestamp());
+
+            db.collection(COLLECTION_CONVERSATIONS)
+                    .document(conversationId)
+                    .collection(COLLECTION_MESSAGES)
+                    .add(message)
+                    .addOnSuccessListener(docRef -> {
+                        Log.e(TAG, "✅ Message envoyé avec senderName: " + senderFullName);
+                        updateConversationAfterMessage(conversationId, text.trim(), senderId);
+                        callback.onSuccess();
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "❌ Erreur envoi", e);
+                        callback.onError(e.getMessage());
+                    });
+        });
     }
 
+    // ==========================
+    // MAJ CONVERSATION APRÈS MESSAGE
+    // ==========================
     private void updateConversationAfterMessage(String conversationId, String lastMessage,
                                                 String senderId) {
-        db.collection("conversations")
+        db.collection(COLLECTION_CONVERSATIONS)
                 .document(conversationId)
                 .get()
                 .addOnSuccessListener(doc -> {
@@ -126,51 +249,73 @@ public class ChatRepository {
                     Map<String, Object> updates = new HashMap<>();
                     updates.put("lastMessage", lastMessage);
                     updates.put("lastMessageTimestamp", System.currentTimeMillis());
-                    if (isSenderBuyer) updates.put("unreadCountSeller", FieldValue.increment(1));
-                    else updates.put("unreadCountBuyer", FieldValue.increment(1));
 
-                    db.collection("conversations")
+                    if (isSenderBuyer) {
+                        updates.put("unreadCountSeller", FieldValue.increment(1));
+                    } else {
+                        updates.put("unreadCountBuyer", FieldValue.increment(1));
+                    }
+
+                    db.collection(COLLECTION_CONVERSATIONS)
                             .document(conversationId)
                             .update(updates);
                 });
     }
 
     // ==========================
-    // Écoute messages temps réel
+    // ✅ ÉCOUTE MESSAGES TEMPS RÉEL
     // ==========================
     public LiveData<List<Message>> getMessagesRealtime(String conversationId) {
         MutableLiveData<List<Message>> messagesLiveData = new MutableLiveData<>();
 
-        db.collection("messages")
+        Log.e(TAG, "════════════════════════════════════════");
+        Log.e(TAG, "👂 DÉMARRAGE ÉCOUTE MESSAGES");
+        Log.e(TAG, "   ConversationId: " + conversationId);
+        Log.e(TAG, "════════════════════════════════════════");
+
+        db.collection(COLLECTION_CONVERSATIONS)
                 .document(conversationId)
-                .collection("messages")
+                .collection(COLLECTION_MESSAGES)
                 .orderBy("timestamp", Query.Direction.ASCENDING)
                 .addSnapshotListener((value, error) -> {
+
                     if (error != null) {
-                        Log.e(TAG, "Erreur écoute messages", error);
+                        Log.e(TAG, "❌ ERREUR: " + error.getMessage());
+                        messagesLiveData.setValue(new ArrayList<>());
                         return;
                     }
-                    if (value != null) {
-                        List<Message> messages = new ArrayList<>();
-                        for (QueryDocumentSnapshot doc : value) {
-                            Message message = doc.toObject(Message.class);
-                            message.setId(doc.getId());
-                            messages.add(message);
-                        }
-                        messagesLiveData.setValue(messages);
+
+                    if (value == null) {
+                        messagesLiveData.setValue(new ArrayList<>());
+                        return;
                     }
+
+                    Log.e(TAG, "📨 Messages reçus: " + value.size());
+
+                    List<Message> messages = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : value) {
+                        Message message = doc.toObject(Message.class);
+                        message.setId(doc.getId());
+
+                        // 🔥 LOG pour debug senderName
+                        Log.d(TAG, "   Message: " + message.getText() + " | senderName: " + message.getSenderName());
+
+                        messages.add(message);
+                    }
+
+                    messagesLiveData.setValue(messages);
                 });
 
         return messagesLiveData;
     }
 
     // ==========================
-    // Marquer messages lus
+    // MARQUER MESSAGES LUS
     // ==========================
     public void markMessagesAsRead(String conversationId) {
         String currentUserId = getCurrentUserId();
 
-        db.collection("conversations")
+        db.collection(COLLECTION_CONVERSATIONS)
                 .document(conversationId)
                 .get()
                 .addOnSuccessListener(doc -> {
@@ -180,13 +325,13 @@ public class ChatRepository {
                     boolean isBuyer = currentUserId.equals(buyerId);
                     String field = isBuyer ? "unreadCountBuyer" : "unreadCountSeller";
 
-                    db.collection("conversations")
+                    db.collection(COLLECTION_CONVERSATIONS)
                             .document(conversationId)
                             .update(field, 0);
 
-                    db.collection("messages")
+                    db.collection(COLLECTION_CONVERSATIONS)
                             .document(conversationId)
-                            .collection("messages")
+                            .collection(COLLECTION_MESSAGES)
                             .whereEqualTo("isRead", false)
                             .get()
                             .addOnSuccessListener(querySnapshot -> {
@@ -201,17 +346,166 @@ public class ChatRepository {
     }
 
     // ==========================
-    // Callbacks
+    // CONVERSATIONS VENDEUR
     // ==========================
-    public interface ConversationCallback {
-        void onSuccess(String conversationId);
-        void onError(String error);
+    public LiveData<List<Conversation>> getSellerConversationsRealtime() {
+        MutableLiveData<List<Conversation>> conversationsLiveData = new MutableLiveData<>();
+        String currentUserId = getCurrentUserId();
+
+        if (currentUserId.isEmpty()) {
+            conversationsLiveData.setValue(new ArrayList<>());
+            return conversationsLiveData;
+        }
+
+        Log.d(TAG, "🔍 Recherche conversations pour vendeur: " + currentUserId);
+
+        db.collection(COLLECTION_CONVERSATIONS)
+                .whereEqualTo("sellerId", currentUserId)
+                .orderBy("lastMessageTimestamp", Query.Direction.DESCENDING)
+                .addSnapshotListener((value, error) -> {
+                    if (error != null) {
+                        Log.e(TAG, "❌ Erreur écoute conversations vendeur", error);
+                        conversationsLiveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    if (value == null) {
+                        conversationsLiveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    List<Conversation> conversations = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : value) {
+                        Conversation conv = doc.toObject(Conversation.class);
+                        conv.setId(doc.getId());
+                        conversations.add(conv);
+                    }
+                    Log.d(TAG, "✅ Conversations vendeur trouvées: " + conversations.size());
+                    conversationsLiveData.setValue(conversations);
+                });
+
+        return conversationsLiveData;
     }
 
-    public interface SendMessageCallback {
-        void onSuccess();
-        void onError(String error);
+    // ==========================
+    // CONVERSATIONS ACHETEUR (BUYER)
+    // ==========================
+    public LiveData<List<Conversation>> getBuyerConversationsRealtime() {
+        MutableLiveData<List<Conversation>> conversationsLiveData = new MutableLiveData<>();
+        String currentUserId = getCurrentUserId();
+
+        if (currentUserId.isEmpty()) {
+            conversationsLiveData.setValue(new ArrayList<>());
+            return conversationsLiveData;
+        }
+
+        Log.d(TAG, "🔍 Recherche conversations pour acheteur: " + currentUserId);
+
+        db.collection(COLLECTION_CONVERSATIONS)
+                .whereEqualTo("buyerId", currentUserId)
+                .orderBy("lastMessageTimestamp", Query.Direction.DESCENDING)
+                .addSnapshotListener((value, error) -> {
+                    if (error != null) {
+                        Log.e(TAG, "❌ Erreur écoute conversations acheteur", error);
+                        conversationsLiveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    if (value == null) {
+                        conversationsLiveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    List<Conversation> conversations = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : value) {
+                        Conversation conv = doc.toObject(Conversation.class);
+                        conv.setId(doc.getId());
+                        conversations.add(conv);
+                    }
+                    Log.d(TAG, "✅ Conversations acheteur trouvées: " + conversations.size());
+                    conversationsLiveData.setValue(conversations);
+                });
+
+        return conversationsLiveData;
+    }
+
+    // ==========================
+    // ALIAS POUR COMPATIBILITÉ
+    // ==========================
+    public LiveData<List<Conversation>> getClientConversationsRealtime() {
+        return getBuyerConversationsRealtime();
+    }
+
+    // ==========================
+    // COMPTEUR NON LUS VENDEUR
+    // ==========================
+    public LiveData<Integer> getSellerUnreadCount() {
+        MutableLiveData<Integer> unreadCountLiveData = new MutableLiveData<>();
+        String currentUserId = getCurrentUserId();
+
+        if (currentUserId.isEmpty()) {
+            unreadCountLiveData.setValue(0);
+            return unreadCountLiveData;
+        }
+
+        db.collection(COLLECTION_CONVERSATIONS)
+                .whereEqualTo("sellerId", currentUserId)
+                .addSnapshotListener((value, error) -> {
+                    if (error != null || value == null) {
+                        unreadCountLiveData.setValue(0);
+                        return;
+                    }
+
+                    int totalUnread = 0;
+                    for (QueryDocumentSnapshot doc : value) {
+                        Long unread = doc.getLong("unreadCountSeller");
+                        if (unread != null) {
+                            totalUnread += unread.intValue();
+                        }
+                    }
+                    unreadCountLiveData.setValue(totalUnread);
+                });
+
+        return unreadCountLiveData;
+    }
+
+    // ==========================
+    // COMPTEUR NON LUS ACHETEUR
+    // ==========================
+    public LiveData<Integer> getBuyerUnreadCount() {
+        MutableLiveData<Integer> unreadCountLiveData = new MutableLiveData<>();
+        String currentUserId = getCurrentUserId();
+
+        if (currentUserId.isEmpty()) {
+            unreadCountLiveData.setValue(0);
+            return unreadCountLiveData;
+        }
+
+        db.collection(COLLECTION_CONVERSATIONS)
+                .whereEqualTo("buyerId", currentUserId)
+                .addSnapshotListener((value, error) -> {
+                    if (error != null || value == null) {
+                        unreadCountLiveData.setValue(0);
+                        return;
+                    }
+
+                    int totalUnread = 0;
+                    for (QueryDocumentSnapshot doc : value) {
+                        Long unread = doc.getLong("unreadCountBuyer");
+                        if (unread != null) {
+                            totalUnread += unread.intValue();
+                        }
+                    }
+                    unreadCountLiveData.setValue(totalUnread);
+                });
+
+        return unreadCountLiveData;
+    }
+
+    // ==========================
+    // ALIAS POUR COMPATIBILITÉ
+    // ==========================
+    public LiveData<Integer> getClientUnreadCount() {
+        return getBuyerUnreadCount();
     }
 }
-
-

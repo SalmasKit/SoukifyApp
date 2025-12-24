@@ -4,154 +4,95 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.Observer;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.example.soukify.R;
 import com.example.soukify.data.models.ProductModel;
-import com.example.soukify.data.models.ProductImageModel;
 import com.example.soukify.data.remote.firebase.FirebaseProductImageService;
-import com.example.soukify.data.repositories.UserProductPreferencesRepository;
-import com.example.soukify.data.repositories.FavoritesTableRepository;
-import com.google.android.material.button.MaterialButton;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.io.File;
-import java.net.URI;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class CleanProductsAdapter extends RecyclerView.Adapter<CleanProductsAdapter.ProductViewHolder> {
-    
+
+    private static final String TAG = "CleanProductsAdapter";
+
     private List<ProductModel> products = new ArrayList<>();
     private OnProductClickListener listener;
     private Context context;
     private FirebaseProductImageService imageService;
     private ProductViewModel productViewModel;
-    private FavoritesTableRepository favoritesRepository;
-    private RecyclerView recyclerView;
     private boolean isFavoritesContext = false;
-    
+
     public interface OnProductClickListener {
         void onProductClick(ProductModel product);
         void onProductLongClick(ProductModel product);
     }
-    
+
     public CleanProductsAdapter(Context context, OnProductClickListener listener, ProductViewModel productViewModel) {
         this(context, listener, productViewModel, false);
     }
-    
-    public CleanProductsAdapter(Context context, OnProductClickListener listener, ProductViewModel productViewModel, boolean isFavoritesContext) {
+
+    public CleanProductsAdapter(Context context, OnProductClickListener listener,
+                                ProductViewModel productViewModel, boolean isFavoritesContext) {
         this.context = context;
         this.listener = listener;
         this.productViewModel = productViewModel;
         this.isFavoritesContext = isFavoritesContext;
         this.imageService = new FirebaseProductImageService(FirebaseFirestore.getInstance());
-        // FavoritesTableRepository will be accessed through ProductViewModel
-        
-        // Note: We'll set up observers when we have a lifecycle owner
+        setHasStableIds(true);
     }
-    
+
     public void setLifecycleOwner(androidx.lifecycle.LifecycleOwner lifecycleOwner) {
         this.setLifecycleOwner(lifecycleOwner, null);
     }
-    
+
     public void setLifecycleOwner(androidx.lifecycle.LifecycleOwner lifecycleOwner, RecyclerView recyclerView) {
-        this.recyclerView = recyclerView;
         if (lifecycleOwner != null && productViewModel != null) {
-            // Remove any existing observers
             removeObservers();
-            
-            // Observe current product changes with lifecycle awareness
-            productViewModel.getCurrentProduct().observe(lifecycleOwner, new Observer<ProductModel>() {
-                @Override
-                public void onChanged(ProductModel updatedProduct) {
-                    if (updatedProduct != null) {
-                        updateProductInList(updatedProduct);
-                    }
-                }
-            });
-            
-            // Observe products list changes with lifecycle awareness
-            productViewModel.getProducts().observe(lifecycleOwner, new Observer<List<ProductModel>>() {
-                @Override
-                public void onChanged(List<ProductModel> updatedProducts) {
-                    if (updatedProducts != null) {
-                        products = updatedProducts;
-                        notifyDataSetChanged();
-                    }
-                }
-            });
-            
-            // Observe product favorite states changes with lifecycle awareness
-            productViewModel.getProductFavoriteStates().observe(lifecycleOwner, new Observer<Map<String, Boolean>>() {
-                @Override
-                public void onChanged(Map<String, Boolean> favoriteStates) {
-                    if (favoriteStates != null) {
-                        // Update all visible items with new favorite states
-                        for (int i = 0; i < products.size(); i++) {
-                            ProductModel product = products.get(i);
-                            Boolean isFavorited = favoriteStates.get(product.getProductId());
-                            if (isFavorited != null) {
-                                // Find the ViewHolder for this position and update button state
-                                if (recyclerView != null) {
-                                    CleanProductsAdapter.ProductViewHolder viewHolder = 
-                                        (CleanProductsAdapter.ProductViewHolder) recyclerView.findViewHolderForAdapterPosition(i);
-                                    if (viewHolder != null) {
-                                        ImageButton favoriteButton = viewHolder.itemView.findViewById(R.id.favoriteButton);
-                                        if (favoriteButton != null) {
-                                            favoriteButton.setImageResource(isFavorited ? R.drawable.ic_star_filled : R.drawable.ic_star_outline);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+
+            // UN SEUL observer pour la liste de produits
+            productViewModel.getProducts().observe(lifecycleOwner, updatedProducts -> {
+                if (updatedProducts != null) {
+                    updateProductsWithDiff(updatedProducts);
                 }
             });
         }
     }
-    
+
     private void removeObservers() {
         if (productViewModel != null) {
-            // Remove observers when lifecycle owner is no longer valid
-            productViewModel.getCurrentProduct().removeObservers(null);
             productViewModel.getProducts().removeObservers(null);
-            productViewModel.getProductFavoriteStates().removeObservers(null);
         }
     }
-    
-    private void updateProductInList(ProductModel updatedProduct) {
-        if (updatedProduct == null) return;
-        
-        // Find the product in our list and update it
-        for (int i = 0; i < products.size(); i++) {
-            ProductModel product = products.get(i);
-            if (product.getProductId().equals(updatedProduct.getProductId())) {
-                products.set(i, updatedProduct);
-                notifyItemChanged(i);
-                Log.d("CleanProductsAdapter", "Updated product in list: " + updatedProduct.getName() + 
-                       " (Likes: " + updatedProduct.getLikesCount() + ")");
-                break;
-            }
-        }
+
+    /**
+     * Met à jour la liste de produits en utilisant DiffUtil pour des animations fluides
+     */
+    private void updateProductsWithDiff(List<ProductModel> newProducts) {
+        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(
+                new ProductDiffCallback(this.products, newProducts)
+        );
+
+        this.products.clear();
+        this.products.addAll(newProducts);
+        diffResult.dispatchUpdatesTo(this);
+
+        Log.d(TAG, "Updated products list with " + newProducts.size() + " items using DiffUtil");
     }
-    
+
     @NonNull
     @Override
     public ProductViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -159,28 +100,42 @@ public class CleanProductsAdapter extends RecyclerView.Adapter<CleanProductsAdap
                 .inflate(R.layout.item_product_clean, parent, false);
         return new ProductViewHolder(view);
     }
-    
+
     @Override
     public void onBindViewHolder(@NonNull ProductViewHolder holder, int position) {
         ProductModel product = products.get(position);
-        holder.bind(product);
+        holder.bind(product, null);
     }
-    
+
+    @Override
+    public void onBindViewHolder(@NonNull ProductViewHolder holder, int position,
+                                 @NonNull List<Object> payloads) {
+        if (payloads.isEmpty()) {
+            onBindViewHolder(holder, position);
+        } else {
+            ProductModel product = products.get(position);
+            Bundle bundle = (Bundle) payloads.get(0);
+            holder.bind(product, bundle);
+        }
+    }
+
+    @Override
+    public long getItemId(int position) {
+        ProductModel p = (position >= 0 && position < products.size()) ? products.get(position) : null;
+        String id = p != null ? p.getProductId() : null;
+        return id != null ? id.hashCode() : RecyclerView.NO_ID;
+    }
+
     @Override
     public int getItemCount() {
         return products.size();
     }
-    
+
     public void updateProducts(List<ProductModel> newProducts) {
-        this.products.clear();
-        if (newProducts != null) {
-            this.products.addAll(newProducts);
-        }
-        notifyDataSetChanged();
+        updateProductsWithDiff(newProducts);
     }
-    
+
     private void displayProductType(ProductModel product, TextView typeTextView) {
-        // Product type is now stored directly in the product
         if (product.getProductType() != null && !product.getProductType().isEmpty()) {
             typeTextView.setText(product.getProductType());
             typeTextView.setVisibility(View.VISIBLE);
@@ -188,37 +143,96 @@ public class CleanProductsAdapter extends RecyclerView.Adapter<CleanProductsAdap
             typeTextView.setVisibility(View.GONE);
         }
     }
-    
+
     private void navigateToProductDetail(ProductModel product) {
         try {
-            // Use Navigation Component for proper navigation
             if (context instanceof androidx.fragment.app.FragmentActivity) {
-                androidx.fragment.app.FragmentActivity activity = 
-                    (androidx.fragment.app.FragmentActivity) context;
-                
-                androidx.navigation.NavController navController = 
-                    androidx.navigation.Navigation.findNavController(activity, R.id.nav_host_fragment_activity_main);
-                
-                // Create bundle with product data
+                androidx.fragment.app.FragmentActivity activity =
+                        (androidx.fragment.app.FragmentActivity) context;
+
+                androidx.navigation.NavController navController =
+                        androidx.navigation.Navigation.findNavController(
+                                activity, R.id.nav_host_fragment_activity_main);
+
                 Bundle bundle = new Bundle();
                 bundle.putParcelable("product", product);
-                
-                // Add source parameter if in favorites context
+
                 if (isFavoritesContext) {
                     bundle.putString("source", "favorites");
                 }
-                
-                // Navigate using global navigation action
+
                 navController.navigate(R.id.global_action_to_productDetail, bundle);
-                
-                Log.d("CleanProductsAdapter", "Navigated to product detail for: " + product.getName() + 
-                       (isFavoritesContext ? " (from favorites)" : ""));
+
+                Log.d(TAG, "Navigated to product detail for: " + product.getName() +
+                        (isFavoritesContext ? " (from favorites)" : ""));
             }
         } catch (Exception e) {
-            Log.e("CleanProductsAdapter", "Error navigating to product detail: " + e.getMessage(), e);
+            Log.e(TAG, "Error navigating to product detail: " + e.getMessage(), e);
         }
     }
-    
+
+    /**
+     * DiffUtil Callback pour comparer les anciennes et nouvelles listes de produits
+     */
+    private static class ProductDiffCallback extends DiffUtil.Callback {
+        private final List<ProductModel> oldList;
+        private final List<ProductModel> newList;
+
+        public ProductDiffCallback(List<ProductModel> oldList, List<ProductModel> newList) {
+            this.oldList = oldList;
+            this.newList = newList;
+        }
+
+        @Override
+        public int getOldListSize() {
+            return oldList.size();
+        }
+
+        @Override
+        public int getNewListSize() {
+            return newList.size();
+        }
+
+        @Override
+        public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
+            return oldList.get(oldItemPosition).getProductId()
+                    .equals(newList.get(newItemPosition).getProductId());
+        }
+
+        @Override
+        public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+            ProductModel oldProduct = oldList.get(oldItemPosition);
+            ProductModel newProduct = newList.get(newItemPosition);
+
+            return oldProduct.getLikesCount() == newProduct.getLikesCount() &&
+                    oldProduct.isLikedByUser() == newProduct.isLikedByUser() &&
+                    oldProduct.isFavoriteByUser() == newProduct.isFavoriteByUser() &&
+                    oldProduct.getName().equals(newProduct.getName()) &&
+                    oldProduct.getPrice() == newProduct.getPrice();
+        }
+
+        @Nullable
+        @Override
+        public Object getChangePayload(int oldItemPosition, int newItemPosition) {
+            ProductModel oldProduct = oldList.get(oldItemPosition);
+            ProductModel newProduct = newList.get(newItemPosition);
+
+            Bundle diff = new Bundle();
+
+            if (oldProduct.getLikesCount() != newProduct.getLikesCount()) {
+                diff.putInt("likesCount", newProduct.getLikesCount());
+            }
+            if (oldProduct.isLikedByUser() != newProduct.isLikedByUser()) {
+                diff.putBoolean("isLiked", newProduct.isLikedByUser());
+            }
+            if (oldProduct.isFavoriteByUser() != newProduct.isFavoriteByUser()) {
+                diff.putBoolean("isFavorite", newProduct.isFavoriteByUser());
+            }
+
+            return diff.size() > 0 ? diff : null;
+        }
+    }
+
     class ProductViewHolder extends RecyclerView.ViewHolder {
         private ProductImageCarousel productImageCarousel;
         private TextView productName;
@@ -230,10 +244,11 @@ public class CleanProductsAdapter extends RecyclerView.Adapter<CleanProductsAdap
         private ImageButton likeButton;
         private ImageButton favoriteButton;
         private ImageButton shopLinkButton;
-        
+        private ProductModel currentProduct;
+
         public ProductViewHolder(@NonNull View itemView) {
             super(itemView);
-            
+
             productImageCarousel = itemView.findViewById(R.id.productImageCarousel);
             productName = itemView.findViewById(R.id.productName);
             productPrice = itemView.findViewById(R.id.productPrice);
@@ -245,291 +260,256 @@ public class CleanProductsAdapter extends RecyclerView.Adapter<CleanProductsAdap
             favoriteButton = itemView.findViewById(R.id.favoriteButton);
             shopLinkButton = itemView.findViewById(R.id.shopLinkButton);
         }
-        
-        public void bind(@NonNull ProductModel product) {
-            Log.d("CleanProductsAdapter", "Binding product: " + product.getName() + " (ID: " + product.getProductId() + ")");
-            
+
+        /**
+         * Bind avec support de mise à jour partielle via payload
+         */
+        public void bind(@NonNull ProductModel product, @Nullable Bundle payload) {
+            currentProduct = product;
+
+            // Mise à jour partielle si payload existe
+            if (payload != null && !payload.isEmpty()) {
+                if (payload.containsKey("likesCount")) {
+                    int likes = payload.getInt("likesCount");
+                    likesCount.setText(String.valueOf(likes));
+                    Log.d(TAG, "Partial update: likesCount=" + likes);
+                }
+                if (payload.containsKey("isLiked")) {
+                    boolean liked = payload.getBoolean("isLiked");
+                    updateLikeButton(liked);
+                    Log.d(TAG, "Partial update: isLiked=" + liked);
+                }
+                if (payload.containsKey("isFavorite")) {
+                    boolean favorite = payload.getBoolean("isFavorite");
+                    updateFavoriteButton(favorite);
+                    Log.d(TAG, "Partial update: isFavorite=" + favorite);
+                }
+                return;
+            }
+
+            // Bind complet
+            Log.d(TAG, "Full bind: " + product.getName() +
+                    " (liked=" + product.isLikedByUser() +
+                    ", favorite=" + product.isFavoriteByUser() +
+                    ", likes=" + product.getLikesCount() + ")");
+
             productName.setText(product.getName());
-            
-            // Display likes and favorites counts
+
+            // Utiliser uniquement les données du ProductModel
             likesCount.setText(String.valueOf(product.getLikesCount()));
-            // Favorites count is handled by FavoritesTableRepository
-            favoritesCount.setText("0"); // Will be updated by repository
-            
-            // Set price and currency separately
+            updateLikeButton(product.isLikedByUser());
+            updateFavoriteButton(product.isFavoriteByUser());
+
+            favoritesCount.setText("0");
+
             productPrice.setText(String.format("%.2f", product.getPrice()));
             productCurrency.setText(product.getCurrency());
-            
-            // Set product type if available
+
             if (product.getProductType() != null && !product.getProductType().isEmpty()) {
                 displayProductType(product, productType);
             } else {
                 productType.setVisibility(View.GONE);
             }
-            
-            // Setup like and favorite buttons
-            setupLikeAndFavoriteButtons(product);
-            
-            // Load product images using imageIds from product
+
+            setupButtons(product);
             loadProductImages(product);
-            
-            // Set click listener for card navigation (buttons have their own listeners)
+
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onProductClick(product);
-                    navigateToProductDetail(product);
                 }
+                navigateToProductDetail(product);
             });
         }
-        
-        private void setupLikeAndFavoriteButtons(ProductModel product) {
-            // Set like button state - will be updated by observers
-            likeButton.setImageResource(R.drawable.ic_heart_outline);
-            
-            // Set favorite button state - will be updated by observers
-            favoriteButton.setImageResource(R.drawable.ic_star_outline);
-            
-            // Set proper click listeners for like and favorite buttons
+
+        /**
+         * Met à jour le bouton like
+         */
+        private void updateLikeButton(boolean liked) {
+            likeButton.setImageResource(liked ?
+                    R.drawable.ic_heart_filled : R.drawable.ic_heart_outline);
+            likeButton.setColorFilter(liked ?
+                    Color.parseColor("#E85F4C") : Color.parseColor("#757575"));
+        }
+
+        /**
+         * Met à jour le bouton favorite
+         */
+        private void updateFavoriteButton(boolean favorite) {
+            favoriteButton.setImageResource(favorite ?
+                    R.drawable.ic_star_filled : R.drawable.ic_star_outline);
+            favoriteButton.setColorFilter(favorite ?
+                    Color.parseColor("#FFC107") : Color.parseColor("#757575"));
+        }
+
+        /**
+         * Configure les boutons like, favorite et shop link
+         */
+        private void setupButtons(ProductModel product) {
+            // Like button
             likeButton.setOnClickListener(v -> {
-                Log.d("CleanProductsAdapter", "Like button clicked for product: " + product.getName());
-                toggleLike(product);
+                Log.d(TAG, "❤️ Like button clicked for: " + product.getName());
+                if (productViewModel != null) {
+                    productViewModel.toggleLikeProduct(product.getProductId());
+                    // L'UI sera mise à jour automatiquement via l'observer
+                } else {
+                    Log.e(TAG, "❌ ProductViewModel is null");
+                }
             });
-            
+
             likeButton.setOnTouchListener((v, event) -> {
                 if (event.getAction() == android.view.MotionEvent.ACTION_DOWN) {
-                    // Consume the touch event to prevent it from reaching the parent
                     v.getParent().requestDisallowInterceptTouchEvent(true);
                 }
-                return false; // Let the click listener handle the event
+                return false;
             });
-            
+
+            // Favorite button
             favoriteButton.setOnClickListener(v -> {
-                Log.d("CleanProductsAdapter", "Favorite button clicked for product: " + product.getName());
-                toggleFavorite(product);
+                Log.d(TAG, "⭐ Favorite button clicked for: " + product.getName());
+                if (productViewModel != null) {
+                    productViewModel.toggleFavoriteProduct(product.getProductId());
+                    // L'UI sera mise à jour automatiquement via l'observer
+                } else {
+                    Log.e(TAG, "❌ ProductViewModel is null");
+                }
             });
-            
+
             favoriteButton.setOnTouchListener((v, event) -> {
                 if (event.getAction() == android.view.MotionEvent.ACTION_DOWN) {
-                    // Consume the touch event to prevent it from reaching the parent
                     v.getParent().requestDisallowInterceptTouchEvent(true);
                 }
-                return false; // Let the click listener handle the event
+                return false;
             });
-            
-            // Shop link button click handler - only show in favorites context
+
+            // Shop link button (uniquement en contexte favoris)
             if (isFavoritesContext) {
                 shopLinkButton.setOnClickListener(v -> {
-                    Log.d("CleanProductsAdapter", "Shop link button clicked for product: " + product.getName());
+                    Log.d(TAG, "🏪 Shop link button clicked for: " + product.getName());
                     navigateToShop(product.getShopId());
                 });
-                
+
                 shopLinkButton.setOnTouchListener((v, event) -> {
                     if (event.getAction() == android.view.MotionEvent.ACTION_DOWN) {
-                        // Consume the touch event to prevent it from reaching the parent
                         v.getParent().requestDisallowInterceptTouchEvent(true);
                     }
-                    return false; // Let the click listener handle the event
+                    return false;
                 });
                 shopLinkButton.setVisibility(View.VISIBLE);
             } else {
                 shopLinkButton.setVisibility(View.GONE);
             }
-            
-            // Store the current product for click handling
-            currentProduct = product;
         }
-        
-        private ProductModel currentProduct;
-        
-        private void toggleLike(ProductModel product) {
-            if (productViewModel != null) {
-                // Use ProductViewModel for Firebase synchronization
-                productViewModel.toggleLikeProduct(product.getProductId());
-                
-                // Like state is handled by repository
-                
-                // Like count updates are handled by repository
-                
-                Log.d("CleanProductsAdapter", "Like toggled for product: " + product.getName());
-            }
-        }
-        
-        private void toggleFavorite(ProductModel product) {
-            if (productViewModel != null) {
-                // Use ProductViewModel for Firebase synchronization
-                productViewModel.toggleFavoriteProduct(product.getProductId());
-                
-                // Update UI immediately for better user experience
-                // Favorite state is handled by FavoritesTableRepository
-                
-                // Update favorite count - handled by FavoritesTableRepository
-                
-                // Update button icon immediately - handled by repository
-                favoriteButton.setImageResource(R.drawable.ic_star_outline);
-                
-                // Update count text immediately
-                // Favorites count is handled by FavoritesTableRepository
-                favoritesCount.setText("0"); // Will be updated by repository
-                
-                // If in favorites context and product was unfavorited, remove it from the list
-                // This logic is handled by FavoritesTableRepository
-                
-                Log.d("CleanProductsAdapter", "Favorite toggled for product: " + product.getName());
-            }
-        }
-        
+
         private void navigateToShop(String shopId) {
             if (shopId == null || shopId.isEmpty()) {
-                Log.w("CleanProductsAdapter", "Shop ID is null or empty, cannot navigate");
+                Log.w(TAG, "Shop ID is null or empty, cannot navigate");
                 return;
             }
-            
+
             try {
                 Activity activity = (Activity) context;
                 if (activity != null) {
-                    // Use navigation to go to shop home fragment directly
-                    androidx.navigation.NavController navController = 
-                        androidx.navigation.Navigation.findNavController(activity, R.id.nav_host_fragment_activity_main);
-                    
-                    // Create bundle with shop ID and source
+                    androidx.navigation.NavController navController =
+                            androidx.navigation.Navigation.findNavController(
+                                    activity, R.id.nav_host_fragment_activity_main);
+
                     Bundle bundle = new Bundle();
                     bundle.putString("shopId", shopId);
-                    
-                    // Add source parameter if in favorites context
+
                     if (isFavoritesContext) {
                         bundle.putString("source", "favorites");
                     }
-                    
-                    // Navigate to shop home fragment directly
+
                     navController.navigate(R.id.navigation_shop, bundle);
-                    
-                    Log.d("CleanProductsAdapter", "Navigated to shop for shop ID: " + shopId + 
-                           (isFavoritesContext ? " (from favorites)" : ""));
+
+                    Log.d(TAG, "Navigated to shop: " + shopId +
+                            (isFavoritesContext ? " (from favorites)" : ""));
                 }
             } catch (Exception e) {
-                Log.e("CleanProductsAdapter", "Error navigating to shop: " + e.getMessage(), e);
+                Log.e(TAG, "Error navigating to shop: " + e.getMessage(), e);
             }
         }
-        
-        private void removeProductFromList(ProductModel product) {
-            int position = -1;
-            for (int i = 0; i < products.size(); i++) {
-                if (products.get(i).getProductId().equals(product.getProductId())) {
-                    position = i;
-                    break;
-                }
-            }
-            
-            if (position != -1) {
-                products.remove(position);
-                notifyItemRemoved(position);
-                notifyItemRangeChanged(position, products.size());
-                Log.d("CleanProductsAdapter", "Removed product from favorites list: " + product.getName());
-            }
-        }
-        
+
         private void loadProductImages(ProductModel product) {
             if (product.hasImages()) {
-                // Use primary image ID for now
                 String primaryImageId = product.getPrimaryImageId();
                 if (primaryImageId != null && !primaryImageId.isEmpty()) {
-                    android.util.Log.d("CleanProductsAdapter", "Loading primary image for product: " + product.getProductId());
-                    
-                    // Load primary image asynchronously
+                    Log.d(TAG, "Loading primary image for product: " + product.getProductId());
+
                     imageService.getProductImage(primaryImageId)
-                        .addOnSuccessListener(imageModel -> {
-                            if (imageModel != null && imageModel.getImageUrl() != null) {
-                                List<String> imageUrls = new ArrayList<>();
-                                imageUrls.add(imageModel.getImageUrl());
-                                
-                                // Set up carousel with click listener
-                                productImageCarousel.setOnImageClickListener(new ProductImageCarousel.OnImageClickListener() {
-                                    @Override
-                                    public void onImageClick(int position, String imageUrl) {
-                                        Log.d("CleanProductsAdapter", "Carousel image clicked: position=" + position + ", product=" + product.getName());
-                                        // Navigate to product detail when image is clicked
-                                        navigateToProductDetail(product);
+                            .addOnSuccessListener(imageModel -> {
+                                if (imageModel != null && imageModel.getImageUrl() != null) {
+                                    List<String> imageUrls = new ArrayList<>();
+                                    imageUrls.add(imageModel.getImageUrl());
+
+                                    productImageCarousel.setOnImageClickListener(
+                                            new ProductImageCarousel.OnImageClickListener() {
+                                                @Override
+                                                public void onImageClick(int position, String imageUrl) {
+                                                    Log.d(TAG, "Image clicked: " + product.getName());
+                                                    navigateToProductDetail(product);
+                                                }
+
+                                                @Override
+                                                public void onImageLongClick(int position, String imageUrl) {
+                                                    Log.d(TAG, "Image long clicked: " + product.getName());
+                                                    if (listener != null) {
+                                                        listener.onProductLongClick(product);
+                                                    }
+                                                }
+                                            });
+
+                                    productImageCarousel.setImageUrls(imageUrls);
+                                    productImageCarousel.setVisibility(View.VISIBLE);
+
+                                    FrameLayout parentLayout = (FrameLayout) productImageCarousel.getParent();
+                                    if (parentLayout != null) {
+                                        productImageCarousel.setClickable(false);
+                                        productImageCarousel.setFocusable(false);
+
+                                        parentLayout.setOnClickListener(v -> {
+                                            Log.d(TAG, "Image area clicked: " + product.getName());
+                                            navigateToProductDetail(product);
+                                        });
+                                        parentLayout.setClickable(true);
+                                        parentLayout.setFocusable(true);
                                     }
-                                    
-                                    @Override
-                                    public void onImageLongClick(int position, String imageUrl) {
-                                        Log.d("CleanProductsAdapter", "Carousel image long clicked: position=" + position + ", product=" + product.getName());
-                                        if (listener != null) {
-                                            listener.onProductLongClick(product);
-                                        }
-                                    }
-                                });
-                                
-                                // Set image URLs in carousel
-                                productImageCarousel.setImageUrls(imageUrls);
-                                productImageCarousel.setVisibility(View.VISIBLE);
-                                
-                                // Make the parent FrameLayout clickable when carousel is visible
-                                FrameLayout parentLayout = (FrameLayout) productImageCarousel.getParent();
-                                if (parentLayout != null) {
-                                    // Disable carousel's own click handling to let parent handle it
-                                    productImageCarousel.setClickable(false);
-                                    productImageCarousel.setFocusable(false);
-                                    
-                                    parentLayout.setOnClickListener(v -> {
-                                        Log.d("CleanProductsAdapter", "Image area clicked for product: " + product.getName());
-                                        navigateToProductDetail(product);
-                                    });
-                                    parentLayout.setClickable(true);
-                                    parentLayout.setFocusable(true);
+                                } else {
+                                    Log.d(TAG, "Image model null for: " + product.getProductId());
+                                    showPlaceholder(productImageCarousel);
                                 }
-                            } else {
-                                Log.d("CleanProductsAdapter", "Image model is null or has no URL for product: " + product.getProductId());
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "Failed to load image: " + product.getProductId(), e);
                                 showPlaceholder(productImageCarousel);
-                            }
-                        })
-                        .addOnFailureListener(e -> {
-                            Log.e("CleanProductsAdapter", "Failed to load primary image for product: " + product.getProductId(), e);
-                            showPlaceholder(productImageCarousel);
-                        });
+                            });
                 } else {
-                    Log.d("CleanProductsAdapter", "No primary image ID for product: " + product.getProductId());
+                    Log.d(TAG, "No primary image ID for: " + product.getProductId());
                     showPlaceholder(productImageCarousel);
                 }
             } else {
-                // No images, show placeholder
-                android.util.Log.d("CleanProductsAdapter", "No images for product: " + product.getProductId() + ", showing placeholder");
+                Log.d(TAG, "No images for: " + product.getProductId());
                 showPlaceholder(productImageCarousel);
             }
         }
-        
+
         private void showPlaceholder(ProductImageCarousel carousel) {
-            android.util.Log.d("CleanProductsAdapter", "Showing placeholder in carousel");
-            // Hide carousel when no images available
+            Log.d(TAG, "Showing placeholder in carousel");
             carousel.setVisibility(View.GONE);
-            
-            // Make the parent FrameLayout clickable to navigate to product detail
+
             FrameLayout parentLayout = (FrameLayout) carousel.getParent();
             if (parentLayout != null) {
                 parentLayout.setOnClickListener(v -> {
-                    Log.d("CleanProductsAdapter", "Placeholder image area clicked for product: " + currentProduct.getName());
-                    navigateToProductDetail(currentProduct);
+                    if (currentProduct != null) {
+                        Log.d(TAG, "Placeholder clicked: " + currentProduct.getName());
+                        navigateToProductDetail(currentProduct);
+                    }
                 });
                 parentLayout.setClickable(true);
                 parentLayout.setFocusable(true);
-                parentLayout.setBackgroundColor(android.graphics.Color.parseColor("#FAFAFA"));
+                parentLayout.setBackgroundColor(Color.parseColor("#FAFAFA"));
             }
         }
-    }
-    
-    private List<String> getProductImageUrls(ProductModel product) {
-        List<String> imageUrls = new ArrayList<>();
-        
-        if (product.hasImages()) {
-            // Use primary image ID for now to avoid async issues
-            String primaryImageId = product.getPrimaryImageId();
-            if (primaryImageId != null && !primaryImageId.isEmpty()) {
-                // For now, return empty list and let the carousel handle the primary image
-                // TODO: Implement proper async image loading in future iteration
-                android.util.Log.d("CleanProductsAdapter", "Using primary image ID: " + primaryImageId);
-            }
-        }
-        
-        return imageUrls;
     }
 }

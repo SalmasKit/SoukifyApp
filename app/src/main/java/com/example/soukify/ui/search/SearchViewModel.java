@@ -9,20 +9,20 @@ import com.example.soukify.data.repositories.SessionRepository;
 
 public class SearchViewModel extends AndroidViewModel {
     private final SessionRepository sessionRepository;
-    
+
     public SearchViewModel(Application application) {
         super(application);
         sessionRepository = SessionRepository.getInstance(application);
     }
-    
+
     public LiveData<String> getCurrentUserId() {
         return sessionRepository.getCurrentUserId();
     }
-    
+
     public LiveData<Boolean> isLoggedIn() {
         return sessionRepository.isLoggedIn();
     }
-    
+
     public int getUserId() {
         String userIdStr = sessionRepository.getCurrentUserId().getValue();
         if (userIdStr != null && !userIdStr.isEmpty()) {
@@ -34,6 +34,6 @@ public class SearchViewModel extends AndroidViewModel {
         }
         return -1;
     }
-    
-    
+
+
 }

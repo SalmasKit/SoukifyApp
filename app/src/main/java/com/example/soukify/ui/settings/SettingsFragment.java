@@ -97,7 +97,12 @@ public class SettingsFragment extends Fragment {
         openShopButton.setEnabled(false);
         openShopButton.setOnSettingClickListener(v -> {
             Log.d("SettingsFragment", "Open Shop button clicked!");
-            Navigation.findNavController(v).navigate(R.id.action_navigation_settings_to_navigation_shop);
+            
+            // Create bundle with hideDialogs=false to show edit/delete buttons
+            Bundle args = new Bundle();
+            args.putBoolean("hideDialogs", false); // Show dialogs from settings
+            
+            Navigation.findNavController(v).navigate(R.id.action_navigation_settings_to_navigation_shop, args);
         });
         
         Log.d("SettingsFragment", "SettingsFragment onViewCreated completed");

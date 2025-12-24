@@ -1,0 +1,407 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Name -->
+    <string name="app_name">سوكيفاي</string>
+
+    <!-- ==================== AUTHENTICATION ==================== -->
+    <string name="please_enter_email_and_password">الرجاء إدخال البريد الإلكتروني وكلمة المرور</string>
+    <string name="please_enter_valid_email">الرجاء إدخال عنوان بريد إلكتروني صالح</string>
+    <string name="login_successful">تم تسجيل الدخول بنجاح!</string>
+    <string name="signup_successful">تم التسجيل بنجاح!</string>
+    <string name="all_fields_required">جميع الحقول مطلوبة</string>
+    <string name="all_fields_obligatory">جميع الحقول إلزامية</string>
+    <string name="invalid_email">بريد إلكتروني غير صالح</string>
+    <string name="passwords_do_not_match_fr">كلمات المرور غير متطابقة</string>
+    <string name="error_prefix">خطأ: %1$s</string>
+
+    <!-- ==================== NAVIGATION ==================== -->
+    <string name="title_home">الرئيسية</string>
+    <string name="title_dashboard">لوحة التحكم</string>
+    <string name="title_notifications">الإشعارات</string>
+
+    <!-- ==================== SEARCH SCREEN ==================== -->
+    <string name="pageTitle">المنتجات</string>
+    <string name="location"> </string>
+    <string name="searchHint">بحث في ...</string>
+    <string name="buttonSearch">بحث</string>
+    <string name="Pro">محترف</string>
+    <string name="Type">النوع</string>
+    <string name="Sort">ترتيب</string>
+    <string name="Top">الأعلى</string>
+    <string name="item_not_found">العنصر غير موجود</string>
+    <string name="item_not_found_fr">العنصر غير موجود</string>
+
+    <!-- ==================== CATEGORIES ==================== -->
+    <string name="category">الفئة</string>
+    <string name="category_label">الفئة</string>
+    <string name="category_label_en">الفئة</string>
+    <string name="category_pottery">الفخار والخزف</string>
+    <string name="category_textile">المنسوجات والنسيج</string>
+    <string name="category_food">منتجات الذواقة والمحلية</string>
+    <string name="category_wellness">منتجات العافية الطبيعية</string>
+    <string name="category_jewelry">المجوهرات والإكسسوارات</string>
+    <string name="category_metal">الحرف المعدنية والنحاسية</string>
+    <string name="category_painting">الرسم والخط العربي</string>
+    <string name="category_woodwork">النجارة</string>
+    <string name="tapestry">المنسوجات والنسيج</string>
+    <string name="food">منتجات الذواقة والمحلية</string>
+    <string name="pottery">الفخار والخزف</string>
+    <string name="traditional_wear">الملابس التقليدية</string>
+    <string name="naturalProducts">منتجات العافية الطبيعية</string>
+    <string name="jewellery">المجوهرات والإكسسوارات</string>
+    <string name="metal">الحرف المعدنية والنحاسية</string>
+    <string name="paintings">الرسم والخط العربي</string>
+    <string name="woodwork">النجارة</string>
+    <string name="leather_crafts">الحرف الجلدية</string>
+
+    <!-- ==================== SHOP ==================== -->
+    <string name="shop_name">اسم المتجر</string>
+    <string name="shop_banner">متجري</string>
+    <string name="shop_banner_text">إضافة لافتة المتجر</string>
+    <string name="shop_cover_photo">صورة غلاف المتجر</string>
+    <string name="shop_description_placeholder">وصف متجرك يظهر هنا...</string>
+    <string name="shop_details">تفاصيل المتجر</string>
+    <string name="shop_information">معلومات المتجر</string>
+    <string name="shop_name_placeholder">فخار محمد</string>
+    <string name="shop_options">خيارات المتجر</string>
+    <string name="action_create_shop">إنشاء متجر</string>
+    <string name="add_cover_image">إضافة صورة غلاف</string>
+    <string name="add_cover_photo">إضافة صورة غلاف</string>
+    <string name="ratio_recommended">نسبة 16:9 موصى بها</string>
+    <string name="clear_shop">مسح المتجر</string>
+    <string name="enable_promotion">تفعيل الترويج</string>
+    <string name="enable_delivery">تفعيل التوصيل</string>
+    <string name="no_shop_icon">لا يوجد أيقونة متجر</string>
+    <string name="no_shop_title">لا يوجد متجر بعد</string>
+    <string name="no_shop_subtitle">أنشئ متجرك لبدء البيع</string>
+    <string name="visit_shop">زيارة المتجر</string>
+
+    <!-- Shop Messages -->
+    <string name="shop_cleared_database">تمت إزالة المتجر من قاعدة البيانات</string>
+    <string name="location_not_specified">الموقع غير محدد</string>
+    <string name="location_unavailable">الموقع غير متاح</string>
+    <string name="location_ids_invalid">معرفات الموقع غير صالحة</string>
+    <string name="unknown_location">موقع غير معروف</string>
+    <string name="unknown_region">منطقة غير معروفة</string>
+    <string name="cover_photo_removed">تمت إزالة صورة الغلاف</string>
+    <string name="cover_image_updated">تم تحديث صورة الغلاف بنجاح</string>
+    <string name="image_selection_cancelled">تم إلغاء اختيار الصورة</string>
+    <string name="storage_permission_required">مطلوب إذن التخزين لرفع الصور</string>
+    <string name="please_login_to_access_shop">الرجاء تسجيل الدخول للوصول إلى متجرك</string>
+    <string name="debug_shop_fragment_called">التصحيح: تم استدعاء ShopFragment showCreateShopDialog</string>
+
+    <!-- Shop Details Form -->
+    <string name="description">الوصف</string>
+    <string name="phone">الهاتف</string>
+    <string name="email_hint">البريد الإلكتروني</string>
+    <string name="region">المنطقة</string>
+    <string name="city">المدينة</string>
+    <string name="address">العنوان</string>
+    <string name="address_optional">الشارع، الحي، المعالم... (اختياري)</string>
+    <string name="instagram">إنستغرام</string>
+    <string name="instagram_optional">@اسم المستخدم (اختياري)</string>
+    <string name="facebook">فيسبوك</string>
+    <string name="facebook_optional">اسم الصفحة أو الرابط (اختياري)</string>
+    <string name="website">الموقع الإلكتروني</string>
+    <string name="website_hint">الموقع الإلكتروني</string>
+    <string name="website_optional">https://example.com (اختياري)</string>
+
+    <!-- Working Hours -->
+    <string name="working_hours">ساعات العمل</string>
+    <string name="monday">الإثنين</string>
+    <string name="tuesday">الثلاثاء</string>
+    <string name="wednesday">الأربعاء</string>
+    <string name="thursday">الخميس</string>
+    <string name="friday">الجمعة</string>
+    <string name="saturday">السبت</string>
+    <string name="sunday">الأحد</string>
+    <string name="from">من</string>
+    <string name="to">إلى</string>
+    <string name="time_separator"> - </string>
+
+    <!-- ==================== PRODUCTS ==================== -->
+    <string name="products">المنتجات</string>
+    <string name="add_product">إضافة منتج</string>
+    <string name="add_first_product">أضف منتجك الأول للبدء</string>
+    <string name="no_products_yet">لا توجد منتجات بعد</string>
+    <string name="product_name_placeholder">اسم المنتج</string>
+    <string name="product_type_placeholder">نوع المنتج</string>
+    <string name="product_description_placeholder">وصف المنتج...</string>
+    <string name="product_price_placeholder">0.00 درهم</string>
+    <string name="product_item_count">0 عنصر</string>
+    <string name="edit_product">تعديل المنتج</string>
+    <string name="delete_product">حذف المنتج</string>
+    <string name="deleting_product">جاري حذف المنتج...</string>
+    <string name="product_deleted_successfully">تم حذف المنتج بنجاح</string>
+
+    <!-- Product Details -->
+    <string name="weight_label">الوزن</string>
+    <string name="weight_placeholder">0 كجم</string>
+    <string name="length_label">الطول</string>
+    <string name="length_placeholder">0 سم</string>
+    <string name="width_label">العرض</string>
+    <string name="width_placeholder">0 سم</string>
+    <string name="height_label">الارتفاع</string>
+    <string name="height_placeholder">0 سم</string>
+    <string name="color_label">اللون</string>
+    <string name="color_placeholder">غير متاح</string>
+    <string name="material_label">المادة</string>
+    <string name="material_placeholder">غير متاح</string>
+    <string name="no_image">لا توجد صورة</string>
+
+    <!-- ==================== LOCATION ==================== -->
+    <string name="location_label">الموقع</string>
+    <string name="location_label_en">الموقع</string>
+    <string name="location_text">الموقع</string>
+    <string name="map_label">الخريطة</string>
+
+    <!-- ==================== CONTACT ==================== -->
+    <string name="contact_information">معلومات الاتصال</string>
+    <string name="contact_seller">الاتصال بالبائع</string>
+    <string name="contact_support">الاتصال بالدعم</string>
+    <string name="call_seller">اتصال بالبائع</string>
+    <string name="email_seller">إرسال بريد للبائع</string>
+    <string name="loading_contact_info">جاري تحميل معلومات الاتصال...</string>
+    <string name="phone_number">رقم الهاتف</string>
+    <string name="phone_placeholder">+212 600-000-000</string>
+    <string name="phone_placeholder_format">+212 600-000-000</string>
+    <string name="email">البريد الإلكتروني</string>
+    <string name="email_placeholder">bksalma26@gmail.com</string>
+
+    <!-- ==================== ACTIONS ==================== -->
+    <string name="like_action">إعجاب</string>
+    <string name="favorite_action">المفضلة</string>
+    <string name="share_action">مشاركة</string>
+    <string name="chat_action">محادثة</string>
+
+    <!-- ==================== LABELS & DISPLAY ==================== -->
+    <string name="promo_label">عرض</string>
+    <string name="promotion_label">ترويج</string>
+    <string name="delivery_label">توصيل</string>
+    <string name="rating_placeholder">4.5</string>
+    <string name="rating_format">0.0</string>
+    <string name="reviews_placeholder">(120 تقييم)</string>
+    <string name="reviews_label">(120 تقييم)</string>
+    <string name="created_label">تاريخ الإنشاء: جاري التحميل...</string>
+    <string name="created_just_now">تاريخ الإنشاء: الآن</string>
+    <string name="follow_us">تابعنا</string>
+    <string name="price_placeholder">0.00</string>
+    <string name="zero">0</string>
+    <string name="zero_decimal">0.00</string>
+
+    <!-- ==================== SETTINGS ==================== -->
+    <string name="profile_image">صورة الملف الشخصي</string>
+    <string name="user_name">سلمى براك</string>
+    <string name="edit_profile">فتح متجر</string>
+    <string name="open_shop_stacked">فتح\nالمتجر</string>
+    <string name="open_shop">فتح متجر</string>
+    <string name="account_settings">إعدادات الحساب</string>
+    <string name="notifications">الإشعارات</string>
+    <string name="privacy">الخصوصية</string>
+    <string name="help_support">المساعدة والدعم</string>
+    <string name="about">حول</string>
+    <string name="logout">تسجيل الخروج</string>
+    <string name="appearance">المظهر</string>
+    <string name="language_and_currency">اللغة والعملة</string>
+
+    <!-- Account Settings -->
+    <string name="change_photo">تغيير الصورة</string>
+    <string name="personal_information">المعلومات الشخصية</string>
+    <string name="full_name">الاسم الكامل</string>
+    <string name="change_password">تغيير كلمة المرور</string>
+    <string name="save_changes">حفظ التغييرات</string>
+
+    <!-- Language & Currency -->
+    <string name="select_language">اختر اللغة</string>
+    <string name="select_currency">اختر العملة</string>
+    <string name="language">اللغة</string>
+    <string name="use_device_language">استخدام لغة الجهاز</string>
+    <string name="device_language">لغة الجهاز</string>
+    <string name="currency">العملة</string>
+    <string name="currency_mad">درهم</string>
+    <string name="preview_example">معاينة</string>
+    <string name="preview_example_format">معاينة: %1$s</string>
+    <string name="lang_english">الإنجليزية</string>
+    <string name="lang_arabic">العربية</string>
+    <string name="lang_french">الفرنسية</string>
+
+    <!-- Notifications Settings -->
+    <string name="enable_push_notifications">تفعيل الإشعارات الفورية</string>
+    <string name="enable_email_notifications">تفعيل إشعارات البريد الإلكتروني</string>
+    <string name="enable_sms_notifications">تفعيل إشعارات الرسائل النصية</string>
+    <string name="general_notifications">عام</string>
+    <string name="enable_sound">تفعيل الصوت</string>
+    <string name="enable_vibration">تفعيل الاهتزاز</string>
+    <string name="notification_categories">الفئات</string>
+    <string name="order_updates">تحديثات الطلبات</string>
+    <string name="promotions_and_offers">العروض الترويجية</string>
+    <string name="app_updates">تحديثات التطبيق</string>
+    <string name="quiet_hours">ساعات الهدوء</string>
+    <string name="quiet_start">وقت البدء</string>
+    <string name="quiet_end">وقت الانتهاء</string>
+    <string name="pick_time">اختر الوقت</string>
+    <string name="open_system_notification_settings">فتح إعدادات الإشعارات في النظام</string>
+    <string name="notification_preferences_saved">تم حفظ تفضيلات الإشعارات</string>
+    <string name="unable_to_open_system_settings">تعذر فتح إعدادات النظام</string>
+
+    <!-- Privacy Settings -->
+    <string name="privacy_preferences">تفضيلات الخصوصية</string>
+    <string name="personalized_ads">الإعلانات المخصصة</string>
+    <string name="allow_analytics">السماح بالتحليلات</string>
+    <string name="limit_ad_tracking">تقييد تتبع الإعلانات</string>
+    <string name="permissions">الأذونات</string>
+    <string name="open_app_settings">فتح إعدادات التطبيق</string>
+    <string name="clear_app_data">مسح بيانات التطبيق</string>
+    <string name="clear_app_data_desc">سيؤدي هذا إلى مسح الملفات المخبأة والتفضيلات. قد تحتاج إلى تسجيل الدخول مرة أخرى.</string>
+    <string name="clear">مسح</string>
+    <string name="data_cleared">تم مسح بيانات التطبيق</string>
+
+    <!-- Theme Options -->
+    <string name="theme_system_default">النظام الافتراضي</string>
+    <string name="theme_light">فاتح</string>
+    <string name="theme_dark">داكن</string>
+
+    <!-- ==================== PHOTO/IMAGE SELECTION ==================== -->
+    <string name="choose_photo">اختر صورة</string>
+    <string name="choose_from_gallery">اختر من المعرض</string>
+    <string name="from_gallery">من المعرض</string>
+    <string name="take_photo">التقاط صورة</string>
+    <string name="remove_photo">إزالة الصورة</string>
+    <string name="no_gallery_app">لم يتم العثور على تطبيق معرض</string>
+
+    <!-- ==================== PASSWORD ==================== -->
+    <string name="current_password">كلمة المرور الحالية</string>
+    <string name="current_password_hint">كلمة المرور الحالية</string>
+    <string name="new_password">كلمة المرور الجديدة</string>
+    <string name="confirm_password">تأكيد كلمة المرور الجديدة</string>
+    <string name="enter_current_password">أدخل كلمة المرور الحالية</string>
+    <string name="current_password_required">كلمة المرور الحالية مطلوبة</string>
+    <string name="current_password_short">كلمة المرور الحالية قصيرة جداً</string>
+    <string name="new_password_required">كلمة المرور الجديدة مطلوبة</string>
+    <string name="new_password_different">يجب أن تكون كلمة المرور الجديدة مختلفة عن الحالية</string>
+    <string name="new_password_length">يجب أن تكون كلمة المرور الجديدة على الأقل 6 أحرف</string>
+    <string name="confirm_new_password">الرجاء تأكيد كلمة المرور الجديدة</string>
+    <string name="choose_stronger_password">الرجاء اختيار كلمة مرور أقوى</string>
+    <string name="password_letters_numbers">يجب أن تحتوي كلمة المرور على أحرف وأرقام</string>
+    <string name="password_required">كلمة المرور مطلوبة</string>
+    <string name="password_too_short">يجب أن تكون كلمة المرور على الأقل 6 أحرف</string>
+    <string name="passwords_do_not_match">كلمات المرور غير متطابقة</string>
+    <string name="password_updated">تم تحديث كلمة المرور</string>
+
+    <!-- ==================== PROFILE/SETTINGS MESSAGES ==================== -->
+    <string name="confirm_email_change">تأكيد تغيير البريد الإلكتروني</string>
+    <string name="confirm_email_change_message">لتغيير بريدك الإلكتروني، الرجاء إدخال كلمة المرور الحالية لأسباب أمنية.</string>
+    <string name="error_updating_profile">خطأ في تحديث الملف الشخصي</string>
+    <string name="error_updating_user_profile">خطأ في تحديث ملف المستخدم الشخصي</string>
+    <string name="profile_update_success">تم تحديث الملف الشخصي بنجاح</string>
+    <string name="please_fill_required_fields">الرجاء ملء الحقول المطلوبة</string>
+    <string name="error_unable_to_save_settings">خطأ: تعذر حفظ الإعدادات</string>
+    <string name="please_select_both_language_and_currency">الرجاء اختيار كل من اللغة والعملة</string>
+    <string name="saved_format">تم الحفظ: %1$s, %2$s</string>
+
+    <!-- ==================== HELP & SUPPORT ==================== -->
+    <string name="help_and_support">المساعدة والدعم</string>
+    <string name="help_support_description">ابحث عن إجابات للأسئلة الشائعة حول استخدام سوكيفاي أو اتصل بفريق الدعم للحصول على المساعدة.</string>
+    <string name="frequently_asked_questions">الأسئلة الشائعة</string>
+    <string name="view_faq">عرض الأسئلة الشائعة</string>
+
+    <!-- FAQ Questions & Answers -->
+    <string name="faq_question1">كيف يمكنني إنشاء متجر على سوكيفاي؟</string>
+    <string name="faq_answer1">لإنشاء متجر، انتقل إلى علامة تبويب \"المتجر\" وانقر على زر \"إنشاء متجر\". املأ تفاصيل متجرك بما في ذلك الاسم والوصف والفئة والموقع ومعلومات الاتصال. بمجرد الإرسال، سيكون متجرك مرئيًا للمستخدمين الآخرين.</string>
+
+    <string name="faq_question2">ما هي فئات المنتجات التي يمكنني بيعها؟</string>
+    <string name="faq_answer2">يدعم سوكيفاي فئات متنوعة تشمل: الفخار والخزف، المنسوجات والنسيج، منتجات الذواقة والمحلية، منتجات العافية الطبيعية، المجوهرات والإكسسوارات، الحرف المعدنية والنحاسية، الرسم والخط العربي، والنجارة.</string>
+
+    <string name="faq_question3">كيف يمكنني إضافة منتجات إلى متجري؟</string>
+    <string name="faq_answer3">بعد إنشاء متجرك، يمكنك إضافة منتجات عن طريق الانتقال إلى صفحة متجرك والنقر على زر \"إضافة منتج\". أدخل تفاصيل المنتج مثل الاسم والوصف والسعر. يمكنك إضافة منتجات متعددة لعرض مخزونك.</string>
+
+    <string name="faq_question4">هل يمكنني تعديل معلومات متجري بعد إنشائه؟</string>
+    <string name="faq_answer4">نعم، يمكنك تعديل معلومات متجرك في أي وقت. انتقل إلى صفحة متجرك وابحث عن خيارات التعديل. يمكنك تحديث اسم متجرك ووصفه ومعلومات الاتصال وغيرها من التفاصيل لإبقاء عملائك على اطلاع.</string>
+
+    <string name="faq_question5">كيف يجد العملاء متجري ويتصلون بي؟</string>
+    <string name="faq_answer5">يمكن للعملاء اكتشاف متجرك من خلال تصفح الفئات أو البحث حسب الموقع أو استخدام ميزة البحث. يمكنهم عرض تفاصيل متجرك ورؤية منتجاتك والاتصال بك باستخدام المعلومات التي تقدمها (الهاتف أو البريد الإلكتروني أو العنوان). تأكد من أن معلومات الاتصال الخاصة بك دقيقة ومحدثة.</string>
+
+    <string name="faq_question6">هل سوكيفاي مجاني للبائعين؟</string>
+    <string name="faq_answer6">نعم، سوكيفاي مجاني تمامًا للبائعين. لا توجد رسوم إعداد أو رسوم شهرية أو عمولات. يمكنك إنشاء متجر وإدراج المنتجات وإدارة عملك دون أي تكاليف.</string>
+
+    <string name="faq_question7">كيف أدير الطلبات والمدفوعات؟</string>
+    <string name="faq_answer7">يركز سوكيفاي على ربط المشترين بالحرفيين وأصحاب المتاجر المحليين. عندما يكون العملاء مهتمين بمنتجاتك، يمكنهم الاتصال بك مباشرة عبر الهاتف أو البريد الإلكتروني أو معلومات العنوان التي تقدمها. أنت تدير الطلبات والمدفوعات مباشرة مع العملاء، مما يمنحك سيطرة كاملة على علاقاتك التجارية ومعاملاتك.</string>
+
+    <string name="faq_question8">هل يمكنني بيع منتجات في فئات متعددة؟</string>
+    <string name="faq_answer8">نعم، يمكنك إدراج منتجات في فئات متعددة طالما أنها تناسب متطلبات الفئة. يجب إدراج كل منتج في الفئة المناسبة لمساعدة العملاء في العثور على ما يبحثون عنه بسهولة.</string>
+
+    <string name="faq_question9">كيف أحذف متجري أو حسابي؟</string>
+    <string name="faq_answer9">يمكنك حذف متجرك أو حسابك من خلال قائمة الإعدادات. انتقل إلى \"إعدادات الحساب\"، وانتقل لأسفل واختر \"حذف الحساب\" أو \"إغلاق المتجر\". يرجى ملاحظة أن هذا الإجراء نهائي ولا يمكن التراجع عنه.</string>
+
+    <string name="faq_question10">ما هي أفضل الممارسات للبيع الناجح؟</string>
+    <string name="faq_answer10">للنجاح على سوكيفاي: 1) التقط صورًا واضحة وعالية الجودة لمنتجاتك، 2) اكتب أوصافًا تفصيلية تتضمن الأبعاد والمواد، 3) حدد أسعارًا تنافسية، 4) رد بسرعة على استفسارات العملاء، 5) حافظ على تقييمات جيدة من خلال تقديم خدمة ممتازة، و6) قم بتحديث مخزونك بانتظام.</string>
+
+    <!-- ==================== ABOUT ==================== -->
+    <string name="app_version_placeholder">الإصدار: %1$s</string>
+    <string name="rate_app">تقييم التطبيق</string>
+    <string name="share_app">مشاركة التطبيق</string>
+
+    <!-- ==================== PRIVACY POLICY ==================== -->
+    <string name="privacy_policy">سياسة الخصوصية</string>
+    <string name="privacy_last_updated">آخر تحديث: ديسمبر 2025</string>
+
+    <string name="information_we_collect">المعلومات التي نجمعها</string>
+    <string name="information_we_collect_desc">نجمع المعلومات التي تقدمها لنا مباشرة، مثل عندما تنشئ حسابًا أو تقوم بإعداد متجرك أو تتصل بنا للحصول على الدعم. وهذا يشمل:\n\n• معلومات الحساب (الاسم، البريد الإلكتروني، الهاتف)\n• تفاصيل المتجر (الاسم، الوصف، الموقع)\n• معلومات المنتج (الاسم، الوصف، السعر)\n• الاتصالات مع فريق الدعم لدينا</string>
+
+    <string name="how_we_use_information">كيف نستخدم معلوماتك</string>
+    <string name="how_we_use_information_desc">نستخدم المعلومات التي نجمعها لـ:\n\n• تقديم خدمة سوكيفاي والحفاظ عليها\n• معالجة وإدارة قوائم متجرك\n• ربطك بالعملاء المحتملين\n• الرد على أسئلتك وطلبات الدعم\n• تحسين خدماتنا وتطوير ميزات جديدة</string>
+
+    <string name="data_sharing">مشاركة البيانات</string>
+    <string name="data_sharing_desc">نحن لا نبيع أو نتاجر أو ننقل معلوماتك الشخصية إلى أطراف ثالثة بدون موافقتك، إلا كما هو موضح في سياسة الخصوصية هذه. قد نشارك المعلومات مع:\n\n• مقدمي الخدمات الذين يساعدوننا في تشغيل خدمتنا\n• السلطات القانونية عندما يقتضي القانون ذلك\n• الشركاء التجاريين بموافقتك الصريحة</string>
+
+    <string name="data_security">أمان البيانات</string>
+    <string name="data_security_desc">ننفذ تدابير فنية وتنظيمية مناسبة لحماية معلوماتك الشخصية من الوصول غير المصرح به أو التعديل أو الكشف أو التدمير. ومع ذلك، لا يوجد نقل عبر الإنترنت آمن تمامًا.</string>
+
+    <string name="your_rights">حقوقك</string>
+    <string name="your_rights_desc">لك الحق في:\n\n• الوصول إلى معلوماتك الشخصية وتحديثها\n• حذف حسابك والبيانات المرتبطة به\n• عدم الاشتراك في الاتصالات غير الأساسية\n• طلب نسخة من بياناتك\n• الاتصال بنا بشأن مخاوف الخصوصية</string>
+
+    <string name="contact_privacy">اتصل بنا بشأن الخصوصية</string>
+    <string name="contact_privacy_desc">إذا كان لديك أي أسئلة أو مخاوف بشأن سياسة الخصوصية هذه، فيرجى الاتصال بنا على bksalma26@gmail.com. وسنرد على استفسارك في أسرع وقت ممكن.</string>
+    <string name="contact_privacy_button">الاتصال بدعم الخصوصية</string>
+
+    <!-- ==================== TERMS OF SERVICE ==================== -->
+    <string name="terms_of_service">شروط الخدمة</string>
+    <string name="terms_last_updated">آخر تحديث: ديسمبر 2025</string>
+
+    <string name="acceptance_of_terms">قبول الشروط</string>
+    <string name="acceptance_of_terms_desc">عن طريق تنزيل أو تثبيت أو استخدام سوكيفاي، فإنك توافق على الالتزام بشروط الخدمة هذه. إذا كنت لا توافق على هذه الشروط، فيرجى عدم استخدام خدمتنا.</string>
+
+    <string name="use_of_service">استخدام الخدمة</string>
+    <string name="use_of_service_desc">يوفر سوكيفاي منصة للحرفيين وأصحاب المتاجر لعرض منتجاتهم والتواصل مع العملاء. يمكنك استخدام خدمتنا للأغراض القانونية فقط ووفقًا لهذه الشروط.</string>
+
+    <string name="user_responsibilities">مسؤوليات المستخدم</string>
+    <string name="user_responsibilities_desc">كمسخدم لسوكيفاي، فإنك توافق على:\n\n• تقديم معلومات دقيقة وصادقة\n• عدم نشر محتوى احتيالي أو مضلل\n• احترام حقوق الملكية الفكرية للآخرين\n• عدم الانخراط في أنشطة ضارة أو غير قانونية\n• الحفاظ على اتصال احترافي مع المستخدمين الآخرين</string>
+
+    <string name="intellectual_property">الملكية الفكرية</string>
+    <string name="intellectual_property_desc">تحتفظ بملكية المحتوى الذي تنشره على سوكيفاي. عن طريق نشر المحتوى، فإنك تمنحنا ترخيصًا لاستخدام وعرض وتوزيع محتواك فقط لغرض تشغيل وتحسين خدمتنا.</string>
+
+    <string name="disclaimer">إخلاء المسؤولية</string>
+    <string name="disclaimer_desc">يعمل سوكيفاي كمنصة لربط المشترين والبائعين. نحن لا نضمن جودة أو سلامة أو شرعية أي منتجات أو خدمات مقدمة من خلال منصتنا. جميع المعاملات على مسؤوليتك الخاصة.</string>
+
+    <string name="termination">الإنهاء</string>
+    <string name="termination_desc">نحتفظ بالحق في تعليق أو إنهاء حسابك إذا انتهكت شروط الخدمة هذه. يمكنك أيضًا إغلاق حسابك في أي وقت من خلال إعدادات التطبيق.</string>
+
+    <string name="contact_terms">اتصل بنا بشأن الشروط</string>
+    <string name="contact_terms_desc">إذا كان لديك أي أسئلة حول شروط الخدمة هذه، فيرجى الاتصال بنا على bksalma26@gmail.com.</string>
+    <string name="contact_terms_button">الاتصال بدعم الشروط</string>
+
+    <!-- ==================== DIALOGS & COMMON ACTIONS ==================== -->
+    <string name="save">حفظ</string>
+    <string name="delete">حذف</string>
+    <string name="edit">تعديل</string>
+    <string name="ok">موافق</string>
+    <string name="yes">نعم</string>
+    <string name="no">لا</string>
+    <string name="close">إغلاق</string>
+    <string name="cancel">إلغاء</string>
+    <string name="update">تحديث</string>
+
+    <!-- Logout Dialog -->
+    <string name="logout_confirm_title">تسجيل الخروج</string>
+    <string name="logout_confirm_message">هل أنت متأكد أنك تريد تسجيل الخروج؟</string>
+</resources>

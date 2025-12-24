@@ -27,6 +27,13 @@ public class PrivacyFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // Set up toolbar
+        androidx.appcompat.widget.Toolbar toolbar = view.findViewById(R.id.toolbar);
+        toolbar.setNavigationOnClickListener(v -> {
+            // This will handle the back button press
+            requireActivity().onBackPressed();
+        });
+
         // TODO: Load existing privacy preferences
 
         Button openAppSettingsButton = view.findViewById(R.id.openAppSettingsButton);

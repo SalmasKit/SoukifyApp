@@ -9,13 +9,16 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
  * Repository to manage user-specific product likes and favorites
  * Uses both SharedPreferences for local persistence and Firestore for cloud sync
  * Enhanced with device-based fallback for anonymous users
+ * Persists likes to user document so they survive logout/reinstall
  */
 public class UserProductPreferencesRepository {
     private static final String TAG = "UserProductPreferencesRepository";
@@ -115,6 +118,8 @@ public class UserProductPreferencesRepository {
         Set<String> likedProducts = getLikedProducts();
         boolean isLiked = likedProducts.contains(productId);
         
+        Log.d(TAG, "❤️ toggleLike called: productId=" + productId + ", wasLiked=" + isLiked);
+        
         if (isLiked) {
             likedProducts.remove(productId);
         } else {
@@ -144,7 +149,7 @@ public class UserProductPreferencesRepository {
             updateProductLikeCount(productId, isLiked);
         }
         
-        Log.d(TAG, "Toggled like for product " + productId + " (now " + !isLiked + ")");
+        Log.d(TAG, "❤️ Toggled like for product " + productId + " (now " + !isLiked + ")");
     }
     
     /**
@@ -196,7 +201,9 @@ public class UserProductPreferencesRepository {
      * Check if product is liked by current user
      */
     public boolean isProductLiked(String productId) {
-        return getLikedProducts().contains(productId);
+        boolean result = getLikedProducts().contains(productId);
+        Log.d(TAG, "❤️ isProductLiked: productId=" + productId + ", result=" + result);
+        return result;
     }
     
     /**
@@ -210,31 +217,40 @@ public class UserProductPreferencesRepository {
      * Update product like count in Firestore
      */
     private void updateProductLikeCount(String productId, boolean isCurrentlyLiked) {
-        firestore.collection("products")
+        // Deprecated: use updateProductLikeCountAsync for callers that need Task handling.
+        updateProductLikeCountAsync(productId, isCurrentlyLiked)
+            .addOnSuccessListener(aVoid -> Log.d(TAG, "Updated like count for product " + productId))
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Failed to update like count", e);
+                revertLikeChange(productId, isCurrentlyLiked);
+            });
+    }
+
+    /**
+     * Async version that returns a Task so callers can chain operations and wait for the
+     * likesCount update to complete in Firestore.
+     */
+    public com.google.android.gms.tasks.Task<Void> updateProductLikeCountAsync(String productId, boolean isCurrentlyLiked) {
+        Log.d(TAG, "❤️ updateProductLikeCountAsync called: productId=" + productId + ", isCurrentlyLiked=" + isCurrentlyLiked);
+        
+        return firestore.collection("products")
             .document(productId)
             .get()
-            .addOnSuccessListener(documentSnapshot -> {
-                if (documentSnapshot.exists()) {
-                    Integer currentLikes = documentSnapshot.getLong("likesCount") != null ? 
-                        documentSnapshot.getLong("likesCount").intValue() : 0;
-                    
-                    int newLikesCount = isCurrentlyLiked ? currentLikes - 1 : currentLikes + 1;
-                    
-                    firestore.collection("products")
-                        .document(productId)
-                        .update("likesCount", newLikesCount)
-                        .addOnSuccessListener(aVoid -> {
-                            Log.d(TAG, "Updated like count for product " + productId + " to " + newLikesCount);
-                        })
-                        .addOnFailureListener(e -> {
-                            Log.e(TAG, "Failed to update like count", e);
-                            // Revert local change on failure
-                            revertLikeChange(productId, isCurrentlyLiked);
-                        });
+            .continueWithTask(task -> {
+                if (!task.isSuccessful() || task.getResult() == null) {
+                    Log.e(TAG, "❌ Failed to get product for like update");
+                    throw task.getException() != null ? task.getException() : new Exception("Failed to get product for like update");
                 }
-            })
-            .addOnFailureListener(e -> {
-                Log.e(TAG, "Failed to get product for like update", e);
+                com.google.firebase.firestore.DocumentSnapshot documentSnapshot = task.getResult();
+                Integer currentLikes = documentSnapshot.getLong("likesCount") != null ?
+                    documentSnapshot.getLong("likesCount").intValue() : 0;
+                int newLikesCount = isCurrentlyLiked ? currentLikes - 1 : currentLikes + 1;
+                
+                Log.d(TAG, "❤️ Updating likesCount: productId=" + productId + ", oldCount=" + currentLikes + ", newCount=" + newLikesCount);
+                
+                return firestore.collection("products").document(productId).update("likesCount", newLikesCount)
+                    .addOnSuccessListener(aVoid -> Log.d(TAG, "❤️ likesCount updated successfully"))
+                    .addOnFailureListener(e -> Log.e(TAG, "❌ Failed to update likesCount: " + e.getMessage()));
             });
     }
     
@@ -273,7 +289,7 @@ public class UserProductPreferencesRepository {
     /**
      * Revert like change on failure
      */
-    private void revertLikeChange(String productId, boolean wasLiked) {
+    public void revertLikeChange(String productId, boolean wasLiked) {
         String userId = getCurrentUserId();
         if (userId == null) return;
         
@@ -341,4 +357,75 @@ public class UserProductPreferencesRepository {
             Log.d(TAG, "Migration completed: " + userLikedProducts.size() + " likes, " + userFavoritedProducts.size() + " favorites");
         }
     }
+
+    /**
+     * Callback interface for async like loading
+     */
+    public interface OnLikesLoadedListener {
+        void onLikesLoaded(Set<String> likedProductIds);
+        void onError(String error);
+    }
+
+    /**
+     * Load user's liked products from Firestore and populate local cache.
+     * Call this on app startup or when user logs in to restore persistent state.
+     */
+    public void loadUserLikesFromFirebase(OnLikesLoadedListener listener) {
+        String userId = getCurrentUserId();
+        if (userId == null || !isUserAuthenticated()) {
+            if (listener != null) listener.onLikesLoaded(new HashSet<>());
+            return;
+        }
+
+        // Query user document to get likedProducts array
+        firestore.collection("users")
+            .document(userId)
+            .get()
+            .addOnSuccessListener(documentSnapshot -> {
+                Set<String> likedProductIds = new HashSet<>();
+                if (documentSnapshot.exists()) {
+                    List<String> likedList = (List<String>) documentSnapshot.get("likedProducts");
+                    if (likedList != null) {
+                        likedProductIds.addAll(likedList);
+                        Log.d(TAG, "Loaded " + likedProductIds.size() + " liked products from Firestore for user " + userId);
+                    }
+                }
+                // Update local cache with loaded likes
+                sharedPreferences.edit()
+                    .putStringSet(LIKED_PRODUCTS_KEY + userId, likedProductIds)
+                    .apply();
+                if (listener != null) listener.onLikesLoaded(likedProductIds);
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Failed to load user likes from Firestore", e);
+                if (listener != null) listener.onError(e.getMessage());
+            });
+    }
+
+    /**
+     * Sync current likes to user's Firestore document for persistent storage.
+     * Call this periodically or after like changes to ensure data is backed up.
+     */
+    public void syncLikesToFirebase() {
+        String userId = getCurrentUserId();
+        if (userId == null || !isUserAuthenticated()) {
+            Log.d(TAG, "Cannot sync likes: user not authenticated or ID null");
+            return;
+        }
+
+        Set<String> likedProducts = getLikedProducts();
+        List<String> likedList = new ArrayList<>(likedProducts);
+
+        // Update user document with likedProducts array
+        firestore.collection("users")
+            .document(userId)
+            .update("likedProducts", likedList)
+            .addOnSuccessListener(aVoid -> {
+                Log.d(TAG, "Synced " + likedList.size() + " liked products to Firestore for user " + userId);
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Failed to sync likes to Firestore", e);
+            });
+    }
+
 }

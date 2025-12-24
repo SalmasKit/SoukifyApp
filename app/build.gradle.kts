@@ -19,7 +19,12 @@ android {
 
         // Configure ABI filtering for universal APK compatibility
         ndk {
-            abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a", "armeabi"))
+            abiFilters.addAll(listOf(
+                "armeabi-v7a",
+                "arm64-v8a",
+                "x86",
+                "x86_64"
+            ))
         }
     }
 
@@ -89,6 +94,9 @@ dependencies {
 
     // Security
     implementation("at.favre.lib:bcrypt:0.10.2")
+
+    // OpenStreetMap (osmdroid)
+    implementation("org.osmdroid:osmdroid-android:6.1.14")
 
     // Testing
     testImplementation(libs.junit)

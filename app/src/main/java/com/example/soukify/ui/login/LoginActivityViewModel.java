@@ -44,11 +44,19 @@ public class LoginActivityViewModel extends AndroidViewModel {
     // 🔥 OBSERVER CENTRALISÉ
     // -----------------------------
     private void observeRepositoryBase() {
+
         userRepository.getIsLoading().observeForever(isLoading::setValue);
 
         userRepository.getErrorMessage().observeForever(error -> {
             if (error != null) {
                 errorMessage.setValue(error);
+            }
+        });
+
+        // ✅ AJOUT ICI (TRÈS IMPORTANT)
+        userRepository.getSuccessMessage().observeForever(message -> {
+            if (message != null) {
+                successMessage.setValue(message);
             }
         });
 
@@ -58,6 +66,7 @@ public class LoginActivityViewModel extends AndroidViewModel {
             }
         });
     }
+
 
     private void createUserSession(UserModel user) {
         sessionRepository.createLoginSession(
@@ -67,72 +76,8 @@ public class LoginActivityViewModel extends AndroidViewModel {
         );
     }
 
-    // ---------------------------------
-    // 📌 PHONE AUTH — SEND CODE
-    // ---------------------------------
-    public void sendVerificationCode(String phoneNumber, Activity activity) {
-        isLoading.setValue(true);
-        userRepository.sendPhoneVerificationCode(
-                phoneNumber,
-                activity,
-                new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
-                    @Override
-                    public void onVerificationCompleted(@NonNull PhoneAuthCredential credential) {
-                        verifyPhoneCredential(credential);
-                    }
 
-                    @Override
-                    public void onVerificationFailed(@NonNull FirebaseException e) {
-                        phoneAuthError.setValue(e.getMessage());
-                        isLoading.setValue(false);
-                    }
 
-                    @Override
-                    public void onCodeSent(@NonNull String verificationId,
-                                           @NonNull PhoneAuthProvider.ForceResendingToken token) {
-                        phoneVerificationId.setValue(verificationId);
-                        isLoading.setValue(false);
-                    }
-                }
-        );
-    }
-
-    // ---------------------------------
-    // 📌 VERIFY PHONE CODE (SMS)
-    // ---------------------------------
-    public void verifyPhoneCode(String code) {
-        String verificationId = phoneVerificationId.getValue();
-        if (verificationId == null || verificationId.isEmpty()) {
-            phoneAuthError.setValue("Verification ID missing. Please resend code.");
-            return;
-        }
-
-        PhoneAuthCredential credential = PhoneAuthProvider.getCredential(verificationId, code);
-        verifyPhoneCredential(credential);
-    }
-
-    private void verifyPhoneCredential(PhoneAuthCredential credential) {
-        isLoading.setValue(true);
-
-        userRepository.signInWithPhoneCredential(credential);
-
-        userRepository.getCurrentUser().observeForever(user -> {
-            if (user != null) {
-                createUserSession(user);
-                phoneAuthSuccess.setValue(true);
-                phoneAuthError.setValue(null);
-                isLoading.setValue(false);
-            }
-        });
-
-        userRepository.getErrorMessage().observeForever(error -> {
-            if (error != null) {
-                phoneAuthError.setValue(error);
-                phoneAuthSuccess.setValue(false);
-                isLoading.setValue(false);
-            }
-        });
-    }
 
     // ---------------------------------
     // 📌 LOGIN EMAIL / PASSWORD
@@ -215,12 +160,12 @@ public class LoginActivityViewModel extends AndroidViewModel {
     // ---------------------------------
     // 📌 PROFILE UPDATE
     // ---------------------------------
-    public void updateProfile(UserModel user) {
+    public void updateProfile(UserModel user, String newEmail, String password) {
         if (user == null || user.getFullName().trim().isEmpty()) {
             errorMessage.setValue("Invalid user data");
             return;
         }
-        userRepository.updateProfile(user, null, null);
+        userRepository.updateProfile(user, newEmail, password);
         successMessage.setValue("Profile updated");
     }
 

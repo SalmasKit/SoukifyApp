@@ -34,6 +34,13 @@ public class NotificationsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // Set up toolbar
+        androidx.appcompat.widget.Toolbar toolbar = view.findViewById(R.id.toolbar);
+        toolbar.setNavigationOnClickListener(v -> {
+            // This will handle the back button press
+            requireActivity().onBackPressed();
+        });
+
         // TODO: Load existing notification preferences
 
         // Quiet hours default labels
@@ -70,7 +77,7 @@ public class NotificationsFragment extends Fragment {
         boolean app = switchAppUpdates.isChecked();
 
         // TODO: Persist preferences to storage/server
-        showToast("Notification preferences saved");
+        showToast(getString(R.string.notification_preferences_saved));
         requireActivity().onBackPressed();
     }
 
@@ -115,7 +122,7 @@ public class NotificationsFragment extends Fragment {
             intent.putExtra(Settings.EXTRA_APP_PACKAGE, requireContext().getPackageName());
             startActivity(intent);
         } catch (Exception e) {
-            showToast("Unable to open system settings");
+            showToast(getString(R.string.unable_to_open_system_settings));
         }
     }
 
@@ -123,4 +130,5 @@ public class NotificationsFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
     }
+    
 }

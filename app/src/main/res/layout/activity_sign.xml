@@ -50,9 +50,10 @@
                 android:paddingLeft="10dp"
                 android:textSize="15dp"
                 android:layout_marginTop="30dp"
-                android:background="@drawable/rounded"
                 android:inputType="textPassword"
-                ></EditText>
+                android:drawableEnd="@drawable/eyeimg"
+                android:background="@drawable/rounded"
+                android:paddingEnd="12dp" />
             <EditText
                 android:id="@+id/confirm"
                 android:layout_width="match_parent"
@@ -61,9 +62,10 @@
                 android:paddingLeft="10dp"
                 android:textSize="15dp"
                 android:layout_marginTop="30dp"
-                android:background="@drawable/rounded"
                 android:inputType="textPassword"
-                ></EditText>
+                android:drawableEnd="@drawable/eyeimg"
+                android:background="@drawable/rounded"
+                android:paddingEnd="12dp" />
             <EditText
                 android:id="@+id/phone"
                 android:layout_width="match_parent"

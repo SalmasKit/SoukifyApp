@@ -369,9 +369,9 @@ public class ShopHomeFragment extends Fragment {
                 
                 // Use direct fetch for guaranteed fresh data
                 shopViewModel.fetchCurrentShopDirectly();
-                    android.util.Log.d("ShopHomeFragment", "Refreshing shop data before edit dialog");
-                    shopViewModel.fetchCurrentShopDirectly();
-                    // Set up one-time observer for fresh data
+                android.util.Log.d("ShopHomeFragment", "Refreshing shop data before edit dialog");
+                
+                // Set up one-time observer for fresh data
                 final boolean[] dialogShown = {false};
                 shopViewModel.getShop().observe(getViewLifecycleOwner(), freshShop -> {
                     if (freshShop != null && !dialogShown[0]) {
@@ -380,26 +380,21 @@ public class ShopHomeFragment extends Fragment {
                         // Only show dialog once
                         dialogShown[0] = true;
                         
-                        // Remove observer to prevent multiple calls
-                        shopViewModel.getShop().removeObservers(getViewLifecycleOwner());
-                        
                         // Show dialog with confirmed fresh data
                         showEditShopDialog(freshShop);
                     }
                 });
                 
                 // Fallback: show dialog after 3 seconds even if fresh data not received
-                    new android.os.Handler().postDelayed(() -> {
+                new android.os.Handler().postDelayed(() -> {
                     if (!dialogShown[0]) {
                         android.util.Log.w("ShopHomeFragment", "Fallback triggered - showing dialog with current data");
                         dialogShown[0] = true;
-                        shopViewModel.getShop().removeObservers(getViewLifecycleOwner());
-                        // ShopModel refreshedShop = shopViewModel.getShop().getValue(); // Commented out - using LiveData observer instead
-                        // if (refreshedShop != null) { // Commented out - using LiveData observer instead
-                            // android.util.Log.d("ShopHomeFragment", "Refreshed shop data - hasPromotion: " + refreshedShop.isHasPromotion() + ", hasLivraison: " + refreshedShop.isHasLivraison()); // Commented out
-                            // showEditShopDialog(refreshedShop); // Commented out
+                        if (currentShop != null) {
+                            showEditShopDialog(currentShop);
                         }
-                    }, 500);
+                    }
+                }, 3000);
                 }
             });
         }
@@ -782,21 +777,34 @@ public class ShopHomeFragment extends Fragment {
         List<CityModel> cities = shopViewModel.getCities().getValue();
         List<RegionModel> regions = shopViewModel.getRegions().getValue();
 
+        android.util.Log.d("ShopHomeFragment", "loadLocationData - cities available: " + (cities != null && !cities.isEmpty()) + 
+                          ", regions available: " + (regions != null && !regions.isEmpty()));
+
         if (cities == null || cities.isEmpty() || regions == null || regions.isEmpty()) {
-            shopViewModel.getCities().observe(getViewLifecycleOwner(), citiesList -> {
-                shopViewModel.getRegions().observe(getViewLifecycleOwner(), regionsList -> {
-                    if (citiesList != null && regionsList != null && !citiesList.isEmpty() && !regionsList.isEmpty()) {
-                        updateLocationWithData(shopLocation, address, cityId, regionId, hasCityId, hasRegionId, citiesList, regionsList);
-                    }
-                });
+            // Set loading text while waiting for data
+            shopLocation.setText("Loading location...");
+            
+            // Use single observers to avoid nested observer issues
+            shopViewModel.getRegions().observe(getViewLifecycleOwner(), regionsList -> {
+                if (regionsList != null && !regionsList.isEmpty()) {
+                    shopViewModel.getCities().observe(getViewLifecycleOwner(), citiesList -> {
+                        if (citiesList != null && !citiesList.isEmpty()) {
+                            android.util.Log.d("ShopHomeFragment", "Both regions and cities loaded, updating location");
+                            updateLocationWithData(shopLocation, address, cityId, regionId, hasCityId, hasRegionId, citiesList, regionsList);
+                        }
+                    });
+                }
             });
         } else {
+            android.util.Log.d("ShopHomeFragment", "Regions and cities already available, updating location immediately");
             updateLocationWithData(shopLocation, address, cityId, regionId, hasCityId, hasRegionId, cities, regions);
         }
     }
 
     private void updateLocationWithData(TextView shopLocation, String address, String cityId, String regionId,
                                         boolean hasCityId, boolean hasRegionId, List<CityModel> cities, List<RegionModel> regions) {
+        android.util.Log.d("ShopHomeFragment", "updateLocationWithData - cityId: " + cityId + ", regionId: " + regionId);
+        
         StringBuilder locationBuilder = new StringBuilder();
 
         if (address != null && !address.isEmpty()) {
@@ -805,16 +813,22 @@ public class ShopHomeFragment extends Fragment {
 
         String cityName = null;
         if (hasCityId && cities != null) {
+            android.util.Log.d("ShopHomeFragment", "Searching for city with ID: " + cityId + " in " + cities.size() + " cities");
             for (CityModel city : cities) {
                 if (city.getCityId().equals(cityId)) {
                     cityName = city.getName();
+                    android.util.Log.d("ShopHomeFragment", "Found city: " + cityName);
                     break;
                 }
+            }
+            if (cityName == null) {
+                android.util.Log.w("ShopHomeFragment", "City not found for ID: " + cityId);
             }
         }
 
         String regionName = null;
         if (hasRegionId && regions != null) {
+            android.util.Log.d("ShopHomeFragment", "Searching for region with ID: " + regionId + " in " + regions.size() + " regions");
             try {
                 int regionIntId;
                 if (regionId.startsWith("region_")) {
@@ -827,11 +841,16 @@ public class ShopHomeFragment extends Fragment {
                     if (region.getRegionId().equals(String.valueOf(regionIntId)) ||
                             region.getRegionId().equals(regionId)) {
                         regionName = region.getName();
+                        android.util.Log.d("ShopHomeFragment", "Found region: " + regionName);
                         break;
                     }
                 }
+                
+                if (regionName == null) {
+                    android.util.Log.w("ShopHomeFragment", "Region not found for ID: " + regionId + " (parsed as: " + regionIntId + ")");
+                }
             } catch (NumberFormatException e) {
-                android.util.Log.e("ShopHomeFragment", "Error parsing region ID: " + e.getMessage());
+                android.util.Log.e("ShopHomeFragment", "Error parsing region ID: " + regionId + " - " + e.getMessage());
             }
         }
 
@@ -846,6 +865,8 @@ public class ShopHomeFragment extends Fragment {
         }
 
         String finalLocation = locationBuilder.toString();
+        android.util.Log.d("ShopHomeFragment", "Final location: " + finalLocation);
+        
         if (!finalLocation.isEmpty()) {
             shopLocation.setText(finalLocation);
         } else {
@@ -1203,11 +1224,21 @@ public class ShopHomeFragment extends Fragment {
 
         shop.setRegionId(regionId);
         shop.setCityId(cityId);
+        
+        // Update the combined location field for proper display in item_shop.xml
+        String address = etShopAddress.getText().toString();
+        String cityName = etShopCity.getText().toString();
+        String regionName = etShopRegion.getText().toString();
+        String location = address + ", " + cityName + ", " + regionName;
+        shop.setLocation(location);
 
         shopViewModel.updateShop(shop);
 
         // Clear the preview URI after saving
         selectedShopImageUri = null;
+        
+        // Force immediate UI refresh with updated shop data
+        updateShopUI(shop);
     }
 
     private void styleDialog(AlertDialog dialog) {
@@ -1692,14 +1723,22 @@ public class ShopHomeFragment extends Fragment {
             Bundle args = new Bundle();
             args.putParcelable("product", product);
             
-            // Check if we need to pass source parameter (from search)
+            // Check if we need to pass source and hideDialogs parameters
             Bundle fragmentArgs = getArguments();
             if (fragmentArgs != null) {
-                boolean fromSearch = fragmentArgs.getBoolean("hideDialogs", false);
-                if (fromSearch) {
+                boolean hideDialogs = fragmentArgs.getBoolean("hideDialogs", true);
+                args.putBoolean("hideDialogs", hideDialogs);
+                
+                if (hideDialogs) {
                     args.putString("source", "search");
-                    android.util.Log.d("ShopHomeFragment", "Passing source parameter to product detail: search");
+                    android.util.Log.d("ShopHomeFragment", "Passing hideDialogs=true to product detail");
+                } else {
+                    android.util.Log.d("ShopHomeFragment", "Passing hideDialogs=false to product detail (from settings)");
                 }
+            } else {
+                // Default to hiding dialogs if no arguments
+                args.putBoolean("hideDialogs", true);
+                android.util.Log.d("ShopHomeFragment", "No arguments found, defaulting to hideDialogs=true");
             }
             
             // Use the activity's NavController for global navigation

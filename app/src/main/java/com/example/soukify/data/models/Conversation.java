@@ -11,19 +11,22 @@ public class Conversation {
     private String shopName;
     private String shopImage;
     private String lastMessage;
-    private long lastMessageTimestamp;
+    private Long lastMessageTimestamp;
     private int unreadCountBuyer;
     private int unreadCountSeller;
+
+    // ✅ NOUVEAU : Champ createdAt pour Firebase
     @ServerTimestamp
     private Date createdAt;
 
-    // Constructeur vide requis pour Firestore
+    // ✅ Constructeur vide OBLIGATOIRE pour Firebase
     public Conversation() {
+        // Firebase utilise ce constructeur pour désérialiser
     }
 
-    public Conversation(String id, String buyerId, String sellerId, String shopId,
+    // ✅ Constructeur complet
+    public Conversation(String buyerId, String sellerId, String shopId,
                         String shopName, String shopImage) {
-        this.id = id;
         this.buyerId = buyerId;
         this.sellerId = sellerId;
         this.shopId = shopId;
@@ -35,43 +38,111 @@ public class Conversation {
         this.unreadCountSeller = 0;
     }
 
-    // Getters et Setters
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    // ════════════════════════════════════════
+    // GETTERS
+    // ════════════════════════════════════════
 
-    public String getBuyerId() { return buyerId; }
-    public void setBuyerId(String buyerId) { this.buyerId = buyerId; }
+    public String getId() {
+        return id;
+    }
 
-    public String getSellerId() { return sellerId; }
-    public void setSellerId(String sellerId) { this.sellerId = sellerId; }
+    public String getBuyerId() {
+        return buyerId;
+    }
 
-    public String getShopId() { return shopId; }
-    public void setShopId(String shopId) { this.shopId = shopId; }
+    public String getSellerId() {
+        return sellerId;
+    }
 
-    public String getShopName() { return shopName; }
-    public void setShopName(String shopName) { this.shopName = shopName; }
+    public String getShopId() {
+        return shopId;
+    }
 
-    public String getShopImage() { return shopImage; }
-    public void setShopImage(String shopImage) { this.shopImage = shopImage; }
+    public String getShopName() {
+        return shopName;
+    }
 
-    public String getLastMessage() { return lastMessage; }
-    public void setLastMessage(String lastMessage) { this.lastMessage = lastMessage; }
+    public String getShopImage() {
+        return shopImage;
+    }
 
-    public long getLastMessageTimestamp() { return lastMessageTimestamp; }
-    public void setLastMessageTimestamp(long lastMessageTimestamp) {
+    public String getLastMessage() {
+        return lastMessage;
+    }
+
+    public Long getLastMessageTimestamp() {
+        return lastMessageTimestamp;
+    }
+
+    public int getUnreadCountBuyer() {
+        return unreadCountBuyer;
+    }
+
+    public int getUnreadCountSeller() {
+        return unreadCountSeller;
+    }
+
+    // ✅ NOUVEAU : Getter pour createdAt
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    // ════════════════════════════════════════
+    // SETTERS
+    // ════════════════════════════════════════
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setBuyerId(String buyerId) {
+        this.buyerId = buyerId;
+    }
+
+    public void setSellerId(String sellerId) {
+        this.sellerId = sellerId;
+    }
+
+    public void setShopId(String shopId) {
+        this.shopId = shopId;
+    }
+
+    public void setShopName(String shopName) {
+        this.shopName = shopName;
+    }
+
+    public void setShopImage(String shopImage) {
+        this.shopImage = shopImage;
+    }
+
+    public void setLastMessage(String lastMessage) {
+        this.lastMessage = lastMessage;
+    }
+
+    public void setLastMessageTimestamp(Long lastMessageTimestamp) {
         this.lastMessageTimestamp = lastMessageTimestamp;
     }
 
-    public int getUnreadCountBuyer() { return unreadCountBuyer; }
     public void setUnreadCountBuyer(int unreadCountBuyer) {
         this.unreadCountBuyer = unreadCountBuyer;
     }
 
-    public int getUnreadCountSeller() { return unreadCountSeller; }
     public void setUnreadCountSeller(int unreadCountSeller) {
         this.unreadCountSeller = unreadCountSeller;
     }
 
-    public Date getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
+    // ✅ NOUVEAU : Setter pour createdAt
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+    private String buyerName; // nom de l'acheteur
+
+    public String getBuyerName() {
+        return buyerName;
+    }
+
+    public void setBuyerName(String buyerName) {
+        this.buyerName = buyerName;
+    }
+
 }

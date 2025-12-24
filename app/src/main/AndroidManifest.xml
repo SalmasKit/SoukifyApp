@@ -16,42 +16,58 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Soukify">
+
+        <!-- SPLASH (SEUL LAUNCHER) -->
         <activity
-            android:name=".ui.login.LoginActivity"
+            android:name=".ui.splash.SplashActivity"
             android:exported="true"
-            android:label="@string/app_name">
+            android:theme="@style/Theme.Soukify.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- LOGIN -->
+        <activity
+            android:name=".ui.login.LoginActivity"
+            android:exported="false" />
+
+        <!-- MAIN -->
         <activity
             android:name=".MainActivity"
-            android:exported="true"
-            android:label="@string/app_name">
-        </activity>
+            android:exported="false" />
+
         <activity
             android:name=".ui.home.HomeActivity"
             android:exported="false" />
+
         <activity
             android:name=".ui.test.TestActivity"
             android:exported="false" />
+
         <activity
-            android:name="com.example.soukify.ui.sign.SignActivity"
+            android:name=".ui.sign.SignActivity"
             android:exported="false" />
+
         <activity
             android:name=".ui.media.MediaEditorActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Soukify" />
+
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
         <activity
             android:name=".ui.chat.ChatActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.conversations.ConversationsListActivity"
             android:exported="false" />
 
         <provider
@@ -63,6 +79,7 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
     </application>
 
 </manifest>

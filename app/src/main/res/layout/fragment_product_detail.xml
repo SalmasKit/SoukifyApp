@@ -45,7 +45,8 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:src="@drawable/ic_edit"
                     android:tint="#E85F4C"
-                    android:contentDescription="Edit product" />
+                    android:contentDescription="Edit product"
+                    android:visibility="gone" />
 
                 <ImageButton
                     android:id="@+id/deleteButton"
@@ -54,7 +55,8 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:src="@drawable/ic_baseline_delete_24"
                     android:tint="#E85F4C"
-                    android:contentDescription="Delete product" />
+                    android:contentDescription="Delete product"
+                    android:visibility="gone" />
 
             </LinearLayout>
 

@@ -118,7 +118,7 @@ public class FirebaseUserService {
         if (user == null) {
             return Tasks.forException(new IllegalStateException("No authenticated user"));
         }
-        return user.verifyBeforeUpdateEmail(newEmail);
+        return user.updateEmail(newEmail);
     }
 
     public boolean isEmailVerified() {
@@ -126,11 +126,7 @@ public class FirebaseUserService {
         return user != null && user.isEmailVerified();
     }
 
-    public String getCurrentEmail() {
-        FirebaseUser user = getCurrentUser();
-        return user != null ? user.getEmail() : null;
-    }
-
+    
     /* ===================== FIRESTORE USER ===================== */
 
     public Task<Void> createUser(UserModel user) {
