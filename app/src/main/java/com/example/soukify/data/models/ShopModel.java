@@ -1,5 +1,6 @@
 package com.example.soukify.data.models;
 
+import com.google.firebase.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -25,7 +26,7 @@ public class ShopModel {
     private int likesCount;
     private int favoritesCount;
     private String searchableName;
-    private String createdAt;
+    private Object createdAt;
     private String phone;
     private String email;
     private String address;
@@ -240,21 +241,34 @@ public class ShopModel {
         this.searchableName = searchableName;
     }
     
-    public String getCreatedAt() {
+    @com.google.firebase.firestore.PropertyName("createdAt")
+    public Object getCreatedAt() {
         return createdAt;
     }
-    
-    public void setCreatedAt(String createdAt) {
+
+    @com.google.firebase.firestore.Exclude
+    public String getCreatedAtString() {
+        if (createdAt == null) return null;
+        if (createdAt instanceof String) return (String) createdAt;
+        if (createdAt instanceof Timestamp) {
+            return new SimpleDateFormat(DATE_FORMAT, Locale.getDefault()).format(((Timestamp) createdAt).toDate());
+        }
+        return createdAt.toString();
+    }
+
+    @com.google.firebase.firestore.PropertyName("createdAt")
+    public void setCreatedAt(Object createdAt) {
         this.createdAt = createdAt;
     }
     
     public long getCreatedAtTimestamp() {
-        if (createdAt == null || createdAt.isEmpty()) {
+        String dateStr = getCreatedAtString();
+        if (dateStr == null || dateStr.isEmpty()) {
             return System.currentTimeMillis();
         }
         try {
             SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault());
-            Date date = sdf.parse(createdAt);
+            Date date = sdf.parse(dateStr);
             return date != null ? date.getTime() : System.currentTimeMillis();
         } catch (Exception e) {
             return System.currentTimeMillis();

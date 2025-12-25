@@ -181,7 +181,7 @@ public class UserSettingRepository {
     private UserSettingModel createDefaultSettings(String userId) {
         UserSettingModel settings = new UserSettingModel(userId);
         settings.setTheme("system");
-        settings.setLanguage("fr");
+        settings.setLanguage("en");
         settings.setCurrency("MAD");
         settings.setNotifications(true);
         return settings;
@@ -196,7 +196,7 @@ public class UserSettingRepository {
     // Get current language preference
     public String getCurrentLanguage() {
         UserSettingModel settings = currentUserSettings.getValue();
-        return settings != null ? settings.getLanguage() : "fr";
+        return settings != null ? settings.getLanguage() : "en";
     }
     
     // Get current currency preference
@@ -209,5 +209,19 @@ public class UserSettingRepository {
     public boolean areNotificationsEnabled() {
         UserSettingModel settings = currentUserSettings.getValue();
         return settings != null ? settings.isNotifications() : true;
+    }
+    
+    public void updateDetailedNotifications(String userId, com.example.soukify.data.models.UserModel.NotificationPreferences prefs) {
+        isLoading.setValue(true);
+        errorMessage.setValue(null);
+        
+        userSettingService.updateDetailedNotifications(userId, prefs)
+                .addOnSuccessListener(aVoid -> {
+                    loadUserSettings(userId); // Refresh the settings
+                })
+                .addOnFailureListener(e -> {
+                    errorMessage.postValue("Failed to update notification preferences: " + e.getMessage());
+                    isLoading.postValue(false);
+                });
     }
 }

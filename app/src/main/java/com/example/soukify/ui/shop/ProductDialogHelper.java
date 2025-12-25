@@ -26,6 +26,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.soukify.data.models.ProductModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
+import com.example.soukify.utils.CurrencyHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -286,6 +287,30 @@ public class ProductDialogHelper {
                 heightUnitSpinner.setText(selectedUnit, false);
             });
         }
+
+        // Currency dropdown
+        AutoCompleteTextView currencySpinner = dialogView.findViewById(R.id.etProductCurrency);
+        if (currencySpinner != null) {
+            String[] currencies = fragment.requireContext().getResources().getStringArray(R.array.supported_currencies);
+            ArrayAdapter<String> currencyAdapter = new ArrayAdapter<>(fragment.requireContext(),
+                    R.layout.dropdown_item, R.id.dropdown_text, currencies);
+            currencySpinner.setAdapter(currencyAdapter);
+            
+            // Default to MAD if it exists in the list
+            String defaultCurr = "MAD";
+            for (String curr : currencies) {
+                if (curr.startsWith("MAD")) {
+                    defaultCurr = curr;
+                    break;
+                }
+            }
+            currencySpinner.setText(defaultCurr, false);
+            
+            currencySpinner.setOnItemClickListener((parent, view, position, id) -> {
+                String selected = (String) parent.getItemAtPosition(position);
+                currencySpinner.setText(selected, false);
+            });
+        }
     }
 
     /**
@@ -343,6 +368,22 @@ public class ProductDialogHelper {
         if (etProductName != null) etProductName.setText(product.getName());
         if (etProductDescription != null) etProductDescription.setText(product.getDescription());
         if (etProductPrice != null) etProductPrice.setText(String.valueOf(product.getPrice()));
+        
+        // Product Currency
+        AutoCompleteTextView etProductCurrency = dialogView.findViewById(R.id.etProductCurrency);
+        if (etProductCurrency != null && product.getCurrency() != null) {
+            String productCurr = product.getCurrency();
+            String[] currencies = fragment.requireContext().getResources().getStringArray(R.array.supported_currencies);
+            String displayCurr = productCurr;
+            for (String curr : currencies) {
+                if (curr.startsWith(productCurr)) {
+                    displayCurr = curr;
+                    break;
+                }
+            }
+            etProductCurrency.setText(displayCurr, false);
+        }
+
         if (etProductType != null) etProductType.setText(product.getProductType());
 
         // Product details
@@ -478,6 +519,7 @@ public class ProductDialogHelper {
         AutoCompleteTextView etLengthUnit = dialogView.findViewById(R.id.etLengthUnit);
         AutoCompleteTextView etWidthUnit = dialogView.findViewById(R.id.etWidthUnit);
         AutoCompleteTextView etHeightUnit = dialogView.findViewById(R.id.etHeightUnit);
+        AutoCompleteTextView etProductCurrency = dialogView.findViewById(R.id.etProductCurrency);
 
         String name = etProductName.getText().toString().trim();
         String description = etProductDescription.getText().toString().trim();
@@ -491,6 +533,13 @@ public class ProductDialogHelper {
         } catch (NumberFormatException e) {
             Toast.makeText(fragment.requireContext(), "Invalid price format", Toast.LENGTH_SHORT).show();
             return;
+        }
+
+        // Get currency
+        String currency = "MAD";
+        if (etProductCurrency != null) {
+            String selectedCurrency = etProductCurrency.getText().toString();
+            currency = CurrencyHelper.extractCurrencyCode(selectedCurrency);
         }
 
         // Parse and convert weight based on unit
@@ -534,6 +583,7 @@ public class ProductDialogHelper {
         product.setName(name);
         product.setDescription(description);
         product.setPrice(price);
+        product.setCurrency(currency);
         product.setProductType(type);
         product.setWeight(weight);
         product.setLength(length);
@@ -621,6 +671,7 @@ public class ProductDialogHelper {
         AutoCompleteTextView etLengthUnit = dialogView.findViewById(R.id.etLengthUnit);
         AutoCompleteTextView etWidthUnit = dialogView.findViewById(R.id.etWidthUnit);
         AutoCompleteTextView etHeightUnit = dialogView.findViewById(R.id.etHeightUnit);
+        AutoCompleteTextView etProductCurrency = dialogView.findViewById(R.id.etProductCurrency);
 
         String name = etProductName.getText().toString().trim();
         String description = etProductDescription.getText().toString().trim();
@@ -634,6 +685,13 @@ public class ProductDialogHelper {
         } catch (NumberFormatException e) {
             Toast.makeText(fragment.requireContext(), "Invalid price format", Toast.LENGTH_SHORT).show();
             return;
+        }
+
+        // Get currency
+        String currency = "MAD";
+        if (etProductCurrency != null) {
+            String selectedCurrency = etProductCurrency.getText().toString();
+            currency = CurrencyHelper.extractCurrencyCode(selectedCurrency);
         }
 
         // Parse and convert weight based on unit
@@ -675,16 +733,16 @@ public class ProductDialogHelper {
 
         // Add product through ProductManager
         if (selectedProductImageUris.isEmpty()) {
-            productManager.addProduct(name, description, price, type, null, weight, length, width, height, color, material);
+            productManager.addProduct(name, description, price, currency, type, null, weight, length, width, height, color, material);
         } else if (selectedProductImageUris.size() == 1) {
             String imageUrl = selectedProductImageUris.get(0).toString();
-            productManager.addProduct(name, description, price, type, imageUrl, weight, length, width, height, color, material);
+            productManager.addProduct(name, description, price, currency, type, imageUrl, weight, length, width, height, color, material);
         } else {
             List<String> imageUrls = new ArrayList<>();
             for (Uri uri : selectedProductImageUris) {
                 imageUrls.add(uri.toString());
             }
-            productManager.addProductWithMultipleImages(name, description, price, type, imageUrls, weight, length, width, height, color, material);
+            productManager.addProductWithMultipleImages(name, description, price, currency, type, imageUrls, weight, length, width, height, color, material);
         }
 
         selectedProductImageUris.clear();

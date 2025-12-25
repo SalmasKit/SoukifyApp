@@ -1,6 +1,8 @@
 package com.example.soukify.data.repositories;
 
 import android.app.Application;
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import com.example.soukify.data.remote.FirebaseManager;
@@ -9,6 +11,8 @@ import com.example.soukify.data.models.ProductImageModel;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Product Image Repository - Firebase implementation
@@ -20,6 +24,7 @@ public class ProductImageRepository {
     private final MutableLiveData<ProductImageModel> currentProductImage = new MutableLiveData<>();
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
+    private final ExecutorService executor = Executors.newFixedThreadPool(1);
     
     public ProductImageRepository(Application application) {
         FirebaseManager firebaseManager = FirebaseManager.getInstance(application);
@@ -127,13 +132,17 @@ public class ProductImageRepository {
         errorMessage.setValue(null);
         
         productImageService.getAllProductImages().get()
-                .addOnSuccessListener(querySnapshot -> {
+                .addOnSuccessListener(executor, querySnapshot -> {
                     List<ProductImageModel> images = new ArrayList<>();
                     for (var doc : querySnapshot.getDocuments()) {
-                        ProductImageModel image = doc.toObject(ProductImageModel.class);
-                        if (image != null) {
-                            image.setImageId(doc.getId());
-                            images.add(image);
+                        try {
+                            ProductImageModel image = doc.toObject(ProductImageModel.class);
+                            if (image != null) {
+                                image.setImageId(doc.getId());
+                                images.add(image);
+                            }
+                        } catch (Exception e) {
+                            Log.e("ProductImageRepository", "Error deserializing", e);
                         }
                     }
                     productImages.postValue(images);
@@ -150,13 +159,17 @@ public class ProductImageRepository {
         errorMessage.setValue(null);
         
         productImageService.getImagesByProductId(productId).get()
-                .addOnSuccessListener(querySnapshot -> {
+                .addOnSuccessListener(executor, querySnapshot -> {
                     List<ProductImageModel> images = new ArrayList<>();
                     for (var doc : querySnapshot.getDocuments()) {
-                        ProductImageModel image = doc.toObject(ProductImageModel.class);
-                        if (image != null) {
-                            image.setImageId(doc.getId());
-                            images.add(image);
+                        try {
+                            ProductImageModel image = doc.toObject(ProductImageModel.class);
+                            if (image != null) {
+                                image.setImageId(doc.getId());
+                                images.add(image);
+                            }
+                        } catch (Exception e) {
+                            Log.e("ProductImageRepository", "Error deserializing", e);
                         }
                     }
                     productImages.postValue(images);

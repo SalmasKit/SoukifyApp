@@ -34,23 +34,36 @@ public class LocaleHelper {
     
     /**
      * Apply language to context (for creating localized context)
+     * This is the modern way to handle locales in Android
+     */
+    public static Context onAttach(Context context) {
+        String lang = getLanguage(context);
+        if ("device".equalsIgnoreCase(lang)) {
+            lang = getDeviceLanguage();
+        }
+        return applyLanguage(context, lang);
+    }
+
+    /**
+     * Apply language to context
      */
     public static Context applyLanguage(Context context, String language) {
+        setLanguage(context, language);
         Locale locale = getLocaleFromCode(language);
-        return updateResources(context, language, locale);
+        return updateResources(context, locale);
     }
     
     /**
-     * Update the app's locale configuration
+     * Update the app's locale configuration (Legacy support)
      */
     public static void updateLocale(Context context, String language) {
         Locale locale = getLocaleFromCode(language);
         Locale.setDefault(locale);
         
-        Configuration config = new Configuration();
-        
+        Configuration config = new Configuration(context.getResources().getConfiguration());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             config.setLocale(locale);
+            config.setLayoutDirection(locale);
         } else {
             config.locale = locale;
         }
@@ -76,18 +89,19 @@ public class LocaleHelper {
     /**
      * Helper method to update resources with new locale
      */
-    private static Context updateResources(Context context, String language, Locale locale) {
+    private static Context updateResources(Context context, Locale locale) {
         Locale.setDefault(locale);
         
-        Configuration config = new Configuration();
-        
+        Configuration config = new Configuration(context.getResources().getConfiguration());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             config.setLocale(locale);
+            config.setLayoutDirection(locale);
+            return context.createConfigurationContext(config);
         } else {
             config.locale = locale;
+            context.getResources().updateConfiguration(config, context.getResources().getDisplayMetrics());
+            return context;
         }
-        
-        return context.createConfigurationContext(config);
     }
     
     /**

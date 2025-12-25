@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.soukify.R;
 import com.example.soukify.data.models.ProductModel;
+import com.example.soukify.utils.CurrencyHelper;
 import com.example.soukify.data.remote.firebase.FirebaseProductImageService;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -60,15 +61,10 @@ public class CleanProductsAdapter extends RecyclerView.Adapter<CleanProductsAdap
     }
 
     public void setLifecycleOwner(androidx.lifecycle.LifecycleOwner lifecycleOwner, RecyclerView recyclerView) {
+        // Observers are now managed externally by the Fragments/UI Managers 
+        // to avoid conflicts between different data sources (ProductManager vs ProductViewModel).
         if (lifecycleOwner != null && productViewModel != null) {
             removeObservers();
-
-            // UN SEUL observer pour la liste de produits
-            productViewModel.getProducts().observe(lifecycleOwner, updatedProducts -> {
-                if (updatedProducts != null) {
-                    updateProductsWithDiff(updatedProducts);
-                }
-            });
         }
     }
 
@@ -302,8 +298,12 @@ public class CleanProductsAdapter extends RecyclerView.Adapter<CleanProductsAdap
 
             favoritesCount.setText("0");
 
-            productPrice.setText(String.format("%.2f", product.getPrice()));
-            productCurrency.setText(product.getCurrency());
+            // Format localized price using CurrencyHelper
+            String formattedPrice = CurrencyHelper.formatLocalizedPrice(context, product.getPrice(), product.getCurrency());
+            productPrice.setText(formattedPrice);
+            
+            // Hide separate currency field as it's included in formatted price
+            productCurrency.setVisibility(View.GONE);
 
             if (product.getProductType() != null && !product.getProductType().isEmpty()) {
                 displayProductType(product, productType);

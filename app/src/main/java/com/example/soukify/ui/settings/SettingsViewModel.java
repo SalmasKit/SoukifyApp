@@ -22,6 +22,7 @@ public class SettingsViewModel extends AndroidViewModel {
 
     private final SessionRepository sessionRepository;
     private final UserRepository userRepository;
+    private final com.example.soukify.data.repositories.UserSettingRepository userSettingRepository;
     private final CloudinaryImageService cloudinaryService;
     private final MutableLiveData<Integer> themeIndex = new MutableLiveData<>();
     private final MutableLiveData<UserModel> currentUser = new MutableLiveData<>();
@@ -34,11 +35,25 @@ public class SettingsViewModel extends AndroidViewModel {
         super(application);
         sessionRepository = SessionRepository.getInstance(application);
         userRepository = new UserRepository(application);
+        userSettingRepository = new com.example.soukify.data.repositories.UserSettingRepository(application);
         cloudinaryService = new CloudinaryImageService(application);
         themeIndex.setValue(0);
 
         setupUserRepositoryObservers();
         loadCurrentUser();
+    }
+    
+    // ... existing code ...
+
+    public void updateDetailedNotificationPreferences(UserModel.NotificationPreferences prefs) {
+        String uid = userRepository.getCurrentUserId();
+        if (uid == null) {
+            uid = getCurrentUserId().getValue();
+        }
+        
+        if (uid != null) {
+            userSettingRepository.updateDetailedNotifications(uid, prefs);
+        }
     }
 
     private void setupUserRepositoryObservers() {
@@ -83,17 +98,31 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     private void applyTheme(int index) {
+        String theme;
         switch (index) {
             case 1:
+                theme = "light";
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
                 break;
             case 2:
+                theme = "dark";
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
                 break;
             case 0:
             default:
+                theme = "system";
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
                 break;
+        }
+        
+        // Update backend
+        String uid = userRepository.getCurrentUserId();
+        if (uid == null) {
+            uid = getCurrentUserId().getValue();
+        }
+        
+        if (uid != null) {
+            userSettingRepository.updateTheme(uid, theme);
         }
     }
 
@@ -305,6 +334,10 @@ public class SettingsViewModel extends AndroidViewModel {
         Log.d("SettingsViewModel", "Completing email change process");
         operationResult.setValue(null);
         userRepository.completeEmailChange();
+    }
+
+    public void updateNotificationPreferences(UserModel.NotificationPreferences prefs) {
+        userRepository.updateNotificationPreferences(prefs);
     }
 
     @Override

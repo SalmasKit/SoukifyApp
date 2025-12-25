@@ -453,7 +453,7 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
             args.putString("shopWebsite", shop.getWebsite() != null ? shop.getWebsite() : "");
             args.putString("shopRegionId", shop.getRegionId() != null ? shop.getRegionId() : "");
             args.putString("shopCityId", shop.getCityId() != null ? shop.getCityId() : "");
-            args.putString("shopCreatedAt", shop.getCreatedAt() != null ? shop.getCreatedAt() : "");
+            args.putString("shopCreatedAt", shop.getCreatedAtString() != null ? shop.getCreatedAtString() : "");
             args.putLong("shopCreatedAtTimestamp", shop.getCreatedAtTimestamp() > 0 ? shop.getCreatedAtTimestamp() : System.currentTimeMillis());
             args.putBoolean("hideDialogs", true); // Flag to hide dialogs and FAB
             

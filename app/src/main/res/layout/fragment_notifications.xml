@@ -74,13 +74,6 @@
                     android:text="@string/enable_email_notifications"
                     android:checked="true" />
 
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchSms"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="@string/enable_sms_notifications"
-                    android:checked="false" />
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchSound"
@@ -120,11 +113,26 @@
                     android:textSize="16sp" />
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchOrderUpdates"
+                    android:id="@+id/switchMessages"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:text="@string/order_updates" />
+                    android:text="New Messages" />
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchNewProducts"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="New Products form Liked Shops" />
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchShopPromotions"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Promotions from Liked Shops" />
+
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchPromotions"

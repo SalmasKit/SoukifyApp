@@ -86,6 +86,7 @@ public class ShopHomeFragment extends Fragment {
 
         // Initialize components first
         initializeComponents();
+        initializeProductsUI(); // Initialize product UI components early
 
         // Check if dialogs should be hidden (when opened from search)
         boolean hideDialogs = false;
@@ -107,7 +108,6 @@ public class ShopHomeFragment extends Fragment {
         loadShopRegionCities();
         observeViewModel();
         setupClickListeners();
-        initializeProductsUI();
 
         android.util.Log.d("ShopHomeFragment", "onViewCreated completed");
         return rootView;
@@ -322,14 +322,28 @@ public class ShopHomeFragment extends Fragment {
         shopViewModel.getShop().observe(getViewLifecycleOwner(), shop -> {
             android.util.Log.d("ShopHomeFragment", "Shop data received: " + (shop != null ? "EXISTS" : "NULL"));
             if (shop != null) {
+                // Ensure we only display the requested shop
+                Bundle args = getArguments();
+                if (args != null && args.containsKey("shopId")) {
+                    String requestedId = args.getString("shopId");
+                    if (requestedId != null && !requestedId.isEmpty() && !requestedId.equals(shop.getShopId())) {
+                        android.util.Log.w("ShopHomeFragment", "Ignoring shop update. Requested: " + requestedId + ", Received: " + shop.getShopId());
+                        return;
+                    }
+                }
+
                 android.util.Log.d("ShopHomeFragment", "Shop name: " + shop.getName());
                 android.util.Log.d("ShopHomeFragment", "Shop image URL: " + shop.getImageUrl());
-                updateShopUI(shop);
-                hasHandledDeletion = false;
-
-                if (productManager != null) {
-                    productManager.loadProductsForShop(shop.getShopId());
+                
+                // Load products using the verified shop ID
+                android.util.Log.d("ShopHomeFragment", "Loading products for shop: " + shop.getShopId());
+                if (productViewModel != null) {
+                    productViewModel.loadProductsForShop(shop.getShopId());
                 }
+                
+                updateShopUI(shop);
+                refreshButtonVisibility(); // Re-evaluate ownership buttons when data arrives
+                hasHandledDeletion = false;
             }
         });
 
@@ -431,14 +445,60 @@ public class ShopHomeFragment extends Fragment {
             });
         }
 
-        // Check if dialogs should be hidden based on ownership and navigation source
+        // Initial button visibility setup
+        refreshButtonVisibility();
+    }
+
+    private void refreshButtonVisibility() {
+        if (rootView == null) return;
+
         Bundle args = getArguments();
         boolean fromSearch = args != null && args.getBoolean("hideDialogs", false);
         boolean fromFavorites = args != null && "favorites".equals(args.getString("source"));
-        boolean shouldHideDialogs = fromSearch || fromFavorites || !isShopOwner();
+        boolean isOwner = isShopOwner();
         
+        boolean shouldHideDialogs = fromSearch || fromFavorites || !isOwner;
+        
+        android.util.Log.d("ShopHomeFragment", "refreshButtonVisibility - isOwner: " + isOwner + 
+                          ", fromSearch: " + fromSearch + ", fromFavorites: " + fromFavorites + 
+                          ", shouldHide: " + shouldHideDialogs);
+
         if (shouldHideDialogs) {
             hideDialogElements();
+        } else {
+            showDialogElements();
+        }
+    }
+
+    private void showDialogElements() {
+        // Show edit and delete buttons
+        ImageView editShopButton = rootView.findViewById(R.id.editShopButton);
+        ImageView deleteShopButton = rootView.findViewById(R.id.deleteShopButton);
+        
+        if (editShopButton != null) {
+            editShopButton.setVisibility(View.VISIBLE);
+        }
+        if (deleteShopButton != null) {
+            deleteShopButton.setVisibility(View.VISIBLE);
+        }
+
+        // Show FAB
+        FloatingActionButton addProductFab = rootView.findViewById(R.id.addProductFab);
+        if (addProductFab != null) {
+            addProductFab.setVisibility(View.VISIBLE);
+        }
+
+        // Enable image container clicks
+        LinearLayout imageContainer = rootView.findViewById(R.id.imageContainer);
+        ImageView shopBannerImage = rootView.findViewById(R.id.shopBannerImage);
+        
+        if (imageContainer != null) {
+            imageContainer.setClickable(true);
+            imageContainer.setFocusable(true);
+        }
+        if (shopBannerImage != null) {
+            shopBannerImage.setClickable(true);
+            shopBannerImage.setFocusable(true);
         }
     }
 
@@ -565,7 +625,7 @@ public class ShopHomeFragment extends Fragment {
         TextView shopCreatedAt = rootView.findViewById(R.id.shopCreatedAt);
         if (shopCreatedAt != null) {
             try {
-                String createdAtString = shop.getCreatedAt();
+                String createdAtString = shop.getCreatedAtString();
                 if (createdAtString != null && !createdAtString.isEmpty()) {
                     shopCreatedAt.setText("Created: " + createdAtString);
                     shopCreatedAt.setVisibility(View.VISIBLE);
@@ -945,7 +1005,7 @@ public class ShopHomeFragment extends Fragment {
 
         tvShopId.setText("ID: #" + shop.getShopId().substring(0, Math.min(8, shop.getShopId().length())));
 
-        if (shop.getCreatedAt() != null) {
+        if (shop.getCreatedAtString() != null) {
             tvCreationDate.setText(formatDate(shop.getCreatedAtTimestamp()));
             tvShopAge.setText(calculateShopAge(shop.getCreatedAtTimestamp()));
         }

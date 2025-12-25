@@ -44,6 +44,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickListener {
 
@@ -81,6 +83,7 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
     // City name -> list of cityIds mapping (normalized names as keys)
     private final java.util.Map<String, java.util.List<String>> cityNameToIds = new java.util.HashMap<>();
     private boolean cityMapLoaded = false;
+    private final ExecutorService executor = Executors.newFixedThreadPool(2);
 
     // Variable de classe pour garder l'état du tri actuel
     private boolean isSortedByRecent = true;
@@ -196,7 +199,7 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
         
         // Créer un listener en temps réel pour synchroniser les likes
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        shopsListener = db.collection("shops").addSnapshotListener((querySnapshot, error) -> {
+        shopsListener = db.collection("shops").addSnapshotListener(executor, (querySnapshot, error) -> {
             if (error != null) {
                 Log.e("SearchFragment", "Firestore listener error", error);
                 showError("Erreur de connexion: " + error.getMessage());
@@ -205,161 +208,118 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
 
             // Vérifier que querySnapshot n'est pas null
             if (querySnapshot == null) {
-                showLoading(false);
+                if (isAdded()) requireActivity().runOnUiThread(() -> showLoading(false));
                 return;
             }
 
-            // Le reste du code reste IDENTIQUE
-            allShops.clear();
-            filteredShops.clear();
+            List<ShopModel> loadedShops = new ArrayList<>();
 
             for (QueryDocumentSnapshot document : querySnapshot) {
-                ShopModel shop = new ShopModel();
-                shop.setShopId(document.getId());
+                try {
+                    ShopModel shop = new ShopModel();
+                    shop.setShopId(document.getId());
 
-                if (document.contains("name")) {
-                    shop.setName(document.getString("name"));
-                }
-                if (document.contains("category")) {
-                    shop.setCategory(document.getString("category"));
-                }
-                if (document.contains("location")) {
-                    shop.setLocation(document.getString("location"));
-                }
-                if (document.contains("imageUrl")) {
-                    String imageUrl = document.getString("imageUrl");
-                    shop.setImageUrl(imageUrl);
-                }
-                if (document.contains("userId")) {
-                    shop.setUserId(document.getString("userId"));
-                }
-                if (document.contains("phone")) {
-                    shop.setPhone(document.getString("phone"));
-                }
-                if (document.contains("email")) {
-                    shop.setEmail(document.getString("email"));
-                }
-                if (document.contains("address")) {
-                    shop.setAddress(document.getString("address"));
-                }
-                if (document.contains("regionId")) {
-                    shop.setRegionId(document.getString("regionId"));
-                }
-                if (document.contains("cityId")) {
-                    shop.setCityId(document.getString("cityId"));
-                }
+                    if (document.contains("name")) shop.setName(document.getString("name"));
+                    if (document.contains("category")) shop.setCategory(document.getString("category"));
+                    if (document.contains("location")) shop.setLocation(document.getString("location"));
+                    if (document.contains("imageUrl")) shop.setImageUrl(document.getString("imageUrl"));
+                    if (document.contains("userId")) shop.setUserId(document.getString("userId"));
+                    if (document.contains("phone")) shop.setPhone(document.getString("phone"));
+                    if (document.contains("email")) shop.setEmail(document.getString("email"));
+                    if (document.contains("address")) shop.setAddress(document.getString("address"));
+                    if (document.contains("regionId")) shop.setRegionId(document.getString("regionId"));
+                    if (document.contains("cityId")) shop.setCityId(document.getString("cityId"));
 
-                // Handle hasLivraison
-                if (document.contains("hasLivraison")) {
-                    Object v = document.get("hasLivraison");
-                    if (v instanceof Boolean) {
-                        shop.setHasLivraison((Boolean) v);
+                    // Handle hasLivraison
+                    if (document.contains("hasLivraison")) {
+                        Object v = document.get("hasLivraison");
+                        if (v instanceof Boolean) shop.setHasLivraison((Boolean) v);
                     }
-                }
 
-                if (document.contains("createdAt")) {
-                    Object createdAtValue = document.get("createdAt");
-                    if (createdAtValue instanceof Long) {
-                        Long timestamp = (Long) createdAtValue;
-                        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault());
-                        shop.setCreatedAt(sdf.format(new java.util.Date(timestamp)));
-                    }
-                }
-
-                if (document.contains("likesCount")) {
-                    Object v = document.get("likesCount");
-                    if (v instanceof Number) shop.setLikesCount(((Number) v).intValue());
-                }
-
-                // ✅ NOUVEAU : Charger le statut "liked" pour l'utilisateur actuel
-                if (document.contains("likedByUserIds")) {
-                    Object likedByUserIdsObj = document.get("likedByUserIds");
-                    if (likedByUserIdsObj instanceof List) {
-                        ArrayList<String> likedByUserIds = new ArrayList<>((List<String>) likedByUserIdsObj);
-                        shop.setLikedByUserIds(likedByUserIds);
-
-                        // Vérifier si l'utilisateur actuel a liké ce shop
-                        if (currentUserId != null && likedByUserIds.contains(currentUserId)) {
-                            shop.setLiked(true);
-                            Log.d("SearchFragment", "✅ Shop " + shop.getName() + " is liked by current user");
-                        } else {
-                            shop.setLiked(false);
+                    if (document.contains("createdAt")) {
+                        Object createdAtValue = document.get("createdAt");
+                        if (createdAtValue instanceof Long) {
+                            Long timestamp = (Long) createdAtValue;
+                            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault());
+                            shop.setCreatedAt(sdf.format(new java.util.Date(timestamp)));
                         }
-                    } else {
-                        shop.setLikedByUserIds(new ArrayList<>());
-                        shop.setLiked(false);
                     }
-                } else {
-                    shop.setLikedByUserIds(new ArrayList<>());
-                    shop.setLiked(false);
-                }
 
-                if (document.contains("favoritesCount")) {
-                    Object v = document.get("favoritesCount");
-                    if (v instanceof Number) shop.setFavoritesCount(((Number) v).intValue());
-                }
-
-                if (document.contains("hasPromotion")) {
-                    Object v = document.get("hasPromotion");
-                    if (v instanceof Boolean) shop.setHasPromotion((Boolean) v);
-                }
-
-                // 🌟 NOUVEAU : Charger les données de rating
-                if (document.contains("rating")) {
-                    Object ratingValue = document.get("rating");
-                    if (ratingValue instanceof Double) {
-                        shop.setRating((Double) ratingValue);
-                    } else if (ratingValue instanceof Long) {
-                        shop.setRating(((Long) ratingValue).doubleValue());
+                    if (document.contains("likesCount")) {
+                        Object v = document.get("likesCount");
+                        if (v instanceof Number) shop.setLikesCount(((Number) v).intValue());
                     }
-                }
 
-                if (document.contains("reviews")) {
-                    Object reviewsValue = document.get("reviews");
-                    if (reviewsValue instanceof Long) {
-                        shop.setReviews(((Long) reviewsValue).intValue());
-                    } else if (reviewsValue instanceof Integer) {
-                        shop.setReviews((Integer) reviewsValue);
-                    }
-                }
-
-                // 🌟 CRITIQUE : Charger la Map des évaluations par utilisateur
-                if (document.contains("userRatings")) {
-                    Map<String, Object> userRatingsObj = (Map<String, Object>) document.get("userRatings");
-                    if (userRatingsObj != null) {
-                        Map<String, Float> userRatings = new java.util.HashMap<>();
-                        for (Map.Entry<String, Object> entry : userRatingsObj.entrySet()) {
-                            Object value = entry.getValue();
-                            if (value instanceof Double) {
-                                userRatings.put(entry.getKey(), ((Double) value).floatValue());
-                            } else if (value instanceof Long) {
-                                userRatings.put(entry.getKey(), ((Long) value).floatValue());
-                            } else if (value instanceof Float) {
-                                userRatings.put(entry.getKey(), (Float) value);
+                    if (document.contains("likedByUserIds")) {
+                        Object likedByUserIdsObj = document.get("likedByUserIds");
+                        if (likedByUserIdsObj instanceof List) {
+                            ArrayList<String> likedByUserIds = new ArrayList<>((List<String>) likedByUserIdsObj);
+                            shop.setLikedByUserIds(likedByUserIds);
+                            if (currentUserId != null && likedByUserIds.contains(currentUserId)) {
+                                shop.setLiked(true);
+                            } else {
+                                shop.setLiked(false);
                             }
                         }
-                        shop.setUserRatings(userRatings);
                     }
+
+                    if (document.contains("favoritesCount")) {
+                        Object v = document.get("favoritesCount");
+                        if (v instanceof Number) shop.setFavoritesCount(((Number) v).intValue());
+                    }
+
+                    if (document.contains("hasPromotion")) {
+                        Object v = document.get("hasPromotion");
+                        if (v instanceof Boolean) shop.setHasPromotion((Boolean) v);
+                    }
+
+                    if (document.contains("rating")) {
+                        Object ratingValue = document.get("rating");
+                        if (ratingValue instanceof Double) shop.setRating((Double) ratingValue);
+                        else if (ratingValue instanceof Long) shop.setRating(((Long) ratingValue).doubleValue());
+                    }
+
+                    if (document.contains("reviews")) {
+                        Object reviewsValue = document.get("reviews");
+                        if (reviewsValue instanceof Number) shop.setReviews(((Number) reviewsValue).intValue());
+                    }
+
+                    if (document.contains("userRatings")) {
+                        Map<String, Object> userRatingsObj = (Map<String, Object>) document.get("userRatings");
+                        if (userRatingsObj != null) {
+                            Map<String, Float> userRatings = new java.util.HashMap<>();
+                            for (Map.Entry<String, Object> entry : userRatingsObj.entrySet()) {
+                                Object value = entry.getValue();
+                                if (value instanceof Number) userRatings.put(entry.getKey(), ((Number) value).floatValue());
+                            }
+                            shop.setUserRatings(userRatings);
+                        }
+                    }
+                    loadedShops.add(shop);
+                } catch (Exception e) {
+                    Log.e("SearchFragment", "Error mapping shop: " + document.getId(), e);
                 }
-                allShops.add(shop);
             }
 
-            if (selectedCity != null && !selectedCity.isEmpty()) {
-                // Use robust city filtering that handles accents and variations
-                filterShopsByCity(selectedCity);
-            } else {
-                filteredShops.addAll(allShops);
-                if (!shopsLoaded) {
-                    safeToast(allShops.size() + " boutique(s) chargée(s)");
-                }
+            if (isAdded()) {
+                requireActivity().runOnUiThread(() -> {
+                    allShops.clear();
+                    allShops.addAll(loadedShops);
+                    filteredShops.clear();
+
+                    if (selectedCity != null && !selectedCity.isEmpty()) {
+                        filterShopsByCity(selectedCity);
+                    } else {
+                        filteredShops.addAll(allShops);
+                    }
+
+                    if (shopAdapter != null) shopAdapter.notifyDataSetChanged();
+                    showLoading(false);
+                    shopsLoaded = true;
+
+                    if (favoritesLoaded) updateFavoriteStatusForShops();
+                });
             }
-
-            // Notify in case the branch didn't already refresh
-            if (shopAdapter != null) shopAdapter.notifyDataSetChanged();
-            showLoading(false);
-            shopsLoaded = true;
-
-            if (favoritesLoaded) updateFavoriteStatusForShops();
         });
     }
 
@@ -574,7 +534,8 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
             args.putString("shopWebsite", shop.getWebsite() != null ? shop.getWebsite() : "");
             args.putString("shopRegionId", shop.getRegionId() != null ? shop.getRegionId() : "");
             args.putString("shopCityId", shop.getCityId() != null ? shop.getCityId() : "");
-            args.putString("shopCreatedAt", shop.getCreatedAt() != null ? shop.getCreatedAt() : "");
+            args.putString("shopOwnerId", shop.getUserId() != null ? shop.getUserId() : "");
+            args.putString("shopCreatedAt", shop.getCreatedAtString() != null ? shop.getCreatedAtString() : "");
             args.putLong("shopCreatedAtTimestamp", shop.getCreatedAtTimestamp() > 0 ? shop.getCreatedAtTimestamp() : System.currentTimeMillis());
             args.putBoolean("hideDialogs", true); // Flag to hide dialogs and FAB
 
@@ -1037,8 +998,8 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
         Collections.sort(filteredShops, (s1, s2) -> {
             try {
                 // Récupérer les dates
-                String d1 = safeString(s1.getCreatedAt());
-                String d2 = safeString(s2.getCreatedAt());
+                String d1 = safeString(s1.getCreatedAtString());
+                String d2 = safeString(s2.getCreatedAtString());
 
                 // Si les dates sont vides, les mettre à la fin
                 if (d1.isEmpty()) return 1;
@@ -1055,8 +1016,8 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
             } catch (Exception e) {
                 // En cas d'erreur de parsing, comparer comme des strings
                 android.util.Log.e("SortError", "Erreur tri date: " + e.getMessage());
-                String d1 = safeString(s1.getCreatedAt());
-                String d2 = safeString(s2.getCreatedAt());
+                String d1 = safeString(s1.getCreatedAtString());
+                String d2 = safeString(s2.getCreatedAtString());
                 return d2.compareTo(d1);
             }
         });
@@ -1075,8 +1036,8 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
         Collections.sort(filteredShops, (s1, s2) -> {
             try {
                 // Récupérer les dates
-                String d1 = safeString(s1.getCreatedAt());
-                String d2 = safeString(s2.getCreatedAt());
+                String d1 = safeString(s1.getCreatedAtString());
+                String d2 = safeString(s2.getCreatedAtString());
 
                 // Si les dates sont vides, les mettre à la fin
                 if (d1.isEmpty()) return 1;
@@ -1093,8 +1054,8 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
             } catch (Exception e) {
                 // En cas d'erreur de parsing, comparer comme des strings
                 android.util.Log.e("SortError", "Erreur tri date: " + e.getMessage());
-                String d1 = safeString(s1.getCreatedAt());
-                String d2 = safeString(s2.getCreatedAt());
+                String d1 = safeString(s1.getCreatedAtString());
+                String d2 = safeString(s2.getCreatedAtString());
                 return d1.compareTo(d2);
             }
         });

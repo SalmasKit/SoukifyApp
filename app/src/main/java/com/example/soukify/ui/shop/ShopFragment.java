@@ -169,7 +169,7 @@ public class ShopFragment extends Fragment {
         args.putString("shopWebsite", shop.getWebsite() != null ? shop.getWebsite() : "");
         args.putString("shopRegionId", shop.getRegionId() != null ? shop.getRegionId() : "");
         args.putString("shopCityId", shop.getCityId() != null ? shop.getCityId() : "");
-        args.putString("shopCreatedAt", shop.getCreatedAt() != null ? shop.getCreatedAt() : "");
+        args.putString("shopCreatedAt", shop.getCreatedAtString() != null ? shop.getCreatedAtString() : "");
         args.putLong("shopCreatedAtTimestamp", shop.getCreatedAtTimestamp() > 0 ? shop.getCreatedAtTimestamp() : System.currentTimeMillis());
         args.putBoolean("hideDialogs", true); // Hide dialogs for external shops by default
         
@@ -292,7 +292,8 @@ public class ShopFragment extends Fragment {
             args.putString("shopWebsite", currentShop.getWebsite() != null ? currentShop.getWebsite() : "");
             args.putString("shopRegionId", currentShop.getRegionId() != null ? currentShop.getRegionId() : "");
             args.putString("shopCityId", currentShop.getCityId() != null ? currentShop.getCityId() : "");
-            args.putString("shopCreatedAt", currentShop.getCreatedAt() != null ? currentShop.getCreatedAt() : "");
+            args.putString("shopUserId", currentShop.getUserId() != null ? currentShop.getUserId() : ""); // Pass owner ID
+            args.putString("shopCreatedAt", currentShop.getCreatedAtString() != null ? currentShop.getCreatedAtString() : "");
             args.putLong("shopCreatedAtTimestamp", currentShop.getCreatedAtTimestamp() > 0 ? currentShop.getCreatedAtTimestamp() : System.currentTimeMillis());
             args.putBoolean("hideDialogs", false); // Show dialogs when opened from settings
             
@@ -564,7 +565,7 @@ public class ShopFragment extends Fragment {
         android.util.Log.d("ShopFragment", "Dialog will now show with these toggle states");
         
         tvShopId.setText("ID: #" + shop.getShopId().substring(0, Math.min(8, shop.getShopId().length())));
-        if (shop.getCreatedAt() != null) {
+        if (shop.getCreatedAtString() != null) {
             tvCreationDate.setText(formatDate(shop.getCreatedAtTimestamp()));
             tvShopAge.setText(calculateShopAge(shop.getCreatedAtTimestamp()));
         }

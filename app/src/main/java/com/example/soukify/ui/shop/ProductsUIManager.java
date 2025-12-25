@@ -130,20 +130,21 @@ public class ProductsUIManager {
      * Observe product data and update UI accordingly
      */
     private void observeProductData() {
-        // Observe products list
-        productManager.getProducts().observe(fragment.getViewLifecycleOwner(), new Observer<List<ProductModel>>() {
+        // Observe products list from ViewModel
+        productViewModel.getProducts().observe(fragment.getViewLifecycleOwner(), new Observer<List<ProductModel>>() {
             @Override
             public void onChanged(List<ProductModel> products) {
+                Log.d(TAG, "Products data changed, count: " + (products != null ? products.size() : 0));
                 updateProductsDisplay(products);
             }
         });
         
-        // Observe loading state (optional UI updates)
-        productManager.getIsLoading().observe(fragment.getViewLifecycleOwner(), new Observer<Boolean>() {
+        // Observe loading state from ViewModel
+        productViewModel.getIsLoading().observe(fragment.getViewLifecycleOwner(), new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean isLoading) {
-                // Could show/hide loading indicators here if needed
-                Log.d(TAG, "Loading state: " + isLoading);
+                // Loading state can be handled here if needed
+                Log.d(TAG, "Products loading state: " + isLoading);
             }
         });
         
@@ -175,9 +176,18 @@ public class ProductsUIManager {
             updateProductCount(products.size());
             
             // Update adapter with new products
-            if (productsAdapter != null) {
-                productsAdapter.updateProducts(products);
-            }
+            updateProducts(products);
+        }
+    }
+    
+    /**
+     * Updates the products in the adapter and logs the action.
+     * This method is public to allow external updates if needed, and includes logging for debugging.
+     */
+    public void updateProducts(List<ProductModel> products) {
+        Log.d(TAG, "updateProducts called with " + (products != null ? products.size() : 0) + " items");
+        if (productsAdapter != null) {
+            productsAdapter.updateProducts(products);
         }
     }
     

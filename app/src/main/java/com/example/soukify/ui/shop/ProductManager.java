@@ -85,21 +85,21 @@ public class ProductManager {
     /**
      * Add a new product without images
      */
-    public void addProduct(String name, String description, double price, String productType) {
-        addProduct(name, description, price, productType, null, null, null, null, null, null, null);
+    public void addProduct(String name, String description, double price, String currency, String productType) {
+        addProduct(name, description, price, currency, productType, null, null, null, null, null, null, null);
     }
     
     /**
      * Add a new product with single image
      */
-    public void addProduct(String name, String description, double price, String productType, String imageUriString) {
-        addProduct(name, description, price, productType, imageUriString, null, null, null, null, null, null);
+    public void addProduct(String name, String description, double price, String currency, String productType, String imageUriString) {
+        addProduct(name, description, price, currency, productType, imageUriString, null, null, null, null, null, null);
     }
     
     /**
      * Add a new product with single image and optional details
      */
-    public void addProduct(String name, String description, double price, String productType, String imageUriString, 
+    public void addProduct(String name, String description, double price, String currency, String productType, String imageUriString, 
                           Double weight, Double length, Double width, Double height, String color, String material) {
         if (!validateProductInput(name, description, price, productType)) {
             return;
@@ -110,23 +110,23 @@ public class ProductManager {
         if (imageUriString != null && !imageUriString.isEmpty()) {
             List<String> imageUris = new ArrayList<>();
             imageUris.add(imageUriString);
-            addProductWithMultipleImages(name, description, price, productType, imageUris, weight, length, width, height, color, material);
+            addProductWithMultipleImages(name, description, price, currency, productType, imageUris, weight, length, width, height, color, material);
         } else {
-            createProductWithImageIds(name, description, price, productType, null, weight, length, width, height, color, material);
+            createProductWithImageIds(name, description, price, currency, productType, null, weight, length, width, height, color, material);
         }
     }
     
     /**
      * Add a new product with multiple images
      */
-    public void addProductWithMultipleImages(String name, String description, double price, String productType, List<String> imageUriStrings) {
-        addProductWithMultipleImages(name, description, price, productType, imageUriStrings, null, null, null, null, null, null);
+    public void addProductWithMultipleImages(String name, String description, double price, String currency, String productType, List<String> imageUriStrings) {
+        addProductWithMultipleImages(name, description, price, currency, productType, imageUriStrings, null, null, null, null, null, null);
     }
     
     /**
      * Add a new product with multiple images and optional details
      */
-    public void addProductWithMultipleImages(String name, String description, double price, String productType, List<String> imageUriStrings, 
+    public void addProductWithMultipleImages(String name, String description, double price, String currency, String productType, List<String> imageUriStrings, 
                                            Double weight, Double length, Double width, Double height, String color, String material) {
         if (!validateProductInput(name, description, price, productType)) {
             return;
@@ -134,7 +134,7 @@ public class ProductManager {
         
         if (imageUriStrings == null || imageUriStrings.isEmpty()) {
             Log.d(TAG, "No images provided, creating product without images");
-            createProductWithImageIds(name, description, price, productType, null, weight, length, width, height, color, material);
+            createProductWithImageIds(name, description, price, currency, productType, null, weight, length, width, height, color, material);
             return;
         }
         
@@ -145,7 +145,7 @@ public class ProductManager {
         int totalImages = imageUriStrings.size();
         
         for (String imageUriString : imageUriStrings) {
-            processImageAndCollectId(name, imageUriString, imageIds, processedCount, totalImages, description, price, productType, weight, length, width, height, color, material);
+            processImageAndCollectId(name, imageUriString, imageIds, processedCount, totalImages, description, price, currency, productType, weight, length, width, height, color, material);
         }
     }
     
@@ -351,7 +351,7 @@ public class ProductManager {
     
     private void processImageAndCollectId(String productName, String imageUriString, List<String> imageIds, 
                                          int[] processedCount, int totalImages, String description, 
-                                         double price, String productType, Double weight, Double length, 
+                                         double price, String currency, String productType, Double weight, Double length, 
                                          Double width, Double height, String color, String material) {
         try {
             Uri mediaUri = Uri.parse(imageUriString);
@@ -378,7 +378,7 @@ public class ProductManager {
                                 
                                 if (processedCount[0] == totalImages) {
                                     Log.d(TAG, "All " + totalImages + " images processed");
-                                    createProductWithImageIds(productName, description, price, productType, imageIds, weight, length, width, height, color, material);
+                                    createProductWithImageIds(productName, description, price, currency, productType, imageIds, weight, length, width, height, color, material);
                                 }
                             }
                         })
@@ -396,14 +396,14 @@ public class ProductManager {
                                     Log.w(TAG, "Failed to delete Cloudinary media: " + error);
                                 }
                             });
-                            handleImageProcessingFailure(imageIds, processedCount, totalImages, productName, description, price, productType, weight, length, width, height, color, material);
+                            handleImageProcessingFailure(imageIds, processedCount, totalImages, productName, description, price, currency, productType, weight, length, width, height, color, material);
                         });
                 }
                 
                 @Override
                 public void onError(String error) {
                     Log.e(TAG, "Failed to upload product media to Cloudinary: " + error);
-                    handleImageProcessingFailure(imageIds, processedCount, totalImages, productName, description, price, productType, weight, length, width, height, color, material);
+                    handleImageProcessingFailure(imageIds, processedCount, totalImages, productName, description, price, currency, productType, weight, length, width, height, color, material);
                 }
                 
                 @Override
@@ -413,12 +413,12 @@ public class ProductManager {
             });
         } catch (Exception e) {
             Log.e(TAG, "Error parsing image URI: " + e.getMessage(), e);
-            handleImageProcessingFailure(imageIds, processedCount, totalImages, productName, description, price, productType, weight, length, width, height, color, material);
+            handleImageProcessingFailure(imageIds, processedCount, totalImages, productName, description, price, currency, productType, weight, length, width, height, color, material);
         }
     }
     
     private void handleImageProcessingFailure(List<String> imageIds, int[] processedCount, int totalImages,
-                                             String productName, String description, double price, String productType,
+                                             String productName, String description, double price, String currency, String productType,
                                              Double weight, Double length, Double width, Double height, String color, String material) {
         synchronized (imageIds) {
             processedCount[0]++;
@@ -426,15 +426,15 @@ public class ProductManager {
             if (processedCount[0] == totalImages) {
                 Log.d(TAG, "All images processed, creating product with " + imageIds.size() + " images");
                 if (imageIds.isEmpty()) {
-                    createProductWithImageIds(productName, description, price, productType, null, weight, length, width, height, color, material);
+                    createProductWithImageIds(productName, description, price, currency, productType, null, weight, length, width, height, color, material);
                 } else {
-                    createProductWithImageIds(productName, description, price, productType, imageIds, weight, length, width, height, color, material);
+                    createProductWithImageIds(productName, description, price, currency, productType, imageIds, weight, length, width, height, color, material);
                 }
             }
         }
     }
     
-    private void createProductWithImageIds(String name, String description, double price, String productType, List<String> imageIds,
+    private void createProductWithImageIds(String name, String description, double price, String currency, String productType, List<String> imageIds,
                                          Double weight, Double length, Double width, Double height, String color, String material) {
         ProductModel product = new ProductModel(
             currentShopId,
@@ -442,7 +442,7 @@ public class ProductManager {
             description != null ? description.trim() : "",
             productType,
             price,
-            "MAD",
+            currency != null ? currency : "MAD",
             imageIds
         );
         

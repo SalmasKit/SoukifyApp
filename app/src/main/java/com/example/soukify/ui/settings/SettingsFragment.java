@@ -50,8 +50,11 @@ public class SettingsFragment extends Fragment {
         currentThemeIndex = getSavedThemeIndex();
         settingsViewModel.setThemeIndex(currentThemeIndex);
         
+        shopViewModel = new ViewModelProvider(requireActivity()).get(ShopViewModel.class);
+        
         displayUserInfo(view);
         observeViewModel();
+        setupShopButton(view);
         
         SettingItemView accountSettings = view.findViewById(R.id.accountSettings);
         accountSettings.setOnSettingClickListener(v -> 
@@ -68,9 +71,6 @@ public class SettingsFragment extends Fragment {
         SettingItemView themeAppearance = view.findViewById(R.id.themeAppearance);
         themeAppearance.setOnSettingClickListener(v -> showThemeDialog());
 
-        SettingItemView privacy = view.findViewById(R.id.privacy);
-        privacy.setOnSettingClickListener(v -> 
-            Navigation.findNavController(v).navigate(R.id.action_navigation_settings_to_navigation_privacy));
 
         SettingItemView helpSupport = view.findViewById(R.id.helpSupport);
         helpSupport.setOnSettingClickListener(v -> 
@@ -93,19 +93,33 @@ public class SettingsFragment extends Fragment {
                     .show();
         });
 
+        Log.d("SettingsFragment", "SettingsFragment onViewCreated completed");
+    }
+
+    private void setupShopButton(View view) {
         SettingItemView openShopButton = view.findViewById(R.id.openShopButton);
-        openShopButton.setEnabled(false);
+        if (openShopButton == null) return;
+
         openShopButton.setOnSettingClickListener(v -> {
             Log.d("SettingsFragment", "Open Shop button clicked!");
-            
-            // Create bundle with hideDialogs=false to show edit/delete buttons
             Bundle args = new Bundle();
             args.putBoolean("hideDialogs", false); // Show dialogs from settings
-            
             Navigation.findNavController(v).navigate(R.id.action_navigation_settings_to_navigation_shop, args);
         });
-        
-        Log.d("SettingsFragment", "SettingsFragment onViewCreated completed");
+
+        // Observe shop status to enable/disable button
+        shopViewModel.getHasShop().observe(getViewLifecycleOwner(), hasShop -> {
+            boolean enabled = hasShop != null && hasShop;
+            Log.d("SettingsFragment", "Shop status updated: hasShop=" + enabled);
+            openShopButton.setEnabled(enabled);
+            
+            // Optionally update title if no shop
+            if (!enabled) {
+                openShopButton.setAlpha(0.5f);
+            } else {
+                openShopButton.setAlpha(1.0f);
+            }
+        });
     }
 
     private void showThemeDialog() {

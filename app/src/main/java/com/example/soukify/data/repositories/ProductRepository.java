@@ -16,6 +16,8 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Product Repository - Firebase implementation
@@ -54,6 +56,7 @@ public class ProductRepository {
     private final MutableLiveData<ProductModel> currentProduct = new MutableLiveData<>();
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
+    private final ExecutorService executor = Executors.newFixedThreadPool(2);
 
     public ProductRepository(Application application) {
         FirebaseManager firebaseManager = FirebaseManager.getInstance(application);
@@ -148,24 +151,31 @@ public class ProductRepository {
         Log.d(TAG, "Loading products for shop: " + shopId);
 
         Task<QuerySnapshot> task = productService.getProductsByShop(shopId);
-        task.addOnSuccessListener(querySnapshot -> {
-            Log.d(TAG, "Query successful, documents count: " + querySnapshot.size());
+        task.addOnSuccessListener(executor, querySnapshot -> {
+            Log.d(TAG, "Query successful, processing " + querySnapshot.size() + " documents on background thread");
             List<ProductModel> products = new ArrayList<>();
             for (QueryDocumentSnapshot document : querySnapshot) {
-                ProductModel product = document.toObject(ProductModel.class);
-                product.setProductId(document.getId());
-                enrichProductWithUserState(product);
-                products.add(product);
-                Log.d(TAG, "Found product: " + product.getName() + " (ID: " + product.getProductId() + ")");
+                try {
+                    ProductModel product = document.toObject(ProductModel.class);
+                    product.setProductId(document.getId());
+                    enrichProductWithUserState(product);
+                    products.add(product);
+                } catch (Exception e) {
+                    Log.e(TAG, "Error parsing product document: " + document.getId(), e);
+                }
             }
+            
             // Sort products by createdAt locally (descending)
             products.sort((p1, p2) -> {
-                if (p1.getCreatedAt() == null && p2.getCreatedAt() == null) return 0;
-                if (p1.getCreatedAt() == null) return 1;
-                if (p2.getCreatedAt() == null) return -1;
-                return p2.getCreatedAt().compareTo(p1.getCreatedAt());
+                String d1 = p1.getCreatedAtString();
+                String d2 = p2.getCreatedAtString();
+                if (d1 == null && d2 == null) return 0;
+                if (d1 == null) return 1;
+                if (d2 == null) return -1;
+                return d2.compareTo(d1);
             });
-            Log.d(TAG, "Posting " + products.size() + " products to LiveData");
+            
+            Log.d(TAG, "Processing complete, posting " + products.size() + " products to LiveData");
             shopProducts.postValue(products);
             isLoading.postValue(false);
         }).addOnFailureListener(e -> {
@@ -250,10 +260,12 @@ public class ProductRepository {
             }
             // Sort products by createdAt
             products.sort((p1, p2) -> {
-                if (p1.getCreatedAt() == null && p2.getCreatedAt() == null) return 0;
-                if (p1.getCreatedAt() == null) return 1;
-                if (p2.getCreatedAt() == null) return -1;
-                return p2.getCreatedAt().compareTo(p1.getCreatedAt());
+                String d1 = p1.getCreatedAtString();
+                String d2 = p2.getCreatedAtString();
+                if (d1 == null && d2 == null) return 0;
+                if (d1 == null) return 1;
+                if (d2 == null) return -1;
+                return d2.compareTo(d1);
             });
             listener.onProductsLoaded(products);
         }).addOnFailureListener(e -> {

@@ -4,10 +4,17 @@ import android.app.Application;
 import android.util.Log;
 
 import com.example.soukify.data.repositories.AuthPreferenceManager;
+import com.example.soukify.utils.LocaleHelper;
 import com.google.firebase.FirebaseApp;
+import android.content.Context;
 
 public class SoukifyApplication extends Application {
     private static final String TAG = "SoukifyApplication";
+
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(LocaleHelper.onAttach(base));
+    }
 
     @Override
     public void onCreate() {

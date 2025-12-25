@@ -20,6 +20,8 @@ public class UserModel {
     // Date formatter for consistent date format
     private static final String DATE_FORMAT = "dd/MM/yyyy HH:mm";
     
+    private String fcmToken;
+    
     // Default constructor required for Firestore
     public UserModel() {}
     
@@ -98,7 +100,36 @@ public class UserModel {
         return createdAt;
     }
     
-    public void setCreatedAt(String createdAt) {
-        this.createdAt = createdAt;
+    private NotificationPreferences notificationPreferences;
+
+    public NotificationPreferences getNotificationPreferences() {
+        return notificationPreferences;
+    }
+
+    public void setNotificationPreferences(NotificationPreferences notificationPreferences) {
+        this.notificationPreferences = notificationPreferences;
+    }
+
+    public static class NotificationPreferences {
+        // General
+        public boolean push = true;
+        public boolean email = true;
+        public boolean sound = true;
+        public boolean vibrate = true;
+        
+        // Categories
+        public boolean messages = true;
+        public boolean newProducts = true;
+        public boolean shopPromotions = true;
+        public boolean promotions = true;
+        public boolean appUpdates = true;
+        
+        // Quiet hours
+        public int quietStartHour = 22;
+        public int quietStartMinute = 0;
+        public int quietEndHour = 7;
+        public int quietEndMinute = 0;
+        
+        public NotificationPreferences() {}
     }
 }

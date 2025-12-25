@@ -202,16 +202,23 @@
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/EnhancedInput"
+                    style="@style/EnhancedSpinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:hint="Currency"
                     app:startIconDrawable="@drawable/ic_store_24dp"
-                    app:startIconTint="@color/colorPrimary">
+                    app:startIconTint="@color/colorPrimary"
+                    app:endIconMode="dropdown_menu">
 
-                    <com.google.android.material.textfield.TextInputEditText
+                    <AutoCompleteTextView
                         android:id="@+id/etProductCurrency"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="text"
+                        android:inputType="none"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:padding="16dp"
+                        android:textSize="16sp"
                         android:text="MAD" />
                 </com.google.android.material.textfield.TextInputLayout>
 

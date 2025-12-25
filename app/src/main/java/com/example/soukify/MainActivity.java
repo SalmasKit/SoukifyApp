@@ -13,6 +13,7 @@ import com.example.soukify.ui.search.SearchFragment;
 import com.example.soukify.data.repositories.UserProductPreferencesRepository;
 import com.example.soukify.utils.LocaleHelper;
 import com.google.firebase.auth.FirebaseAuth;
+import android.content.Context;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -20,10 +21,12 @@ public class MainActivity extends AppCompatActivity {
     private NavController navController;
 
     @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.onAttach(newBase));
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // Apply saved language before calling super.onCreate()
-        applySavedLanguage();
-        
         super.onCreate(savedInstanceState);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
@@ -47,21 +50,27 @@ public class MainActivity extends AppCompatActivity {
                     android.util.Log.e("MainActivity", "Failed to load likes: " + error);
                 }
             });
+            
+            // Sync FCM Token
+            com.google.firebase.messaging.FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
+                if (!task.isSuccessful()) {
+                    android.util.Log.w("MainActivity", "Fetching FCM registration token failed", task.getException());
+                    return;
+                }
+                String token = task.getResult();
+                new com.example.soukify.data.repositories.UserRepository(getApplication()).updateFcmToken(token);
+            });
+        }
+        
+        // Request Notification Permission for Android 13+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != 
+                android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101);
+            }
         }
     }
     
-    /**
-     * Apply the saved language preference to the app
-     */
-    private void applySavedLanguage() {
-        String language = LocaleHelper.getLanguage(this);
-        if (language != null && !language.isEmpty()) {
-            if ("device".equalsIgnoreCase(language)) {
-                language = LocaleHelper.getDeviceLanguage();
-            }
-            LocaleHelper.updateLocale(this, language);
-        }
-    }
     
     public void navigateToSearch() {
         if (navController != null && binding.navView != null) {

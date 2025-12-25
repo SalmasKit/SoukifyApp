@@ -75,6 +75,7 @@ dependencies {
     implementation("com.google.firebase:firebase-storage")
     implementation("com.google.firebase:firebase-analytics")
     implementation(libs.firebase.crashlytics)
+    implementation("com.google.firebase:firebase-messaging")
 
     // Google Play Services
     implementation("com.google.android.gms:play-services-auth:20.7.0")

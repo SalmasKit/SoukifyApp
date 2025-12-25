@@ -137,15 +137,6 @@
                     app:showDivider="true"
                     app:showChevron="true" />
 
-                <!-- Privacy -->
-                <com.example.soukify.ui.settings.SettingItemView
-                    android:id="@+id/privacy"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:settingIcon="@drawable/ic_privacy"
-                    app:settingTitle="@string/privacy"
-                    app:showDivider="true"
-                    app:showChevron="true" />
 
                 <!-- Help & Support -->
                 <com.example.soukify.ui.settings.SettingItemView

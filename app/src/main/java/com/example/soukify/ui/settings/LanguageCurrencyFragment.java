@@ -12,10 +12,13 @@ import androidx.fragment.app.Fragment;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import com.example.soukify.R;
-import com.example.soukify.data.models.UserSettingModel;
 import com.example.soukify.data.repositories.UserSettingRepository;
 import com.example.soukify.utils.LocaleHelper;
+import com.example.soukify.utils.CurrencyHelper;
+import com.example.soukify.data.models.UserSettingModel;
 import com.google.android.material.switchmaterial.SwitchMaterial;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 /**
  * Fragment for managing user language and currency preferences
@@ -103,12 +106,13 @@ public class LanguageCurrencyFragment extends Fragment {
                     // Set language
                     String language = userSettings.getLanguage();
                     if (language != null && !language.isEmpty()) {
-                        // Apply saved language to app
+                        // Just update the UI text, don't force apply the language here
+                        // Applying language should happen in attachBaseContext or when explicitly saved
                         if ("device".equalsIgnoreCase(language)) {
-                            language = LocaleHelper.getDeviceLanguage();
+                            languageDropdown.setText(getString(R.string.device_language), false);
+                        } else {
+                            languageDropdown.setText(convertLanguageCodeToName(language), false);
                         }
-                        LocaleHelper.updateLocale(getContext(), language);
-                        languageDropdown.setText(convertLanguageCodeToName(language), false);
                     } else {
                         languageDropdown.setText(getString(R.string.language), false);
                     }
@@ -116,9 +120,11 @@ public class LanguageCurrencyFragment extends Fragment {
                     // Set currency
                     String currency = userSettings.getCurrency();
                     if (currency != null && !currency.isEmpty()) {
+                        // Apply saved currency locally
+                        CurrencyHelper.setCurrency(getContext(), currency);
                         currencyDropdown.setText(currency, false);
                     } else {
-                        currencyDropdown.setText("MAD", false);
+                        currencyDropdown.setText(CurrencyHelper.getCurrency(getContext()), false);
                     }
                     
                     // Set device language toggle
@@ -187,17 +193,15 @@ public class LanguageCurrencyFragment extends Fragment {
         // Apply language change immediately
         applyLanguageChange(languageCode);
         
+        // Apply currency change locally
+        CurrencyHelper.setCurrency(getContext(), curr);
+        
         // Show success message
         String displayLang = useDeviceLang ? getString(R.string.device_language) : lang;
         String successMessage = String.format(getString(R.string.saved_format), displayLang, curr);
         showSuccessToast(successMessage);
         
-        // Navigate back after a short delay to allow language change to apply
-        view.postDelayed(() -> {
-            if (getActivity() != null) {
-                getActivity().onBackPressed();
-            }
-        }, 500);
+        requireActivity().onBackPressed();
     }
 
     /**
@@ -224,25 +228,26 @@ public class LanguageCurrencyFragment extends Fragment {
     private void applyLanguageChange(String languageCode) {
         if (getContext() == null) return;
         
-        // Save to local preferences
-        LocaleHelper.setLanguage(getContext(), languageCode);
-        
-        // Update app locale
-        LocaleHelper.updateLocale(getContext(), languageCode);
+        // Update app locale and save to local preferences
+        LocaleHelper.applyLanguage(getContext(), languageCode);
         
         // Recreate activity to apply new strings
+        // We use a small delay to ensure the UI has updated its internal state if needed
         if (getActivity() != null) {
             getActivity().recreate();
         }
     }
 
     /**
-     * Get current user ID (adjust based on your authentication implementation)
+     * Get current user ID from Firebase Auth
      */
     private String getCurrentUserId() {
-        // TODO: Replace with actual user ID from your auth system
-        // Example: return FirebaseAuth.getInstance().getCurrentUser().getUid();
-        return "user_" + System.currentTimeMillis(); // Placeholder
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            return user.getUid();
+        }
+        // Fallback for non-logged in users (e.g., using a fixed ID or device ID)
+        return "anonymous_user"; 
     }
 
     /**

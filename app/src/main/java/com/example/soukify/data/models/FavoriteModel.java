@@ -1,5 +1,7 @@
 package com.example.soukify.data.models;
 
+import com.google.firebase.Timestamp;
+
 /**
  * Favorite Model - Database entity for favorite data
  * Supports both shops and products with proper privacy
@@ -9,7 +11,7 @@ public class FavoriteModel {
     private String userId;
     private String itemId; // Can be shopId or productId
     private String itemType; // "shop" or "product"
-    private String createdAt;
+    private Object createdAt;
     private long createdAtTimestamp;
     
     // Default constructor required for Room/SQLite
@@ -65,11 +67,23 @@ public class FavoriteModel {
         this.itemType = itemType;
     }
     
-    public String getCreatedAt() {
+    @com.google.firebase.firestore.PropertyName("createdAt")
+    public Object getCreatedAt() {
         return createdAt;
     }
-    
-    public void setCreatedAt(String createdAt) {
+
+    @com.google.firebase.firestore.Exclude
+    public String getCreatedAtString() {
+        if (createdAt == null) return null;
+        if (createdAt instanceof String) return (String) createdAt;
+        if (createdAt instanceof Timestamp) {
+            return String.valueOf(((Timestamp) createdAt).toDate().getTime());
+        }
+        return createdAt.toString();
+    }
+
+    @com.google.firebase.firestore.PropertyName("createdAt")
+    public void setCreatedAt(Object createdAt) {
         this.createdAt = createdAt;
     }
     

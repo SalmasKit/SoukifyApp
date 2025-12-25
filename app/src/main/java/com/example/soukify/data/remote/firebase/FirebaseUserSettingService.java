@@ -28,10 +28,13 @@ public class FirebaseUserSettingService {
     /**
      * Create or update user settings (upsert operation)
      */
+    /**
+     * Create or update user settings (upsert operation)
+     */
     public Task<Void> saveUserSettings(UserSettingModel userSetting) {
         return firestore.collection(USER_SETTINGS_COLLECTION)
                 .document(userSetting.getUserId())
-                .set(userSetting);
+                .set(userSetting, com.google.firebase.firestore.SetOptions.merge());
     }
     
     /**
@@ -40,7 +43,7 @@ public class FirebaseUserSettingService {
     public Task<Void> updateUserSettings(UserSettingModel userSetting) {
         return firestore.collection(USER_SETTINGS_COLLECTION)
                 .document(userSetting.getUserId())
-                .set(userSetting);
+                .set(userSetting, com.google.firebase.firestore.SetOptions.merge());
     }
     
     /**
@@ -128,7 +131,7 @@ public class FirebaseUserSettingService {
         UserSettingModel settings = new UserSettingModel();
         settings.setUserId(userId);
         settings.setTheme("system"); // system, light, dark
-        settings.setLanguage("fr"); // French by default
+        settings.setLanguage("en"); // English by default
         settings.setCurrency("MAD"); // Moroccan Dirham
         settings.setNotifications(true);
         return settings;
@@ -167,5 +170,17 @@ public class FirebaseUserSettingService {
         return firestore.collection(USER_SETTINGS_COLLECTION)
                 .document(userId)
                 .update("notifications", enabled, "updatedAt", String.valueOf(System.currentTimeMillis()));
+    }
+    
+    public Task<Void> updateDetailedNotifications(String userId, com.example.soukify.data.models.UserModel.NotificationPreferences prefs) {
+        java.util.Map<String, Object> data = new java.util.HashMap<>();
+        data.put("userId", userId);
+        data.put("notificationPreferences", prefs);
+        data.put("updatedAt", String.valueOf(System.currentTimeMillis()));
+        // Include default fields if they might be missing to avoid issues, or rely on merge to just add these
+        
+        return firestore.collection(USER_SETTINGS_COLLECTION)
+                .document(userId)
+                .set(data, com.google.firebase.firestore.SetOptions.merge());
     }
 }

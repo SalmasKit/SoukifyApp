@@ -17,7 +17,7 @@ public class UserSettingModel {
     public UserSettingModel(String userId) {
         this.userId = userId;
         this.theme = "system";
-        this.language = "fr";
+        this.language = "en";
         this.currency = "MAD";
         this.notifications = true;
     }
@@ -61,5 +61,16 @@ public class UserSettingModel {
     
     public void setNotifications(boolean notifications) {
         this.notifications = notifications;
+    }
+    
+    private com.example.soukify.data.models.UserModel.NotificationPreferences notificationPreferences;
+
+    @com.google.firebase.firestore.Exclude
+    public com.example.soukify.data.models.UserModel.NotificationPreferences getNotificationPreferences() {
+        return notificationPreferences;
+    }
+
+    public void setNotificationPreferences(com.example.soukify.data.models.UserModel.NotificationPreferences notificationPreferences) {
+        this.notificationPreferences = notificationPreferences;
     }
 }

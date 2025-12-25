@@ -27,6 +27,10 @@ import androidx.activity.result.contract.ActivityResultContracts;
 
 import com.bumptech.glide.Glide;
 import com.example.soukify.R;
+import com.example.soukify.ui.settings.SettingsFragment;
+import com.example.soukify.utils.LocaleHelper;
+import com.example.soukify.utils.CurrencyHelper;
+import com.google.android.gms.tasks.Task;
 import com.example.soukify.data.models.ProductModel;
 import com.example.soukify.data.models.ShopModel;
 import com.example.soukify.data.remote.firebase.FirebaseProductImageService;
@@ -212,8 +216,10 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
         Log.d(TAG, "Setting up product info for: " + product.getName());
 
         productName.setText(product.getName());
-        productPrice.setText(String.format("%.2f", product.getPrice()));
-        productCurrency.setText(product.getCurrency());
+            // Localized price
+            String localizedPrice = CurrencyHelper.formatLocalizedPrice(requireContext(), product.getPrice(), product.getCurrency());
+            productPrice.setText(localizedPrice);
+            productCurrency.setVisibility(View.GONE);
         productDescription.setText(product.getDescription());
 
         if (product.getProductType() != null && !product.getProductType().isEmpty()) {

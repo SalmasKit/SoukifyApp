@@ -3,6 +3,7 @@ package com.example.soukify.data.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 import com.google.firebase.firestore.Exclude;
+import com.google.firebase.Timestamp;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -20,7 +21,7 @@ public class ProductModel implements Parcelable {
     private double price;            // DECIMAL(10,2)
     private String currency;         // VARCHAR(10) DEFAULT 'MAD'
     private List<String> imageIds;   // List of image IDs for carousel
-    private String createdAt;        // TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    private Object createdAt;        // TIMESTAMP - could be String or Firebase Timestamp
     private int likesCount;          // INTEGER DEFAULT 0 - Number of likes
 
     // ✅ État utilisateur (ne pas sérialiser dans Firestore)
@@ -158,11 +159,23 @@ public class ProductModel implements Parcelable {
         this.imageIds = imageIds != null ? new ArrayList<>(imageIds) : new ArrayList<>();
     }
 
-    public String getCreatedAt() {
+    @com.google.firebase.firestore.PropertyName("createdAt")
+    public Object getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(String createdAt) {
+    @com.google.firebase.firestore.Exclude
+    public String getCreatedAtString() {
+        if (createdAt == null) return null;
+        if (createdAt instanceof String) return (String) createdAt;
+        if (createdAt instanceof com.google.firebase.Timestamp) {
+            return String.valueOf(((com.google.firebase.Timestamp) createdAt).toDate().getTime());
+        }
+        return createdAt.toString();
+    }
+
+    @com.google.firebase.firestore.PropertyName("createdAt")
+    public void setCreatedAt(Object createdAt) {
         this.createdAt = createdAt;
     }
 
@@ -325,7 +338,8 @@ public class ProductModel implements Parcelable {
         price = in.readDouble();
         currency = in.readString();
         imageIds = in.createStringArrayList();
-        createdAt = in.readString();
+        String createdAtStr = in.readString();
+        createdAt = createdAtStr;
         likesCount = in.readInt();
         isLikedByUser = in.readByte() != 0;      // ✅ Lecture du parcel
         isFavoriteByUser = in.readByte() != 0;   // ✅ Lecture du parcel
@@ -365,7 +379,7 @@ public class ProductModel implements Parcelable {
         dest.writeDouble(price);
         dest.writeString(currency);
         dest.writeStringList(imageIds);
-        dest.writeString(createdAt);
+        dest.writeString(getCreatedAtString());
         dest.writeInt(likesCount);
         dest.writeByte((byte) (isLikedByUser ? 1 : 0));      // ✅ Écriture dans le parcel
         dest.writeByte((byte) (isFavoriteByUser ? 1 : 0));   // ✅ Écriture dans le parcel

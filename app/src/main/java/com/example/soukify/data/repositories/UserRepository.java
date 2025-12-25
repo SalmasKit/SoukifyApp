@@ -568,6 +568,52 @@ public class UserRepository {
                 });
     }
 
+    /* ===================== NOTIFICATION PREFERENCES ===================== */
+
+    public void updateNotificationPreferences(UserModel.NotificationPreferences prefs) {
+        String uid = getCurrentUserId();
+        if (uid == null) {
+            Log.e("UserRepository", "Cannot update preferences: User not logged in");
+            return;
+        }
+
+        Log.d("UserRepository", "Updating notification preferences for user: " + uid);
+
+        FirebaseFirestore.getInstance().collection("users").document(uid)
+                .update("notificationPreferences", prefs)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("UserRepository", "Notification preferences updated successfully");
+                    
+                    // Update local LiveData
+                    UserModel current = currentUser.getValue();
+                    if (current != null) {
+                        current.setNotificationPreferences(prefs);
+                        currentUser.postValue(current);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("UserRepository", "Failed to update notification preferences", e);
+                    // If the document doesn't exist or field doesn't exist, we might need to set 'merge' but update is cleaner for existing users
+                    // If "notificationPreferences" field creates issues, we might need SetOptions.merge()
+                });
+    }
+
+    /* ===================== FCM TOKEN ===================== */
+
+    public void updateFcmToken(String token) {
+        String uid = getCurrentUserId();
+        if (uid == null) return;
+
+        Log.d("UserRepository", "Updating FCM token for user: " + uid);
+        
+        // Use SetOptions.merge() via map or just update if document exists
+        // Since user must exist to be logged in, update is fine.
+        FirebaseFirestore.getInstance().collection("users").document(uid)
+                .update("fcmToken", token)
+                .addOnSuccessListener(aVoid -> Log.d("UserRepository", "FCM token updated"))
+                .addOnFailureListener(e -> Log.e("UserRepository", "Failed to update FCM token", e));
+    }
+
     /* ===================== UTILS ===================== */
 
     private void startLoading() {
