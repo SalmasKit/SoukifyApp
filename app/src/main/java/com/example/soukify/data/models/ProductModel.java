@@ -3,6 +3,7 @@ package com.example.soukify.data.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 import com.google.firebase.firestore.Exclude;
+import com.google.firebase.firestore.IgnoreExtraProperties;
 import com.google.firebase.Timestamp;
 
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
  * Product Model - Firebase POJO matching SQL structure
  * Used for Firestore serialization and follows MVVM pattern
  */
+@IgnoreExtraProperties
 public class ProductModel implements Parcelable {
     private String productId;        // SERIAL PRIMARY KEY
     private String shopId;           // INT REFERENCES shops(shop_id) ON DELETE CASCADE
@@ -274,10 +276,12 @@ public class ProductModel implements Parcelable {
         }
     }
 
+    @Exclude
     public boolean hasImages() {
         return imageIds != null && !imageIds.isEmpty();
     }
 
+    @Exclude
     public int getImageCount() {
         return imageIds != null ? imageIds.size() : 0;
     }
@@ -288,6 +292,7 @@ public class ProductModel implements Parcelable {
         return (imageIds != null && !imageIds.isEmpty()) ? imageIds.get(0) : null;
     }
 
+    @Exclude
     public boolean hasDetails() {
         return (weight != null && weight > 0) ||
                 (length != null && length > 0) ||
@@ -297,6 +302,7 @@ public class ProductModel implements Parcelable {
                 (material != null && !material.trim().isEmpty());
     }
 
+    @Exclude
     public String getFormattedDimensions() {
         StringBuilder dimensions = new StringBuilder();
 
@@ -315,14 +321,17 @@ public class ProductModel implements Parcelable {
         return dimensions.length() > 0 ? dimensions.toString() : null;
     }
 
+    @Exclude
     public String getFormattedLength() {
         return length != null && length > 0 ? String.format("%.1f cm", length) : null;
     }
 
+    @Exclude
     public String getFormattedWidth() {
         return width != null && width > 0 ? String.format("%.1f cm", width) : null;
     }
 
+    @Exclude
     public String getFormattedHeight() {
         return height != null && height > 0 ? String.format("%.1f cm", height) : null;
     }

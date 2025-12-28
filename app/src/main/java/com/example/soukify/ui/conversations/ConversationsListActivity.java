@@ -102,7 +102,7 @@ public class ConversationsListActivity extends AppCompatActivity
             } else {
                 rvConversations.setVisibility(View.GONE);
                 tvEmpty.setVisibility(View.VISIBLE);
-                tvEmpty.setText("📭\n\nAucune conversation\nVos messages apparaîtront ici");
+                tvEmpty.setText("📭\n\n" + getString(R.string.no_conversations_yet));
             }
 
             adapter.notifyDataSetChanged();
@@ -124,10 +124,10 @@ public class ConversationsListActivity extends AppCompatActivity
 
         if (tvTitle != null) {
             if (isSellerView) {
-                tvTitle.setText("💬 Messages clients");
+                tvTitle.setText("💬 " + getString(R.string.messages_clients_title));
                 viewModel.loadSellerConversations();
             } else {
-                tvTitle.setText("💬 Mes messages");
+                tvTitle.setText("💬 " + getString(R.string.messages_mine_title));
                 viewModel.loadClientConversations();
             }
         }
@@ -160,14 +160,16 @@ public class ConversationsListActivity extends AppCompatActivity
         intent.putExtra(ChatActivity.EXTRA_SELLER_ID, conversation.getSellerId());
         intent.putExtra(ChatActivity.EXTRA_SHOP_IMAGE, conversation.getShopImage());
 
-        // 🔹 PASSER LE NOM À AFFICHER DANS CHAT
+        // 🔹 PASSER LE NOM & L'IMAGE À AFFICHER DANS CHAT
         boolean isSellerView = getIntent().getBooleanExtra(EXTRA_IS_SELLER_VIEW, false);
         if (isSellerView) {
-            // côté vendeur → afficher le nom de l'acheteur
+            // côté vendeur → afficher le nom et la photo de l'acheteur
             intent.putExtra(ChatActivity.EXTRA_OTHER_USER_NAME, conversation.getBuyerName());
+            intent.putExtra(ChatActivity.EXTRA_OTHER_USER_IMAGE, conversation.getBuyerImage());
         } else {
-            // côté client → afficher le nom du shop
+            // côté client → afficher le nom et la photo du shop
             intent.putExtra(ChatActivity.EXTRA_OTHER_USER_NAME, conversation.getShopName());
+            intent.putExtra(ChatActivity.EXTRA_OTHER_USER_IMAGE, conversation.getShopImage());
         }
 
         // Indiquer le rôle pour ChatActivity si besoin

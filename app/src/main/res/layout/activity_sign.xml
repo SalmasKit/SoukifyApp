@@ -25,28 +25,28 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Sign Up"
+                android:text="@string/sign_up_title"
                 android:gravity="center"
                 android:fontFamily="@font/dancingscript"
                 android:textStyle="bold"
                 android:textSize="40dp">
             </TextView>
             <EditText
-                android:id="@+id/username"
+                android:id="@+id/email"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
-                android:hint="username"
-                android:layout_marginTop="30dp"
+                android:hint="@string/email_hint_lower"
                 android:paddingLeft="10dp"
                 android:textSize="15dp"
+                android:layout_marginTop="30dp"
                 android:background="@drawable/rounded"
-                android:inputType="textPersonName"
+                android:inputType="textEmailAddress"
                 ></EditText>
             <EditText
                 android:id="@+id/password"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
-                android:hint="password"
+                android:hint="@string/password_hint_lower"
                 android:paddingLeft="10dp"
                 android:textSize="15dp"
                 android:layout_marginTop="30dp"
@@ -58,7 +58,7 @@
                 android:id="@+id/confirm"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
-                android:hint="confirm"
+                android:hint="@string/confirm_password_hint"
                 android:paddingLeft="10dp"
                 android:textSize="15dp"
                 android:layout_marginTop="30dp"
@@ -67,26 +67,26 @@
                 android:background="@drawable/rounded"
                 android:paddingEnd="12dp" />
             <EditText
+                android:id="@+id/username"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:hint="@string/username_hint"
+                android:layout_marginTop="30dp"
+                android:paddingLeft="10dp"
+                android:textSize="15dp"
+                android:background="@drawable/rounded"
+                android:inputType="textPersonName"
+                ></EditText>
+            <EditText
                 android:id="@+id/phone"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
-                android:hint="phone"
+                android:hint="@string/phone_optional_hint"
                 android:paddingLeft="10dp"
                 android:textSize="15dp"
                 android:layout_marginTop="30dp"
                 android:background="@drawable/rounded"
                 android:inputType="phone"
-                ></EditText>
-            <EditText
-                android:id="@+id/email"
-                android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:hint="email"
-                android:paddingLeft="10dp"
-                android:textSize="15dp"
-                android:layout_marginTop="30dp"
-                android:background="@drawable/rounded"
-                android:inputType="textEmailAddress"
                 ></EditText>
             <Button
                 android:id="@+id/signbtn"
@@ -94,7 +94,7 @@
                 android:layout_marginTop="20dp"
                 android:layout_height="35dp"
                 android:background="@drawable/rounded"
-                android:text="sign up"></Button>
+                android:text="@string/sign_up_button"></Button>
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="25dp"
@@ -102,7 +102,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Already have on account?"
+                    android:text="@string/already_have_account"
                     android:textSize="12dp"
                     android:layout_marginLeft="40dp"
                     android:layout_marginTop="10dp"></TextView>
@@ -110,7 +110,7 @@
                     android:id="@+id/login"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="log in"
+                    android:text="@string/login_link"
                     android:layout_marginTop="10dp"
                     android:textColor="@color/colorPrimaryDark"
                     android:textSize="12dp"

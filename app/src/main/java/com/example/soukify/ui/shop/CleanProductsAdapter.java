@@ -22,11 +22,12 @@ import com.example.soukify.data.models.ProductModel;
 import com.example.soukify.utils.CurrencyHelper;
 import com.example.soukify.data.remote.firebase.FirebaseProductImageService;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.example.soukify.data.sync.ProductSync;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class CleanProductsAdapter extends RecyclerView.Adapter<CleanProductsAdapter.ProductViewHolder> {
+public class CleanProductsAdapter extends RecyclerView.Adapter<CleanProductsAdapter.ProductViewHolder> implements ProductSync.SyncListener {
 
     private static final String TAG = "CleanProductsAdapter";
 
@@ -40,6 +41,7 @@ public class CleanProductsAdapter extends RecyclerView.Adapter<CleanProductsAdap
     public interface OnProductClickListener {
         void onProductClick(ProductModel product);
         void onProductLongClick(ProductModel product);
+        void onFavoriteClick(ProductModel product, int position);
     }
 
     public CleanProductsAdapter(Context context, OnProductClickListener listener, ProductViewModel productViewModel) {
@@ -65,6 +67,30 @@ public class CleanProductsAdapter extends RecyclerView.Adapter<CleanProductsAdap
         // to avoid conflicts between different data sources (ProductManager vs ProductViewModel).
         if (lifecycleOwner != null && productViewModel != null) {
             removeObservers();
+        }
+    }
+
+    @Override
+    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        ProductSync.LikeSync.register(this);
+        ProductSync.FavoriteSync.register(this);
+    }
+
+    @Override
+    public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
+        ProductSync.LikeSync.unregister(this);
+        ProductSync.FavoriteSync.unregister(this);
+        super.onDetachedFromRecyclerView(recyclerView);
+    }
+
+    @Override
+    public void onProductSyncUpdate(String productId, Bundle payload) {
+        if (productId == null || products == null) return;
+        for (int i = 0; i < products.size(); i++) {
+            if (productId.equals(products.get(i).getProductId())) {
+                notifyItemChanged(i, payload);
+            }
         }
     }
 
@@ -283,20 +309,28 @@ public class CleanProductsAdapter extends RecyclerView.Adapter<CleanProductsAdap
                 return;
             }
 
-            // Bind complet
-            Log.d(TAG, "Full bind: " + product.getName() +
-                    " (liked=" + product.isLikedByUser() +
-                    ", favorite=" + product.isFavoriteByUser() +
-                    ", likes=" + product.getLikesCount() + ")");
-
             productName.setText(product.getName());
 
-            // Utiliser uniquement les données du ProductModel
-            likesCount.setText(String.valueOf(product.getLikesCount()));
-            updateLikeButton(product.isLikedByUser());
-            updateFavoriteButton(product.isFavoriteByUser());
+            android.app.Application app = (android.app.Application) context.getApplicationContext();
+            ProductSync.LikeSync.LikeState likeState = ProductSync.LikeSync.getState(product.getProductId());
+            boolean likedBinding = likeState != null ? likeState.isLiked : product.isLikedByUser();
+            int likesBinding = likeState != null ? likeState.count : product.getLikesCount();
 
-            favoritesCount.setText("0");
+            ProductSync.FavoriteSync.FavoriteState favState = ProductSync.FavoriteSync.getState(product.getProductId(), app);
+            boolean isFavoriteBinding = favState != null ? favState.isFavorite : product.isFavoriteByUser();
+
+            // Keep the model in sync
+            product.setLikedByUser(likedBinding);
+            product.setLikesCount(likesBinding);
+            product.setFavoriteByUser(isFavoriteBinding);
+
+            likesCount.setText(String.valueOf(likesBinding));
+            updateLikeButton(likedBinding);
+            updateFavoriteButton(isFavoriteBinding);
+
+            if (favoritesCount != null) {
+                favoritesCount.setVisibility(View.GONE);
+            }
 
             // Format localized price using CurrencyHelper
             String formattedPrice = CurrencyHelper.formatLocalizedPrice(context, product.getPrice(), product.getCurrency());
@@ -322,66 +356,68 @@ public class CleanProductsAdapter extends RecyclerView.Adapter<CleanProductsAdap
             });
         }
 
+
+
         /**
          * Met à jour le bouton like
          */
         private void updateLikeButton(boolean liked) {
-            likeButton.setImageResource(liked ?
-                    R.drawable.ic_heart_filled : R.drawable.ic_heart_outline);
-            likeButton.setColorFilter(liked ?
-                    Color.parseColor("#E85F4C") : Color.parseColor("#757575"));
+            if (likeButton != null) {
+                likeButton.setImageResource(liked ?
+                        R.drawable.ic_heart_filled : R.drawable.ic_heart_outline);
+                likeButton.setColorFilter(liked ?
+                        Color.parseColor("#E8574D") : Color.parseColor("#757575"));
+            }
         }
 
         /**
          * Met à jour le bouton favorite
          */
         private void updateFavoriteButton(boolean favorite) {
-            favoriteButton.setImageResource(favorite ?
-                    R.drawable.ic_star_filled : R.drawable.ic_star_outline);
-            favoriteButton.setColorFilter(favorite ?
-                    Color.parseColor("#FFC107") : Color.parseColor("#757575"));
+            if (favoriteButton != null) {
+                favoriteButton.setImageResource(favorite ?
+                        R.drawable.ic_star_filled : R.drawable.ic_star_outline);
+                favoriteButton.setColorFilter(favorite ?
+                        Color.parseColor("#FFC107") : Color.parseColor("#757575"));
+            }
         }
 
         /**
-         * Configure les boutons like, favorite et shop link
+         * Configure les boutons
          */
         private void setupButtons(ProductModel product) {
             // Like button
-            likeButton.setOnClickListener(v -> {
-                Log.d(TAG, "❤️ Like button clicked for: " + product.getName());
-                if (productViewModel != null) {
-                    productViewModel.toggleLikeProduct(product.getProductId());
-                    // L'UI sera mise à jour automatiquement via l'observer
-                } else {
-                    Log.e(TAG, "❌ ProductViewModel is null");
-                }
-            });
-
-            likeButton.setOnTouchListener((v, event) -> {
-                if (event.getAction() == android.view.MotionEvent.ACTION_DOWN) {
-                    v.getParent().requestDisallowInterceptTouchEvent(true);
-                }
-                return false;
-            });
+            if (likeButton != null) {
+                likeButton.setOnClickListener(v -> {
+                    Log.d(TAG, "❤️ Like button clicked for: " + product.getName());
+                    boolean newLiked = !product.isLikedByUser();
+                    int newCount = product.getLikesCount() + (newLiked ? 1 : -1);
+                    product.setLikedByUser(newLiked);
+                    product.setLikesCount(newCount);
+                    ProductSync.LikeSync.update(product.getProductId(), newLiked, newCount);
+                    
+                    if (productViewModel != null) {
+                        productViewModel.toggleLikeProduct(product.getProductId());
+                    }
+                });
+            }
 
             // Favorite button
-            favoriteButton.setOnClickListener(v -> {
-                Log.d(TAG, "⭐ Favorite button clicked for: " + product.getName());
-                if (productViewModel != null) {
-                    productViewModel.toggleFavoriteProduct(product.getProductId());
-                    // L'UI sera mise à jour automatiquement via l'observer
-                } else {
-                    Log.e(TAG, "❌ ProductViewModel is null");
-                }
-            });
-
-            favoriteButton.setOnTouchListener((v, event) -> {
-                if (event.getAction() == android.view.MotionEvent.ACTION_DOWN) {
-                    v.getParent().requestDisallowInterceptTouchEvent(true);
-                }
-                return false;
-            });
-
+            if (favoriteButton != null) {
+                favoriteButton.setOnClickListener(v -> {
+                    Log.d(TAG, "⭐ Favorite button clicked for: " + product.getName());
+                    if (listener != null) {
+                        listener.onFavoriteClick(product, getAdapterPosition());
+                    } else {
+                        boolean newFavorite = !product.isFavoriteByUser();
+                        product.setFavoriteByUser(newFavorite);
+                        ProductSync.FavoriteSync.update(product.getProductId(), newFavorite);
+                        if (productViewModel != null) {
+                            productViewModel.toggleFavoriteProduct(product.getProductId());
+                        }
+                    }
+                });
+            }
             // Shop link button (uniquement en contexte favoris)
             if (isFavoritesContext) {
                 shopLinkButton.setOnClickListener(v -> {

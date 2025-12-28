@@ -23,21 +23,8 @@
             <RelativeLayout
                 android:id="@+id/header_produits"
                 android:layout_width="match_parent"
-                android:layout_height="120dp"
-                android:padding="24dp">
+                android:layout_height="wrap_content">
 
-                <!-- Texte "Products" -->
-                <TextView
-                    android:id="@+id/textView_produits"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentStart="true"
-                    android:layout_centerVertical="true"
-                    android:text="@string/pageTitle"
-                    android:textStyle="bold"
-                    android:textSize="40sp"
-                    android:fontFamily="serif"
-                    android:letterSpacing="-0.02"/>
 
                 <!-- Sélecteur de ville -->
                 <LinearLayout
@@ -45,7 +32,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
+                    android:layout_marginTop="10dp"
                     android:layout_centerVertical="true"
+                    android:layout_marginEnd="12dp"
                     android:orientation="horizontal"
                     android:background="@drawable/location_selector_bg"
                     android:paddingStart="12dp"
@@ -54,7 +43,8 @@
                     android:paddingBottom="8dp"
                     android:gravity="center_vertical"
                     android:clickable="true"
-                    android:focusable="true">
+                    android:focusable="true"
+                    android:visibility="gone">
 
                     <ImageView
                         android:layout_width="18dp"
@@ -80,6 +70,7 @@
                 android:id="@+id/search_bar_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
                 android:orientation="horizontal"
                 android:paddingStart="24dp"
                 android:paddingEnd="24dp"
@@ -318,7 +309,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Leather Crafts"
+                            android:text="@string/leather_crafts"
                             android:textSize="13sp"
                             android:paddingBottom="6dp"/>
                     </LinearLayout>
@@ -518,7 +509,7 @@
                     android:layout_height="44dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="12dp"
-                    android:text="Promotion"
+                    android:text="@string/promo_button"
                     android:textSize="12sp"
                     android:textAllCaps="false"
                     android:backgroundTint="#E85F4C"
@@ -532,7 +523,7 @@
                     android:layout_height="44dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="12dp"
-                    android:text="Delivery"
+                    android:text="@string/delivery_button"
                     android:textSize="12sp"
                     android:textAllCaps="false"
                     android:backgroundTint="#E85F4C"
@@ -541,12 +532,12 @@
                     android:paddingEnd="4dp"/>
 
                 <Button
-                    android:id="@+id/btn_sort_by"
+                    android:id="@+id/btntrend"
                     android:layout_width="0dp"
                     android:layout_height="44dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="12dp"
-                    android:text="@string/Sort"
+                    android:text="@string/trending_button"
                     android:textSize="12sp"
                     android:textAllCaps="false"
                     android:backgroundTint="#E85F4C"
@@ -571,7 +562,7 @@
                 android:id="@+id/textView_not_found"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Élément introuvable"
+                android:text="@string/item_not_found"
                 android:textSize="18sp"
                 android:textColor="#E85F4C"
                 android:textStyle="bold"
@@ -601,4 +592,3 @@
         </LinearLayout>
     </ScrollView>
 </RelativeLayout>
-

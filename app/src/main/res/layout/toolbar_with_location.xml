@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.Toolbar
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/toolbar"
+    android:layout_width="match_parent"
+    android:layout_height="?attr/actionBarSize"
+    android:background="#F5E5D8"
+    android:elevation="4dp"
+    app:navigationIcon="@drawable/ic_back_arrow"
+    app:navigationIconTint="#E85F4C"
+    app:title="@string/shop_details"
+    app:titleTextColor="#000000">
+    
+    <!-- Location Button in Toolbar -->
+    <LinearLayout
+        android:id="@+id/toolbar_location_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginEnd="16dp"
+        android:orientation="horizontal"
+        android:background="@drawable/location_selector_bg"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:gravity="center_vertical"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@drawable/map"
+            android:backgroundTint="#4CAF50"
+            android:layout_marginEnd="4dp"
+            android:contentDescription="@string/location"/>
+
+        <TextView
+            android:id="@+id/toolbar_city_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/city"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="#000000"/>
+    </LinearLayout>
+    
+</androidx.appcompat.widget.Toolbar>

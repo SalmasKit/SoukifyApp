@@ -35,16 +35,14 @@ public class ProductViewModel extends AndroidViewModel {
 
     public ProductViewModel(Application application) {
         super(application);
-        this.productRepository = new ProductRepository(application);
+        this.productRepository = ProductRepository.getInstance(application);
         this.firebaseAuth = FirebaseAuth.getInstance();
         this.userPreferences = new UserProductPreferencesRepository(application);
-        this.favoritesTableRepository = new FavoritesTableRepository(application);
+        this.favoritesTableRepository = FavoritesTableRepository.getInstance(application);
     }
 
     public void setupObservers(androidx.lifecycle.LifecycleOwner lifecycleOwner) {
         if (lifecycleOwner != null && productRepository != null) {
-            removeObservers();
-
             if (productRepository.getCurrentProduct() != null) {
                 productRepository.getCurrentProduct().observe(lifecycleOwner, product -> {
                     if (product != null) {
@@ -60,22 +58,19 @@ public class ProductViewModel extends AndroidViewModel {
             if (productRepository.getIsLoading() != null) {
                 productRepository.getIsLoading().observe(lifecycleOwner, isLoading::postValue);
             }
+
+            if (productRepository.getShopProducts() != null) {
+                productRepository.getShopProducts().observe(lifecycleOwner, productsList -> {
+                    if (productsList != null) {
+                        Log.d(TAG, "Syncing products from repository, count: " + productsList.size());
+                        enrichProductsWithUserState(productsList);
+                    }
+                });
+            }
         }
     }
 
-    private void removeObservers() {
-        if (productRepository != null) {
-            if (productRepository.getCurrentProduct() != null) {
-                productRepository.getCurrentProduct().removeObservers(null);
-            }
-            if (productRepository.getErrorMessage() != null) {
-                productRepository.getErrorMessage().removeObservers(null);
-            }
-            if (productRepository.getIsLoading() != null) {
-                productRepository.getIsLoading().removeObservers(null);
-            }
-        }
-    }
+
 
     public LiveData<ProductModel> getCurrentProduct() {
         return currentProduct;
@@ -196,6 +191,9 @@ public class ProductViewModel extends AndroidViewModel {
                 if (updatedProduct != null) {
                     updatedProduct.setLikedByUser(isNowLiked);
                     notifyProductUpdated(updatedProduct);
+                    
+                    // ✅ Synchronisation globale via le Repository
+                    productRepository.notifyProductChanged(updatedProduct);
                 }
             }
 
@@ -244,6 +242,9 @@ public class ProductViewModel extends AndroidViewModel {
                 // Mise à jour optimiste
                 product.setFavoriteByUser(newFavoriteState);
                 notifyProductUpdated(product);
+                
+                // ✅ Synchronisation globale via le Repository
+                productRepository.notifyProductChanged(product);
 
                 if (newFavoriteState) {
                     // Ajouter aux favoris
@@ -357,28 +358,55 @@ public class ProductViewModel extends AndroidViewModel {
             return;
         }
 
-        // Créer une nouvelle liste pour éviter les modifications concurrentes
+        // Create a new list to avoid concurrent modification issues
+        // and to serve as the source of truth for the adapter
         List<ProductModel> enrichedProducts = new ArrayList<>(productList);
 
-        // Compteur pour savoir quand tous les produits sont enrichis
-        final int[] pendingCount = {enrichedProducts.size()}; // 1 opération par produit (favorite)
-
+        // First pass: Apply synchronous updates (Likes) and post IMMEDIATELY
+        // This ensures the user sees the products (including the new one) right away.
         for (ProductModel product : enrichedProducts) {
             String productId = product.getProductId();
+            if (productId != null) {
+                // Load like state (synchronous from SharedPreferences)
+                boolean isLiked = userPreferences.isProductLiked(productId);
+                product.setLikedByUser(isLiked);
+                Log.d(TAG, "✅ Loaded like state for " + product.getName() + ": " + isLiked);
+            }
+        }
+        
+        // Post the list immediately!
+        products.postValue(enrichedProducts);
 
-            // ✅ Charger l'état "liked" - utilise seulement productId (synchrone)
-            boolean isLiked = userPreferences.isProductLiked(productId);
-            product.setLikedByUser(isLiked);
-            Log.d(TAG, "✅ Loaded like state for " + product.getName() + ": " + isLiked);
+        // Second pass: Apply asynchronous updates (Favorites)
+        // We only trigger a refresh if the state actually changes (i.e. isFavorited is true)
+        for (ProductModel product : enrichedProducts) {
+            String productId = product.getProductId();
+            if (productId == null) continue;
 
-            // ✅ Charger l'état "favorite" (asynchrone)
-            favoritesTableRepository.isProductFavorite(productId).observeForever(isFavorite -> {
-                product.setFavoriteByUser(isFavorite != null && isFavorite);
-                Log.d(TAG, "✅ Loaded favorite state for " + product.getName() + ": " + isFavorite);
+            favoritesTableRepository.checkProductFavoriteOnce(productId, new FavoritesTableRepository.OnFavoriteCheckedListener() {
+                @Override
+                public void onChecked(boolean isFavorited) {
+                    // Update state
+                    boolean stateChanged = product.isFavoriteByUser() != isFavorited;
+                    product.setFavoriteByUser(isFavorited);
+                    
+                    Log.d(TAG, "✅ Loaded favorite state for " + product.getName() + ": " + isFavorited);
+                    
+                    // Only refresh the list if the state is 'true' (since default is false)
+                    // or if it somehow changed from what was effectively displayed.
+                    // To be safe and ensure UI consistency: if it's favorited, we definitely need to show it.
+                    if (isFavorited || stateChanged) {
+                        // We must post the SAME list instance (or a copy of it) so the adapter updates.
+                        // Since 'product' is a specific object reference INSIDE enrichedProducts,
+                        // modifying it and reposting the list works.
+                        products.postValue(enrichedProducts);
+                    }
+                }
 
-                pendingCount[0]--;
-                if (pendingCount[0] == 0) {
-                    products.postValue(enrichedProducts);
+                @Override
+                public void onError(String error) {
+                    Log.e(TAG, "❌ Error checking favorite state for " + product.getName() + ": " + error);
+                    // No need to block UI, just keep default false
                 }
             });
         }
@@ -398,6 +426,13 @@ public class ProductViewModel extends AndroidViewModel {
         } else {
             currentProduct.postValue(null);
         }
+    }
+
+    public void clearProducts() {
+        Log.d(TAG, "Clearing products list");
+        products.postValue(new ArrayList<>());
+        currentProduct.postValue(null);
+        errorMessage.postValue(null);
     }
 
     public void clearError() {

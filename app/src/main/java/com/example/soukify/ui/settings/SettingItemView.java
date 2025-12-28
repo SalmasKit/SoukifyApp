@@ -18,6 +18,7 @@ public class SettingItemView extends LinearLayout {
     private TextView title;
     private View divider;
     private ImageView chevron;
+    private TextView badge;
     private View clickableArea;
 
     public SettingItemView(Context context) {
@@ -41,6 +42,7 @@ public class SettingItemView extends LinearLayout {
         title = findViewById(R.id.title);
         divider = findViewById(R.id.divider);
         chevron = findViewById(R.id.chevron);
+        badge = findViewById(R.id.badge);
         
         if (getChildCount() > 0) {
             clickableArea = getChildAt(0);
@@ -101,5 +103,22 @@ public class SettingItemView extends LinearLayout {
 
     public void setShowChevron(boolean show) {
         chevron.setVisibility(show ? View.VISIBLE : View.GONE);
+    }
+
+    public void setBadgeCount(int count) {
+        if (badge != null) {
+            if (count > 0) {
+                badge.setText(String.valueOf(count));
+                badge.setVisibility(View.VISIBLE);
+            } else {
+                badge.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    public void hideBadge() {
+        if (badge != null) {
+            badge.setVisibility(View.GONE);
+        }
     }
 }

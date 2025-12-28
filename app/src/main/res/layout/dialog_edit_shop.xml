@@ -51,7 +51,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Change Cover Photo"
+                    android:text="@string/change_cover_photo"
                     android:textSize="17sp"
                     android:textStyle="bold"
                     android:textColor="@color/colorPrimaryDark" />
@@ -59,7 +59,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="16:9 ratio recommended"
+                    android:text="@string/ratio_recommended"
                     android:layout_marginTop="4dp"
                     android:textSize="13sp"
                     android:textColor="@color/text_secondary" />
@@ -89,7 +89,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="8dp"
-                android:text="Shop Status: Active"
+                android:text="@string/shop_status_active"
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_primary" />
@@ -98,7 +98,7 @@
                 android:id="@+id/tvShopId"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="ID: #12345"
+                android:text="@string/id_placeholder"
                 android:textSize="12sp"
                 android:textColor="@color/text_secondary"
                 android:fontFamily="monospace" />
@@ -113,7 +113,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/EnhancedInput"
-                android:hint="Shop Name"
+                android:hint="@string/shop_name"
                 app:startIconDrawable="@drawable/ic_store_24dp"
                 app:startIconTint="@color/colorPrimary">
 
@@ -126,7 +126,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/EnhancedInput"
-                android:hint="Description"
+                android:hint="@string/description"
                 app:startIconDrawable="@drawable/ic_baseline_description_24"
                 app:startIconTint="@color/colorPrimary">
 
@@ -140,7 +140,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/EnhancedInput"
-                android:hint="Phone Number"
+                android:hint="@string/phone_number"
                 app:startIconDrawable="@drawable/ic_baseline_phone_24"
                 app:startIconTint="@color/colorPrimary">
 
@@ -153,7 +153,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/EnhancedInput"
-                android:hint="Email Address"
+                android:hint="@string/email"
                 app:startIconDrawable="@drawable/ic_baseline_email_24"
                 app:startIconTint="@color/colorPrimary">
 
@@ -170,7 +170,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:hint="Shop Category"
+                android:hint="@string/category"
                 android:minHeight="60dp"
                 app:startIconDrawable="@drawable/ic_category_grid_24"
                 app:startIconTint="@color/colorPrimary"
@@ -195,7 +195,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:hint="Region"
+                android:hint="@string/region"
                 android:minHeight="60dp"
                 app:startIconDrawable="@drawable/ic_place_24dp"
                 app:startIconTint="@color/colorPrimary"
@@ -220,7 +220,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:hint="City"
+                android:hint="@string/city"
                 android:minHeight="60dp"
                 app:startIconDrawable="@drawable/ic_location_city_24dp"
                 app:startIconTint="@color/colorPrimary"
@@ -241,8 +241,8 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/EnhancedInput"
-                android:hint="Address"
-                app:placeholderText="Street, Neighborhood, Landmarks... (Optional)"
+                android:hint="@string/address"
+                app:placeholderText="@string/address_optional"
                 app:startIconDrawable="@drawable/ic_baseline_map_24"
                 app:startIconTint="@color/colorPrimary">
 
@@ -259,8 +259,8 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/EnhancedInput"
-                android:hint="Instagram"
-                app:placeholderText="@username (Optional)"
+                android:hint="@string/instagram"
+                app:placeholderText="@string/instagram_optional"
                 app:startIconDrawable="@drawable/ic_instagram_24dp"
                 app:startIconTint="@color/colorPrimary">
 
@@ -274,8 +274,8 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/EnhancedInput"
-                android:hint="Facebook"
-                app:placeholderText="Page name or URL (Optional)"
+                android:hint="@string/facebook"
+                app:placeholderText="@string/facebook_optional"
                 app:startIconDrawable="@drawable/ic_facebook_24dp"
                 app:startIconTint="@color/colorPrimary">
 
@@ -289,8 +289,8 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/EnhancedInput"
-                android:hint="Website"
-                app:placeholderText="https://example.com (Optional)"
+                android:hint="@string/website"
+                app:placeholderText="@string/website_optional"
                 app:startIconDrawable="@drawable/ic_website_24dp"
                 app:startIconTint="@color/colorPrimary">
 
@@ -315,7 +315,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Shop Options"
+                    android:text="@string/shop_options"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:textColor="@color/text_primary"
@@ -340,7 +340,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="12dp"
-                        android:text="Enable Promotion"
+                        android:text="@string/enable_promotion"
                         android:textSize="15sp"
                         android:textColor="@color/text_primary" />
 
@@ -369,7 +369,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="12dp"
-                        android:text="Enable Delivery"
+                        android:text="@string/enable_delivery"
                         android:textSize="15sp"
                         android:textColor="@color/text_primary" />
 
@@ -395,7 +395,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Shop Statistics"
+                    android:text="@string/shop_statistics"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:textColor="@color/text_primary"
@@ -417,7 +417,7 @@
                             android:id="@+id/tvProductsCount"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="0"
+                            android:text="@string/zero"
                             android:textSize="18sp"
                             android:textStyle="bold"
                             android:textColor="@color/colorPrimary" />
@@ -442,7 +442,7 @@
                             android:id="@+id/tvLikesCount"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="0"
+                            android:text="@string/zero"
                             android:textSize="18sp"
                             android:textStyle="bold"
                             android:textColor="@color/colorPrimary" />
@@ -450,7 +450,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Likes"
+                            android:text="@string/likes_stat_label"
                             android:textSize="11sp"
                             android:textColor="@color/text_secondary" />
 
@@ -467,7 +467,7 @@
                             android:id="@+id/tvShopRating"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="0.0"
+                            android:text="@string/rating_format"
                             android:textSize="18sp"
                             android:textStyle="bold"
                             android:textColor="@color/colorPrimary" />
@@ -475,7 +475,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Rating"
+                            android:text="@string/rating_stat_label"
                             android:textSize="11sp"
                             android:textColor="@color/text_secondary" />
 
@@ -492,7 +492,7 @@
                             android:id="@+id/tvShopAge"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="0d"
+                            android:text="@string/age_placeholder"
                             android:textSize="18sp"
                             android:textStyle="bold"
                             android:textColor="@color/colorPrimary" />
@@ -500,7 +500,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Age"
+                            android:text="@string/age_label"
                             android:textSize="11sp"
                             android:textColor="@color/text_secondary" />
 
@@ -530,7 +530,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:text="Created: "
+                    android:text="@string/created_prefix"
                     android:textSize="14sp"
                     android:textColor="@color/text_secondary" />
 
@@ -539,7 +539,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="January 1, 2024"
+                    android:text="@string/date_placeholder"
                     android:textSize="14sp"
                     android:textStyle="bold"
                     android:textColor="@color/text_primary" />

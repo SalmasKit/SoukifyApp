@@ -132,7 +132,7 @@ public class HomeFragment extends Fragment {
         // Create indicators dynamically
         createCarouselIndicators(adapter.getItemCount());
 
-        // Auto-scroll setup - THIS MAKES IT AUTO-SWITCH
+        // Auto-scroll setup
         carouselHandler = new Handler(Looper.getMainLooper());
         carouselRunnable = new Runnable() {
             @Override
@@ -141,7 +141,7 @@ public class HomeFragment extends Fragment {
                     currentCarouselPage = 0;
                 }
                 imageCarousel.setCurrentItem(currentCarouselPage++, true);
-                carouselHandler.postDelayed(this, 4000); // Auto-scroll every 4 seconds
+                carouselHandler.postDelayed(this, 2500); // Auto-scroll every 2.5 seconds
             }
         };
 
@@ -155,15 +155,16 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        // Set page transformer for smooth transitions
-        imageCarousel.setPageTransformer(new DepthPageTransformer());
+        // Set page transformer for smooth transitions - REMOVED COMPLEX TRANSFORMER FOR SMOOTHNESS
+        // imageCarousel.setPageTransformer(new DepthPageTransformer());
     }
 
     private List<Integer> getCarouselImages() {
         List<Integer> images = new ArrayList<>();
        
-        // Then add your Moroccan souk PNG images
 
+
+        // Then add your Moroccan souk PNG images
         images.add(R.drawable.image2);
         images.add(R.drawable.image3);
         images.add(R.drawable.image4);
@@ -292,7 +293,7 @@ public class HomeFragment extends Fragment {
 
     // NEW METHOD: Handle map click
     private void onMapClick(GeoPoint clickedPoint) {
-        Toast.makeText(requireContext(), "Getting location info...", Toast.LENGTH_SHORT).show();
+        Toast.makeText(requireContext(), getString(R.string.getting_location_info), Toast.LENGTH_SHORT).show();
 
         // Get city name from clicked coordinates
         getCityNameFromLocation(clickedPoint);
@@ -303,14 +304,14 @@ public class HomeFragment extends Fragment {
 
     private void addCityMarkers() {
         // Add clickable markers for major Moroccan cities
-        addCityMarker("Casablanca", CASABLANCA);
-        addCityMarker("Rabat", RABAT);
-        addCityMarker("Marrakech", MARRAKECH);
-        addCityMarker("Fès", FES);
-        addCityMarker("Tanger", TANGIER);
-        addCityMarker("Agadir", AGADIR);
-        addCityMarker("Oujda", OUJDA);
-        addCityMarker("Meknès", MEKNES);
+        addCityMarker(getString(R.string.city_casablanca), CASABLANCA);
+        addCityMarker(getString(R.string.city_rabat), RABAT);
+        addCityMarker(getString(R.string.city_marrakech), MARRAKECH);
+        addCityMarker(getString(R.string.city_fes), FES);
+        addCityMarker(getString(R.string.city_tangier), TANGIER);
+        addCityMarker(getString(R.string.city_agadir), AGADIR);
+        addCityMarker(getString(R.string.city_oujda), OUJDA);
+        addCityMarker(getString(R.string.city_meknes), MEKNES);
     }
 
     private void addCityMarker(String cityName, GeoPoint location) {
@@ -325,7 +326,7 @@ public class HomeFragment extends Fragment {
     private void setupLocationSelection() {
         btnConfirmLocation.setOnClickListener(v -> {
             if (detectedCity != null) {
-                Toast.makeText(requireContext(), "Navigating to " + detectedCity + " shops...", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), getString(R.string.navigating_to_city_shops, detectedCity), Toast.LENGTH_SHORT).show();
 
                 selectedLocationOverlay.animate()
                         .alpha(0f)
@@ -337,7 +338,7 @@ public class HomeFragment extends Fragment {
                         })
                         .start();
             } else {
-                Toast.makeText(requireContext(), "Please select a city first", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), getString(R.string.please_select_city_first), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -359,7 +360,7 @@ public class HomeFragment extends Fragment {
             }
         } catch (Exception e) {
             Log.e("HomeFragment", "Navigation error: " + e.getMessage());
-            Toast.makeText(requireContext(), "Error navigating to search", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), getString(R.string.error_navigating_to_search), Toast.LENGTH_SHORT).show();
         }
     }
     private void setupGpsButton() {
@@ -388,7 +389,7 @@ public class HomeFragment extends Fragment {
 
     private void findMyLocation() {
         // Show loading message
-        Toast.makeText(requireContext(), "Finding your location...", Toast.LENGTH_SHORT).show();
+        Toast.makeText(requireContext(), getString(R.string.finding_your_location), Toast.LENGTH_SHORT).show();
 
         // Animate GPS button to show it's working
         btnGpsLocation.animate()
@@ -419,7 +420,7 @@ public class HomeFragment extends Fragment {
                     } else {
                         // GPS failed, try to find nearest major city based on approximate location
                         Toast.makeText(requireContext(),
-                                "Unable to get precise location. Please ensure GPS is enabled.",
+                                getString(R.string.unable_to_get_precise_location),
                                 Toast.LENGTH_LONG).show();
                     }
                 }, 2000);
@@ -483,21 +484,25 @@ public class HomeFragment extends Fragment {
     }
 
     private String findNearestCity(GeoPoint userLocation) {
-        String[] cities = {"Casablanca", "Rabat", "Marrakech", "Fès", "Tanger", "Agadir", "Oujda", "Meknès"};
+        int[] cityResIds = {
+                R.string.city_casablanca, R.string.city_rabat, R.string.city_marrakech,
+                R.string.city_fes, R.string.city_tangier, R.string.city_agadir,
+                R.string.city_oujda, R.string.city_meknes
+        };
         GeoPoint[] cityLocations = {CASABLANCA, RABAT, MARRAKECH, FES, TANGIER, AGADIR, OUJDA, MEKNES};
 
-        String nearestCity = cities[0];
+        int nearestIndex = 0;
         double minDistance = Double.MAX_VALUE;
 
-        for (int i = 0; i < cities.length; i++) {
+        for (int i = 0; i < cityResIds.length; i++) {
             double distance = userLocation.distanceToAsDouble(cityLocations[i]);
             if (distance < minDistance) {
                 minDistance = distance;
-                nearestCity = cities[i];
+                nearestIndex = i;
             }
         }
 
-        return nearestCity;
+        return getString(cityResIds[nearestIndex]);
     }
 
     private void showLocationConfirmation(String cityName, GeoPoint location) {
@@ -517,7 +522,7 @@ public class HomeFragment extends Fragment {
 
         // Show success message
         Toast.makeText(requireContext(),
-                "Location: " + cityName,
+                getString(R.string.location_prefix) + cityName,
                 Toast.LENGTH_SHORT).show();
 
         // Add a marker at detected location
@@ -529,7 +534,7 @@ public class HomeFragment extends Fragment {
         for (int i = mapView.getOverlays().size() - 1; i >= 0; i--) {
             if (mapView.getOverlays().get(i) instanceof Marker) {
                 Marker marker = (Marker) mapView.getOverlays().get(i);
-                if ("Your Location".equals(marker.getTitle())) {
+                if (getString(R.string.your_location_marker).equals(marker.getTitle())) {
                     mapView.getOverlays().remove(i);
                 }
             }
@@ -539,7 +544,7 @@ public class HomeFragment extends Fragment {
         Marker marker = new Marker(mapView);
         marker.setPosition(location);
         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-        marker.setTitle("Your Location");
+        marker.setTitle(getString(R.string.your_location_marker));
         marker.setSnippet(cityName);
 
         mapView.getOverlays().add(marker);
@@ -551,12 +556,12 @@ public class HomeFragment extends Fragment {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(requireContext(), "Permission granted! Tap GPS button again.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), getString(R.string.permission_granted_tap_gps), Toast.LENGTH_SHORT).show();
                 // Automatically try to find location
                 findMyLocation();
             } else {
                 Toast.makeText(requireContext(),
-                        "Location permission is required to use this feature",
+                        getString(R.string.location_permission_required),
                         Toast.LENGTH_LONG).show();
             }
         }
@@ -569,7 +574,7 @@ public class HomeFragment extends Fragment {
 
         // START CAROUSEL AUTO-SCROLL WHEN FRAGMENT IS VISIBLE
         if (carouselHandler != null && carouselRunnable != null) {
-            carouselHandler.postDelayed(carouselRunnable, 4000);
+            carouselHandler.postDelayed(carouselRunnable, 2500);
         }
     }
 
@@ -591,34 +596,8 @@ public class HomeFragment extends Fragment {
             carouselHandler.removeCallbacks(carouselRunnable);
         }
     }
-
-    // Custom Page Transformer for smooth carousel transitions
-    private static class DepthPageTransformer implements ViewPager2.PageTransformer {
-        private static final float MIN_SCALE = 0.90f;
-
-        @Override
-        public void transformPage(@NonNull View page, float position) {
-            int pageWidth = page.getWidth();
-
-            if (position < -1) {
-                page.setAlpha(0f);
-            } else if (position <= 0) {
-                page.setAlpha(1f);
-                page.setTranslationX(0f);
-                page.setScaleX(1f);
-                page.setScaleY(1f);
-            } else if (position <= 1) {
-                page.setAlpha(1 - position * 0.5f);
-                page.setTranslationX(pageWidth * -position);
-                float scaleFactor = MIN_SCALE + (1 - MIN_SCALE) * (1 - Math.abs(position));
-                page.setScaleX(scaleFactor);
-                page.setScaleY(scaleFactor);
-            } else {
-                page.setAlpha(0f);
-            }
-        }
-    }
 }
+
 
 // Carousel Adapter Class
 class CarouselAdapter extends RecyclerView.Adapter<CarouselAdapter.CarouselViewHolder> {
@@ -639,7 +618,7 @@ class CarouselAdapter extends RecyclerView.Adapter<CarouselAdapter.CarouselViewH
 
     @Override
     public void onBindViewHolder(@NonNull CarouselViewHolder holder, int position) {
-        holder.bind(images.get(position), position == 0); // First image is logo
+        holder.bind(images.get(position), false); // No logo in list anymore
     }
 
     @Override

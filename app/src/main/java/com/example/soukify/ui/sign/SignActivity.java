@@ -168,12 +168,12 @@ public class SignActivity extends AppCompatActivity {
         Log.d(TAG, "validateForm - fullName: '" + fullName + "', phone: '" + phone +
                 "', email: '" + email + "', password: '" + password + "', confirm: '" + confirm + "'");
 
-        boolean allFilled = !fullName.isEmpty() && !phone.isEmpty() && !email.isEmpty() &&
+        boolean allFilled = !fullName.isEmpty() && !email.isEmpty() &&
                 !password.isEmpty() && !confirm.isEmpty();
 
         // Phone validation
         if (!phone.isEmpty() && !ValidationUtils.isValidPhone(phone)) {
-            phoneField.setError("Numéro invalide (06 ou 07 + 8 chiffres)");
+            phoneField.setError(getString(R.string.invalid_phone_format));
         } else {
             phoneField.setError(null);
         }
@@ -187,9 +187,9 @@ public class SignActivity extends AppCompatActivity {
 
         // Password validation
         if (!password.isEmpty() && password.length() < 6) {
-            passwordField.setError("Le mot de passe doit contenir au moins 6 caractères");
+            passwordField.setError(getString(R.string.password_too_short));
         } else if (!password.equals(confirm) && !confirm.isEmpty()) {
-            confirmField.setError(getString(R.string.passwords_do_not_match_fr));
+            confirmField.setError(getString(R.string.passwords_do_not_match));
         } else {
             passwordField.setError(null);
             confirmField.setError(null);
@@ -197,7 +197,7 @@ public class SignActivity extends AppCompatActivity {
 
         // Enable signup button only if valid
         signupButton.setEnabled(allFilled &&
-                ValidationUtils.isValidPhone(phone) &&
+                (phone.isEmpty() || ValidationUtils.isValidPhone(phone)) &&
                 android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() &&
                 password.length() >= 6 &&
                 password.equals(confirm));
@@ -221,28 +221,28 @@ public class SignActivity extends AppCompatActivity {
     }
 
     private boolean validateInputs(String fullName, String phone, String email, String password, String confirm) {
-        if (fullName.isEmpty() || phone.isEmpty() || email.isEmpty() || password.isEmpty() || confirm.isEmpty()) {
+        if (fullName.isEmpty() || email.isEmpty() || password.isEmpty() || confirm.isEmpty()) {
             Toast.makeText(this, getString(R.string.all_fields_obligatory), Toast.LENGTH_SHORT).show();
             return false;
         }
 
-        if (!ValidationUtils.isValidPhone(phone)) {
-            phoneField.setError("Numéro de téléphone invalide");
+        if (!phone.isEmpty() && !ValidationUtils.isValidPhone(phone)) {
+            phoneField.setError(getString(R.string.invalid_phone));
             return false;
         }
 
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            emailField.setError("Email invalide");
+            emailField.setError(getString(R.string.invalid_email));
             return false;
         }
 
         if (password.length() < 6) {
-            passwordField.setError("Le mot de passe doit contenir au moins 6 caractères");
+            passwordField.setError(getString(R.string.password_too_short));
             return false;
         }
 
         if (!password.equals(confirm)) {
-            confirmField.setError("Les mots de passe ne correspondent pas");
+            confirmField.setError(getString(R.string.passwords_do_not_match));
             return false;
         }
 

@@ -229,24 +229,26 @@ public class LocationRepository {
     }
 
     private List<RegionModel> getMoroccoRegions() {
-        List<String> moroccoRegions = Arrays.asList(
-            "Tanger-Tétouan-Al Hoceima",
-            "L'Oriental",
-            "Fès-Meknès",
-            "Rabat-Salé-Kénitra",
-            "Béni Mellal-Khénifra",
-            "Casablanca-Settat",
-            "Marrakech-Safi",
-            "Drâa-Tafilalet",
-            "Souss-Massa",
-            "Guelmim-Oued Noun",
-            "Laâyoune-Sakia El Hamra",
-            "Dakhla-Oued Ed-Dahab"
-        );
+        String[][] regionsData = {
+            {"Tanger-Tétouan-Al Hoceima", "Tanger-Tétouan-Al Hoceima", "طنجة - تطوان - الحسيمة"},
+            {"L'Oriental", "L'Oriental", "الشرق"},
+            {"Fès-Meknès", "Fès-Meknès", "فاس - مكناس"},
+            {"Rabat-Salé-Kénitra", "Rabat-Salé-Kénitra", "الرباط - سلا - القنيطرة"},
+            {"Béni Mellal-Khénifra", "Béni Mellal-Khénifra", "بني ملال - خنيفرة"},
+            {"Casablanca-Settat", "Casablanca-Settat", "الدار البيضاء - سطات"},
+            {"Marrakech-Safi", "Marrakech-Safi", "مراكش - آسفي"},
+            {"Drâa-Tafilalet", "Drâa-Tafilalet", "درعة - تافيلالت"},
+            {"Souss-Massa", "Souss-Massa", "سوس - ماسة"},
+            {"Guelmim-Oued Noun", "Guelmim-Oued Noun", "كلميم - واد نون"},
+            {"Laâyoune-Sakia El Hamra", "Laâyoune-Sakia El Hamra", "العيون - الساقية الحمراء"},
+            {"Dakhla-Oued Ed-Dahab", "Dakhla-Oued Ed-Dahab", "الداخلة - وادي الذهب"}
+        };
 
         List<RegionModel> regionModels = new ArrayList<>();
-        for (int i = 0; i < moroccoRegions.size(); i++) {
-            RegionModel region = new RegionModel(moroccoRegions.get(i));
+        for (int i = 0; i < regionsData.length; i++) {
+            RegionModel region = new RegionModel(regionsData[i][0]);
+            region.setName_fr(regionsData[i][1]);
+            region.setName_ar(regionsData[i][2]);
             region.setRegionId("region_" + (i + 1));
             regionModels.add(region);
         }

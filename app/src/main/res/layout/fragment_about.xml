@@ -20,7 +20,7 @@
             android:elevation="4dp"
             app:navigationIcon="@drawable/ic_back_arrow"
             app:navigationIconTint="#E85F4C"
-            app:title="About"
+            app:title="@string/about"
             app:titleTextColor="#000000"
             android:textStyle="bold" />
 

@@ -28,7 +28,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Login"
+                android:text="@string/login_title"
                 android:fontFamily="@font/dancingscript"
                 android:gravity="center"
                 android:textStyle="bold"
@@ -38,7 +38,7 @@
                 android:id="@+id/user"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
-                android:hint="email"
+                android:hint="@string/email_hint_lower"
                 android:layout_marginTop="30dp"
                 android:paddingLeft="10dp"
                 android:textSize="15dp"
@@ -49,7 +49,7 @@
                 android:id="@+id/passwd"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
-                android:hint="password"
+                android:hint="@string/password_hint_lower"
                 android:paddingLeft="10dp"
                 android:textSize="15dp"
                 android:layout_marginTop="30dp"
@@ -61,7 +61,7 @@
                 android:id="@+id/forgetpassword"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Forgot Password"
+                android:text="@string/forgot_password"
                 android:textSize="12dp"
                 android:layout_marginTop="10dp"
                 android:layout_marginLeft="10dp"></TextView>
@@ -72,7 +72,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="35dp"
                 android:layout_marginTop="15dp"
-                android:text="login"
+                android:text="@string/login_button"
                 android:background="@drawable/rounded"
                 android:textSize="10dp" />
 
@@ -83,7 +83,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Don't Have An Account?"
+                    android:text="@string/dont_have_account"
                     android:layout_marginTop="15dp"
                     android:layout_marginLeft="45dp"
                     android:textSize="12dp"></TextView>
@@ -91,7 +91,7 @@
                     android:id="@+id/tvSignup"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Signup"
+                    android:text="@string/signup_link"
                     android:layout_marginTop="15dp"
                     android:layout_marginLeft="5dp"
                     android:textSize="12dp"
@@ -108,7 +108,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="or log in with"
+                    android:text="@string/or_login_with"
                     android:layout_marginLeft="20dp"
                     android:textSize="12dp"
                     ></TextView>

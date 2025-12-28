@@ -15,6 +15,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.example.soukify.R;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -76,7 +77,7 @@ public class UserRepository {
                     FirebaseUser fUser = auth.getUser();
                     if (fUser != null) loadUserProfile(fUser.getUid());
                 })
-                .addOnFailureListener(e -> fail("Sign in failed: " + e.getMessage()));
+                .addOnFailureListener(e -> fail(application.getString(R.string.login_failed, e.getMessage())));
     }
 
     public void signUp(String fullName, String email, String password, String phone) {
@@ -86,7 +87,7 @@ public class UserRepository {
                 .addOnSuccessListener(auth -> {
                     FirebaseUser firebaseUser = auth.getUser();
                     if (firebaseUser == null) {
-                        fail("User creation failed");
+                        fail(application.getString(R.string.signup_failed, "User creation failed"));
                         return;
                     }
 
@@ -102,9 +103,9 @@ public class UserRepository {
                                 stopLoading();
                             })
                             .addOnFailureListener(e ->
-                                    fail("Failed to create profile: " + e.getMessage()));
+                                    fail(application.getString(R.string.profile_creation_failed, e.getMessage())));
                 })
-                .addOnFailureListener(e -> fail("Sign up failed: " + e.getMessage()));
+                .addOnFailureListener(e -> fail(application.getString(R.string.signup_failed, e.getMessage())));
     }
 
     public void signOut() {
@@ -113,7 +114,7 @@ public class UserRepository {
         
         userService.signOut();
         currentUser.postValue(null);
-        successMessage.postValue("Signed out successfully");
+        successMessage.postValue(application.getString(R.string.signed_out_success));
     }
 
     public Task<Void> reauthenticate(String email, String password) {
@@ -127,11 +128,11 @@ public class UserRepository {
 
         userService.sendPasswordResetEmail(email)
                 .addOnSuccessListener(aVoid -> {
-                    successMessage.postValue("Password reset email sent");
+                    successMessage.postValue(application.getString(R.string.reset_email_sent));
                     stopLoading();
                 })
                 .addOnFailureListener(e ->
-                        fail("Failed to send reset email: " + e.getMessage()));
+                        fail(application.getString(R.string.reset_error_msg, e.getMessage())));
     }
 
     public void updatePassword(String currentPassword, String newPassword) {
@@ -140,7 +141,7 @@ public class UserRepository {
         String email = userService.getCurrentUserEmail();
         if (email == null) {
             Log.e("UserRepository", "No authenticated user found");
-            fail("No authenticated user");
+            fail(application.getString(R.string.no_user_auth));
             return;
         }
 
@@ -152,17 +153,17 @@ public class UserRepository {
                     userService.updatePassword(newPassword)
                             .addOnSuccessListener(v -> {
                                 Log.d("UserRepository", "Password update successful");
-                                successMessage.postValue("Password updated successfully");
+                                successMessage.postValue(application.getString(R.string.password_update_success));
                                 stopLoading();
                             })
                             .addOnFailureListener(e -> {
                                 Log.e("UserRepository", "Password update failed: " + e.getMessage());
-                                fail("Password update failed: " + e.getMessage());
+                                fail(application.getString(R.string.password_update_failed, e.getMessage()));
                             });
                 })
                 .addOnFailureListener(e -> {
                     Log.e("UserRepository", "Reauthentication failed: " + e.getMessage());
-                    fail("Current password incorrect: " + e.getMessage());
+                    fail(application.getString(R.string.current_password_incorrect, e.getMessage()));
                 });
     }
 
@@ -192,7 +193,7 @@ public class UserRepository {
         // Check if there's a pending email verification
         if (firebaseUser != null && firebaseUser.getEmail() != null && 
             !firebaseUser.getEmail().equals(currentEmail)) {
-            fail("Please verify your previous email change before making another change. Check your inbox for the verification email.");
+            fail(application.getString(R.string.verification_pending));
             isUpdating = false;
             return;
         }
@@ -205,7 +206,7 @@ public class UserRepository {
             updateEmailOnly(newEmail, password);
         } else {
             Log.d("UserRepository", "No email change, profile update complete");
-            successMessage.postValue("Profile updated successfully");
+            successMessage.postValue(application.getString(R.string.profile_update_success));
             stopLoading();
             isUpdating = false;
         }
@@ -233,7 +234,7 @@ public class UserRepository {
             })
             .addOnFailureListener(e -> {
                 Log.e("UserRepository", "Failed to update profile fields", e);
-                fail("Profile update failed: " + e.getMessage());
+                fail(application.getString(R.string.profile_update_failed, e.getMessage()));
                 isUpdating = false;
             });
     }
@@ -248,7 +249,7 @@ public class UserRepository {
         FirebaseUser firebaseUser = userService.getCurrentUser();
         
         if (firebaseUser == null) {
-            fail("No authenticated user");
+            fail(application.getString(R.string.no_user_auth));
             isUpdating = false;
             return;
         }
@@ -265,7 +266,7 @@ public class UserRepository {
             firebaseUser.verifyBeforeUpdateEmail(newEmail)
                     .addOnSuccessListener(done -> {
                         Log.d("UserRepository", "Email verification request sent successfully");
-                        successMessage.postValue("Verification email sent to " + newEmail + ". Please check your inbox and click the verification link to complete the email change.");
+                        successMessage.postValue(application.getString(R.string.verification_email_sent, newEmail));
                         stopLoading();
                         isUpdating = false;
                     })
@@ -273,17 +274,17 @@ public class UserRepository {
                         Log.e("UserRepository", "Email update failed", e);
                         String errorMsg = e.getMessage();
                         if (errorMsg != null && errorMsg.contains("already in use")) {
-                            fail("This email address is already registered. Please use a different email address.");
+                            fail(application.getString(R.string.email_already_registered));
                         } else if (errorMsg != null && errorMsg.contains("invalid")) {
-                            fail("Invalid email address format. Please enter a valid email.");
+                            fail(application.getString(R.string.email_invalid_format));
                         } else {
-                            fail("Email update failed: " + errorMsg);
+                            fail(application.getString(R.string.profile_update_failed, errorMsg));
                         }
                         isUpdating = false;
                     });
         }).addOnFailureListener(e -> {
             Log.e("UserRepository", "Re-authentication failed", e);
-            fail("Re-authentication failed: " + e.getMessage());
+            fail(application.getString(R.string.reauth_failed, e.getMessage()));
             isUpdating = false;
         });
     }
@@ -311,7 +312,7 @@ public class UserRepository {
 
         if (localUser == null || firebaseUser == null) {
             Log.e("UserRepository", "No user authenticated");
-            fail("No user authenticated");
+            fail(application.getString(R.string.no_user_auth));
             return;
         }
 
@@ -344,16 +345,16 @@ public class UserRepository {
                     .addOnSuccessListener(done -> {
                         Log.d("UserRepository", "Firestore document updated successfully");
                         currentUser.postValue(updated);
-                        successMessage.postValue("Email updated successfully to " + firebaseEmail);
+                        successMessage.postValue(application.getString(R.string.email_updated_success, firebaseEmail));
                         stopLoading();
                     })
                     .addOnFailureListener(e -> {
                         Log.e("UserRepository", "Firestore update failed", e);
-                        fail("Firestore update failed: " + e.getMessage());
+                        fail(application.getString(R.string.profile_update_failed, e.getMessage()));
                     });
         }).addOnFailureListener(e -> {
             Log.e("UserRepository", "Failed to reload user", e);
-            fail("Failed to reload user: " + e.getMessage());
+            fail(application.getString(R.string.error_prefix, e.getMessage()));
         });
     }
 
@@ -374,7 +375,7 @@ public class UserRepository {
                     if (user != null) loadUserProfile(user.getUid());
                 })
                 .addOnFailureListener(e ->
-                        fail("Phone sign-in failed: " + e.getMessage()));
+                        fail(application.getString(R.string.login_failed, e.getMessage())));
     }
 
     /* ===================== GOOGLE AUTH ===================== */
@@ -386,7 +387,7 @@ public class UserRepository {
                 .addOnSuccessListener(auth -> {
                     FirebaseUser firebase = auth.getUser();
                     if (firebase == null) {
-                        fail("Google user null");
+                        fail(application.getString(R.string.login_failed, "Google user null"));
                         return;
                     }
 
@@ -414,11 +415,11 @@ public class UserRepository {
                                             stopLoading();
                                         })
                                         .addOnFailureListener(e ->
-                                                fail("Create Google user failed: " + e.getMessage()));
+                                                fail(application.getString(R.string.profile_creation_failed, e.getMessage())));
                             });
                 })
                 .addOnFailureListener(e ->
-                        fail("Google Sign-In failed: " + e.getMessage()));
+                        fail(application.getString(R.string.login_failed, e.getMessage())));
     }
 
     /* ===================== LOAD PROFILE ===================== */
@@ -450,7 +451,7 @@ public class UserRepository {
         userService.getUser(uid)
                 .addOnSuccessListener(user -> {
                     if (user == null) {
-                        fail("User not found");
+                        fail(application.getString(R.string.user_not_found));
                         return;
                     }
                     
@@ -471,7 +472,7 @@ public class UserRepository {
                 })
                 .addOnFailureListener(e -> {
                     Log.e("UserRepository", "Failed to load user profile", e);
-                    fail("Failed to load profile: " + e.getMessage());
+                    fail(application.getString(R.string.profile_update_failed, e.getMessage()));
                 });
     }
 
@@ -483,15 +484,15 @@ public class UserRepository {
     public void updateEmail(String newEmail) {
         Log.d("UserRepository", "Public updateEmail called with: " + newEmail);
         
-        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        FirebaseUser firebaseUser = userService.getCurrentUser();
         if (firebaseUser == null) {
-            fail("No user logged in");
+            fail(application.getString(R.string.no_user_auth));
             return;
         }
 
         String currentEmail = firebaseUser.getEmail();
         if (currentEmail == null || currentEmail.equals(newEmail)) {
-            fail("Email is the same as current email");
+            fail(application.getString(R.string.email_same_as_current));
             return;
         }
 
@@ -504,9 +505,9 @@ public class UserRepository {
     public void syncEmailStatus() {
         Log.d("UserRepository", "Public syncEmailStatus called");
         
-        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        FirebaseUser firebaseUser = userService.getCurrentUser();
         if (firebaseUser == null) {
-            fail("No user logged in");
+            fail(application.getString(R.string.no_user_auth));
             return;
         }
 
@@ -519,7 +520,7 @@ public class UserRepository {
                 })
                 .addOnFailureListener(e -> {
                     Log.e("UserRepository", "Failed to reload Firebase user", e);
-                    fail("Failed to sync email status: " + e.getMessage());
+                    fail(application.getString(R.string.error_prefix, e.getMessage()));
                 });
     }
 
@@ -547,6 +548,13 @@ public class UserRepository {
         
         Log.d("UserRepository", "Firebase email: " + firebaseEmail + ", Local email: " + localEmail);
 
+        if (localUser.getUserId() == null || !localUser.getUserId().equals(firebaseUser.getUid())) {
+            Log.w("UserRepository", "CRITICAL: Attempted to sync email for mismatched users! " +
+                    "Local: " + localUser.getUserId() + ", Firebase: " + firebaseUser.getUid());
+            stopLoading();
+            return;
+        }
+
         if (firebaseEmail == null || firebaseEmail.equals(localEmail)) {
             Log.d("UserRepository", "No email change detected");
             stopLoading();
@@ -559,12 +567,12 @@ public class UserRepository {
                 .addOnSuccessListener(aVoid -> {
                     Log.d("UserRepository", "Firestore updated with new email: " + firebaseEmail);
                     currentUser.postValue(localUser);
-                    successMessage.postValue("Email updated successfully to " + firebaseEmail);
+                    successMessage.postValue(application.getString(R.string.email_updated_success, firebaseEmail));
                     stopLoading();
                 })
                 .addOnFailureListener(e -> {
                     Log.e("UserRepository", "Failed to update Firestore with new email", e);
-                    fail("Failed to update email in database: " + e.getMessage());
+                    fail(application.getString(R.string.profile_update_failed, e.getMessage()));
                 });
     }
 

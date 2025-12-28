@@ -38,8 +38,7 @@ public class SignActivityViewModel extends AndroidViewModel {
         // Validation de base
         if (name == null || name.isEmpty() ||
                 email == null || email.isEmpty() ||
-                password == null || password.isEmpty() ||
-                phone == null || phone.isEmpty()) {
+                password == null || password.isEmpty()) {
             errorMessage.setValue("All fields are required");
             signupSuccess.setValue(false);
             return;

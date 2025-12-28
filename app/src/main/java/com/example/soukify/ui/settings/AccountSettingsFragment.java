@@ -93,6 +93,10 @@ public class AccountSettingsFragment extends Fragment {
         viewModel.getCurrentUser().observe(getViewLifecycleOwner(), user -> {
             if (user == null) return;
 
+            // Check if image URL changed or if it's the first load
+            String oldImageUrl = (currentUser != null) ? currentUser.getProfileImage() : null;
+            String newImageUrl = user.getProfileImage();
+            
             currentUser = user;
             originalEmail = user.getEmail();
 
@@ -119,23 +123,20 @@ public class AccountSettingsFragment extends Fragment {
                 }
             }
 
-            // ✅ FIX: Handle image upload completion
-            if (isUploadingImage && user.getProfileImage() != null &&
-                !user.getProfileImage().isEmpty()) {
-
-                Log.d("AccountSettings", "Image upload complete, new URL: " + user.getProfileImage());
-
-                // Reset image upload state
-                isUploadingImage = false;
-                binding.changePhotoButton.setEnabled(true);
-                binding.changePhotoButton.setText("Change Photo");
-
-                // Load the new image
-                loadProfileImage(user.getProfileImage());
-                selectedImageUri = null;
-
-                // ✅ FIX: If we were waiting to update other fields, do it now
-                if (waitingForImageUpload) {
+            // ✅ FIX: Load image if URL changed or first load
+            boolean imageChanged = (oldImageUrl == null && newImageUrl != null) || 
+                                   (oldImageUrl != null && !oldImageUrl.equals(newImageUrl));
+            
+            if (isUploadingImage && newImageUrl != null && !newImageUrl.isEmpty()) {
+                 // Upload flow handling (kept same)
+                 Log.d("AccountSettings", "Image upload complete, new URL: " + newImageUrl);
+                 isUploadingImage = false;
+                 binding.changePhotoButton.setEnabled(true);
+                 binding.changePhotoButton.setText(R.string.change_photo_btn);
+                 loadProfileImage(newImageUrl);
+                 selectedImageUri = null;
+                 
+                 if (waitingForImageUpload) {
                     Log.d("AccountSettings", "Image upload done, now updating profile fields");
                     waitingForImageUpload = false;
 
@@ -164,8 +165,9 @@ public class AccountSettingsFragment extends Fragment {
                     pendingPasswordAfterImage = null;
                 }
             } else if (!isUploadingImage && selectedImageUri == null) {
-                // Normal image load
-                loadProfileImage(user.getProfileImage());
+                 if (imageChanged) {
+                     loadProfileImage(newImageUrl);
+                 }
             }
         });
 
@@ -173,7 +175,7 @@ public class AccountSettingsFragment extends Fragment {
             if (result != null) {
                 if (result.startsWith("SUCCESS:")) {
                     String message = result.substring(8);
-                    Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show(); // Note: message is from result substring, might need check if it needs translation or if it is already translated from ViewModel
 
                     // ✅ FIX: Only clear pending values if NOT uploading image
                     if (!isUploadingImage && !waitingForImageUpload) {
@@ -250,27 +252,27 @@ public class AccountSettingsFragment extends Fragment {
         boolean isValid = true;
 
         if (name.isEmpty()) {
-            binding.nameLayout.setError("Name is required");
+            binding.nameLayout.setError(getString(R.string.name_required_error));
             isValid = false;
         } else {
             binding.nameLayout.setError(null);
         }
 
         if (email.isEmpty()) {
-            binding.emailLayout.setError("Email is required");
+            binding.emailLayout.setError(getString(R.string.email_required_error));
             isValid = false;
         } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            binding.emailLayout.setError("Please enter a valid email");
+            binding.emailLayout.setError(getString(R.string.email_invalid_error));
             isValid = false;
         } else {
             binding.emailLayout.setError(null);
         }
 
         if (phone.isEmpty()) {
-            binding.phoneLayout.setError("Phone number is required");
+            binding.phoneLayout.setError(getString(R.string.phone_required_error));
             isValid = false;
         } else if (phone.length() < 8) {
-            binding.phoneLayout.setError("Please enter a valid phone number");
+            binding.phoneLayout.setError(getString(R.string.phone_invalid_error));
             isValid = false;
         } else {
             binding.phoneLayout.setError(null);
@@ -291,7 +293,7 @@ public class AccountSettingsFragment extends Fragment {
                             selectedImageUri != null;
 
         if (!hasChanges) {
-            Toast.makeText(getContext(), "No changes to save", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), R.string.no_changes_to_save, Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -300,26 +302,26 @@ public class AccountSettingsFragment extends Fragment {
 
     private void showSaveConfirmationDialog(String name, String email, String phone) {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        builder.setTitle("Confirm Changes");
+        builder.setTitle(R.string.confirm_changes_title);
 
-        StringBuilder message = new StringBuilder("Are you sure you want to save these changes?\n\n");
+        StringBuilder message = new StringBuilder(getString(R.string.confirm_changes_message));
 
         if (!name.equals(currentUser.getFullName())) {
-            message.append("• Name: ").append(currentUser.getFullName()).append(" → ").append(name).append("\n");
+            message.append(getString(R.string.change_summary_name)).append(currentUser.getFullName()).append(" → ").append(name).append("\n");
         }
         if (!email.equals(currentUser.getEmail())) {
-            message.append("• Email: ").append(currentUser.getEmail()).append(" → ").append(email).append("\n");
+            message.append(getString(R.string.change_summary_email)).append(currentUser.getEmail()).append(" → ").append(email).append("\n");
         }
         if (!phone.equals(currentUser.getPhoneNumber())) {
-            message.append("• Phone: ").append(currentUser.getPhoneNumber()).append(" → ").append(phone).append("\n");
+            message.append(getString(R.string.change_summary_phone)).append(currentUser.getPhoneNumber()).append(" → ").append(phone).append("\n");
         }
         if (selectedImageUri != null) {
-            message.append("• Profile photo: New photo selected\n");
+            message.append(getString(R.string.change_summary_photo));
         }
 
         builder.setMessage(message.toString());
 
-        builder.setPositiveButton("Save Changes", (dialog, which) -> {
+        builder.setPositiveButton(R.string.save_changes, (dialog, which) -> {
             if (!email.equals(originalEmail)) {
                 showEmailChangeDialog(name, email, phone);
             } else {
@@ -327,7 +329,7 @@ public class AccountSettingsFragment extends Fragment {
             }
         });
 
-        builder.setNegativeButton("Cancel", (dialog, which) -> {
+        builder.setNegativeButton(R.string.cancel, (dialog, which) -> {
             resetFieldsToOriginal();
         });
 
@@ -336,23 +338,23 @@ public class AccountSettingsFragment extends Fragment {
 
     private void showEmailChangeDialog(String name, String email, String phone) {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        builder.setTitle("Email Change Verification");
-        builder.setMessage("Changing your email requires verification. Please enter your current password to continue.");
+        builder.setTitle(R.string.email_change_verification_title);
+        builder.setMessage(R.string.email_change_verification_message);
 
         View view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_password_input, null);
         EditText passwordInput = view.findViewById(R.id.passwordInput);
         builder.setView(view);
 
-        builder.setPositiveButton("Verify", (dialog, which) -> {
+        builder.setPositiveButton(R.string.verify_btn, (dialog, which) -> {
             String password = passwordInput.getText().toString().trim();
             if (password.isEmpty()) {
-                Toast.makeText(getContext(), "Password is required", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), R.string.password_required_error, Toast.LENGTH_SHORT).show();
             } else {
                 applyProfileChangesWithEmail(name, email, phone, password);
             }
         });
 
-        builder.setNegativeButton("Cancel", (dialog, which) -> {
+        builder.setNegativeButton(R.string.cancel, (dialog, which) -> {
             binding.emailEditText.setText(originalEmail);
         });
 
@@ -386,7 +388,7 @@ public class AccountSettingsFragment extends Fragment {
             pendingEmailAfterImage = email;
             pendingPasswordAfterImage = null;
 
-            binding.changePhotoButton.setText("Uploading...");
+            binding.changePhotoButton.setText(R.string.uploading_status);
             binding.changePhotoButton.setEnabled(false);
 
             // Upload image - the observer will detect completion and continue
@@ -425,7 +427,7 @@ public class AccountSettingsFragment extends Fragment {
             pendingEmailAfterImage = email;
             pendingPasswordAfterImage = password;
 
-            binding.changePhotoButton.setText("Uploading...");
+            binding.changePhotoButton.setText(R.string.uploading_status);
             binding.changePhotoButton.setEnabled(false);
 
             // Upload image - the observer will detect completion and continue
@@ -445,14 +447,14 @@ public class AccountSettingsFragment extends Fragment {
             loadProfileImage(currentUser.getProfileImage());
 
             selectedImageUri = null;
-            binding.changePhotoButton.setText("Change Photo");
+            binding.changePhotoButton.setText(R.string.change_photo_btn);
             clearPendingValues();
         }
     }
 
     private void showChangePasswordDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        builder.setTitle("Change Password");
+        builder.setTitle(R.string.change_password_title);
 
         View view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_change_password, null);
         EditText currentPasswordInput = view.findViewById(R.id.currentPasswordEditText);
@@ -461,8 +463,8 @@ public class AccountSettingsFragment extends Fragment {
 
         builder.setView(view);
 
-        builder.setPositiveButton("Change Password", null);
-        builder.setNegativeButton("Cancel", null);
+        builder.setPositiveButton(R.string.change_password_btn, null);
+        builder.setNegativeButton(R.string.cancel, null);
 
         AlertDialog dialog = builder.create();
         dialog.show();
@@ -525,7 +527,7 @@ public class AccountSettingsFragment extends Fragment {
             if (!hasError) {
                 // Show loading state
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
-                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setText("Updating...");
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setText(R.string.updating_status);
                 dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(false);
                 
                 // Update password
@@ -536,7 +538,7 @@ public class AccountSettingsFragment extends Fragment {
                     if (result != null && !result.startsWith("SUCCESS:")) {
                         // Error occurred - re-enable dialog buttons
                         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
-                        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setText("Change Password");
+                        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setText(R.string.change_password_btn);
                         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(true);
                     } else if (result != null && result.startsWith("SUCCESS:")) {
                         // Success - dismiss dialog
@@ -578,7 +580,7 @@ public class AccountSettingsFragment extends Fragment {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 openGallery();
             } else {
-                Toast.makeText(getContext(), "Permission denied to access gallery", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), R.string.permission_denied_gallery, Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -598,7 +600,7 @@ public class AccountSettingsFragment extends Fragment {
                     .placeholder(R.drawable.ic_profile_placeholder)
                     .into(binding.profileImage);
 
-                binding.changePhotoButton.setText("Photo Selected");
+                binding.changePhotoButton.setText(R.string.photo_selected);
             }
         }
     }
@@ -609,7 +611,7 @@ public class AccountSettingsFragment extends Fragment {
         if (!isUploadingImage) {
             binding.changePhotoButton.setEnabled(false);
         }
-        binding.saveButton.setText("Saving...");
+        binding.saveButton.setText(R.string.saving_status);
     }
 
     private void hideLoading() {
@@ -617,9 +619,9 @@ public class AccountSettingsFragment extends Fragment {
         binding.changePasswordButton.setEnabled(true);
         if (!isUploadingImage) {
             binding.changePhotoButton.setEnabled(true);
-            binding.changePhotoButton.setText("Change Photo");
+            binding.changePhotoButton.setText(R.string.change_photo_btn);
         }
-        binding.saveButton.setText("Save Changes");
+        binding.saveButton.setText(R.string.save_changes);
     }
 
     @Override

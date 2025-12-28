@@ -28,13 +28,18 @@ import com.example.soukify.ui.settings.SettingItemView;
 import com.example.soukify.ui.shop.ShopViewModel;
 import de.hdodenhof.circleimageview.CircleImageView;
 import com.bumptech.glide.Glide;
+import com.example.soukify.data.repositories.ChatRepository;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class SettingsFragment extends Fragment {
     
     private static final int REQUEST_READ_EXTERNAL_STORAGE = 100;
     private SettingsViewModel settingsViewModel;
     private ShopViewModel shopViewModel;
+    private ChatRepository chatRepository;
     private int currentThemeIndex;
+    private int buyerUnreadCount = 0;
+    private int sellerUnreadCount = 0;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -46,15 +51,40 @@ public class SettingsFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         
         settingsViewModel = new ViewModelProvider(this).get(SettingsViewModel.class);
+        chatRepository = new ChatRepository();
         
         currentThemeIndex = getSavedThemeIndex();
-        settingsViewModel.setThemeIndex(currentThemeIndex);
+        // Apply theme locally without attempting to update Firebase yet
+        applyThemeLocally(currentThemeIndex);
         
         shopViewModel = new ViewModelProvider(requireActivity()).get(ShopViewModel.class);
         
         displayUserInfo(view);
         observeViewModel();
         setupShopButton(view);
+        
+        SettingItemView messagesButton = view.findViewById(R.id.messagesButton);
+        if (messagesButton != null) {
+            messagesButton.setOnSettingClickListener(v -> {
+                Intent intent = new Intent(requireActivity(), com.example.soukify.ui.conversations.ConversationsListActivity.class);
+                // Smart navigation: If we have unread seller messages, prioritize showing those.
+                // Otherwise default to buyer view (typical user Messages).
+                boolean isSellerView = sellerUnreadCount > 0;
+                intent.putExtra(com.example.soukify.ui.conversations.ConversationsListActivity.EXTRA_IS_SELLER_VIEW, isSellerView);
+                startActivity(intent);
+            });
+            
+            // Observe unread counts
+            chatRepository.getBuyerUnreadCount().observe(getViewLifecycleOwner(), count -> {
+                buyerUnreadCount = count != null ? count : 0;
+                updateMessagesBadge(messagesButton);
+            });
+
+            chatRepository.getSellerUnreadCount().observe(getViewLifecycleOwner(), count -> {
+                sellerUnreadCount = count != null ? count : 0;
+                updateMessagesBadge(messagesButton);
+            });
+        }
         
         SettingItemView accountSettings = view.findViewById(R.id.accountSettings);
         accountSettings.setOnSettingClickListener(v -> 
@@ -88,6 +118,7 @@ public class SettingsFragment extends Fragment {
                     .setNegativeButton(R.string.cancel, (d, w) -> d.dismiss())
                     .setPositiveButton(R.string.logout, (d, w) -> {
                         settingsViewModel.logout();
+                        FirebaseAuth.getInstance().signOut();
                         performLogout();
                     })
                     .show();
@@ -104,6 +135,12 @@ public class SettingsFragment extends Fragment {
             Log.d("SettingsFragment", "Open Shop button clicked!");
             Bundle args = new Bundle();
             args.putBoolean("hideDialogs", false); // Show dialogs from settings
+            
+            // Pass the current shop ID if available to speed up loading in ShopHomeFragment
+            if (shopViewModel.getShop().getValue() != null) {
+                args.putString("shopId", shopViewModel.getShop().getValue().getShopId());
+            }
+            
             Navigation.findNavController(v).navigate(R.id.action_navigation_settings_to_navigation_shop, args);
         });
 
@@ -122,6 +159,12 @@ public class SettingsFragment extends Fragment {
         });
     }
 
+    private void updateMessagesBadge(SettingItemView messagesButton) {
+        if (messagesButton != null) {
+            messagesButton.setBadgeCount(buyerUnreadCount + sellerUnreadCount);
+        }
+    }
+
     private void showThemeDialog() {
         final String[] items = new String[]{
                 getString(R.string.theme_system_default),
@@ -132,11 +175,37 @@ public class SettingsFragment extends Fragment {
         new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.appearance)
                 .setSingleChoiceItems(items, currentThemeIndex, (dialog, which) -> {
-                    settingsViewModel.setThemeIndex(which);
+                    currentThemeIndex = which;
+                    applyThemeLocally(which);
+                    saveThemeIndex(which);
+                    
+                    // Sync with Firebase if user is logged in
+                    if (settingsViewModel.isLoggedIn()) {
+                        settingsViewModel.setThemeIndex(which);
+                    }
+                    
                     dialog.dismiss();
                 })
                 .setNegativeButton(R.string.cancel, (d, w) -> d.dismiss())
                 .show();
+    }
+    
+    /**
+     * Apply theme locally without updating Firebase
+     */
+    private void applyThemeLocally(int index) {
+        switch (index) {
+            case 1: // Light
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                break;
+            case 2: // Dark
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                break;
+            case 0: // System
+            default:
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+                break;
+        }
     }
 
     private int getSavedThemeIndex() {
@@ -211,7 +280,7 @@ public class SettingsFragment extends Fragment {
             startActivity(intent);
             requireActivity().finish();
         } catch (Exception e) {
-            showToast("Logged out");
+            showToast(getString(R.string.logged_out));
             requireActivity().finishAffinity();
         }
     }
@@ -264,7 +333,7 @@ public class SettingsFragment extends Fragment {
                     displayUserInfo(getView());
                 }
             } else {
-                showToast("Storage permission required to load profile images");
+                showToast(getString(R.string.storage_permission_msg));
             }
         }
     }

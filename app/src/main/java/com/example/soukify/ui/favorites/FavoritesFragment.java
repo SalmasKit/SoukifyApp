@@ -42,7 +42,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
-public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopClickListener {
+import com.example.soukify.data.sync.ShopSync;
+import com.example.soukify.data.sync.ProductSync;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
+public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopClickListener, ShopSync.SyncListener, ProductSync.SyncListener {
 
     private static final String TAG = "FavoritesFragment";
 
@@ -72,6 +76,7 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
 
     // Realtime listeners for like updates per shop
     private final Map<String, ListenerRegistration> shopLikeListeners = new HashMap<>();
+    private String currentUserId;
 
     @Nullable
     @Override
@@ -92,7 +97,8 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
 
             // Initialize FavoritesRepository
             if (getContext() != null && isAdded()) {
-                favoritesTableRepository = new FavoritesTableRepository(requireActivity().getApplication());
+                favoritesTableRepository = FavoritesTableRepository.getInstance(requireActivity().getApplication());
+                currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
                 userPreferences = new UserProductPreferencesRepository(requireContext());
                 productViewModel = new ViewModelProvider(requireActivity(), new ProductViewModel.Factory(requireActivity().getApplication())).get(ProductViewModel.class);
                 productViewModel.setupObservers(getViewLifecycleOwner());
@@ -104,7 +110,7 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
         } catch (Exception e) {
             Log.e(TAG, "Error in onCreateView", e);
             if (getActivity() != null && getContext() != null) {
-                Toast.makeText(getContext(), "Erreur lors de l'initialisation", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), R.string.init_error, Toast.LENGTH_SHORT).show();
             }
         }
 
@@ -151,6 +157,60 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
         btnProducts.setOnClickListener(v -> selectProducts());
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        ShopSync.LikeSync.register(this);
+        ShopSync.FavoriteSync.register(this);
+        ProductSync.LikeSync.register(this);
+        ProductSync.FavoriteSync.register(this);
+    }
+
+    @Override
+    public void onStop() {
+        ShopSync.LikeSync.unregister(this);
+        ShopSync.FavoriteSync.unregister(this);
+        ProductSync.LikeSync.unregister(this);
+        ProductSync.FavoriteSync.unregister(this);
+        super.onStop();
+    }
+
+    @Override
+    public void onShopSyncUpdate(String shopId, Bundle payload) {
+        if (shopId == null || favoriteShops == null || getActivity() == null) return;
+        getActivity().runOnUiThread(() -> {
+            for (int i = 0; i < favoriteShops.size(); i++) {
+                if (shopId.equals(favoriteShops.get(i).getShopId())) {
+                    if (payload.containsKey("isFavorite") && !payload.getBoolean("isFavorite")) {
+                        favoriteShops.remove(i);
+                        if (shopAdapter != null) shopAdapter.notifyItemRemoved(i);
+                    } else {
+                        if (shopAdapter != null) shopAdapter.notifyItemChanged(i, payload);
+                    }
+                    break;
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onProductSyncUpdate(String productId, Bundle payload) {
+        if (productId == null || favoriteProducts == null || getActivity() == null) return;
+        getActivity().runOnUiThread(() -> {
+            for (int i = 0; i < favoriteProducts.size(); i++) {
+                if (productId.equals(favoriteProducts.get(i).getProductId())) {
+                    if (payload.containsKey("isFavorite") && !payload.getBoolean("isFavorite")) {
+                        favoriteProducts.remove(i);
+                        if (productAdapter != null) productAdapter.notifyItemRemoved(i);
+                    } else {
+                        if (productAdapter != null) productAdapter.notifyItemChanged(i, payload);
+                    }
+                    break;
+                }
+            }
+        });
+    }
+
     private void setupRecyclerViews() {
         try {
             // Setup RecyclerView pour boutiques
@@ -177,6 +237,11 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
                         if (getContext() != null) {
                             Toast.makeText(getContext(), "Long pressed: " + product.getName(), Toast.LENGTH_SHORT).show();
                         }
+                    }
+
+                    @Override
+                    public void onFavoriteClick(ProductModel product, int position) {
+                        showUnfavoriteConfirmation(product, position);
                     }
                 }, productViewModel, true); // true = favorites context
                 
@@ -290,10 +355,10 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
                 .addOnSuccessListener(aVoid -> {
                     // Mise à jour réussie
                     shopAdapter.notifyItemChanged(position);
-                    Toast.makeText(getContext(), "Évaluation enregistrée !", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), R.string.rating_saved, Toast.LENGTH_SHORT).show();
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Erreur lors de l'évaluation", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), R.string.rating_error, Toast.LENGTH_SHORT).show();
                 });
     }
 
@@ -359,7 +424,7 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
                         }
 
                         if (shops.isEmpty() && getContext() != null) {
-                            Toast.makeText(getContext(), "Aucune boutique favorite", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), R.string.no_favorite_shops, Toast.LENGTH_SHORT).show();
                         }
                     }
                 } catch (Exception e) {
@@ -378,7 +443,7 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
                         }
 
                         if (products.isEmpty() && getContext() != null) {
-                            Toast.makeText(getContext(), "No favorite products found", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), R.string.no_favorite_products, Toast.LENGTH_SHORT).show();
                         }
                     }
                 } catch (Exception e) {
@@ -412,31 +477,48 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
 
     @Override
     public void onFavoriteClick(ShopModel shopModel, int position) {
-        try {
-            if (favoritesTableRepository != null) {
-                // Toggle favorite status
-                favoritesTableRepository.isShopFavorite(shopModel.getShopId()).observe(getViewLifecycleOwner(), isFavorite -> {
-                    if (isFavorite != null && isFavorite) {
-                        favoritesTableRepository.removeShopFromFavorites(shopModel.getShopId());
-                    } else {
-                        favoritesTableRepository.addShopToFavorites(shopModel);
+        showUnfavoriteConfirmation(shopModel, position);
+    }
+
+    private void showUnfavoriteConfirmation(ShopModel shop, int position) {
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.unfavorite_title)
+                .setMessage(getString(R.string.unfavorite_message_format, shop.getName()))
+                .setPositiveButton(R.string.unfavorite_positive, (dialog, which) -> {
+                    if (favoritesTableRepository != null) {
+                        favoritesTableRepository.removeShopFromFavorites(shop.getShopId());
+                        ShopSync.FavoriteSync.update(shop.getShopId(), false);
+                        // Optimization: Local removal is handled by onShopSyncUpdate if it works correctly,
+                        // but we can also do it here for even faster feel.
                     }
-                });
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Error toggling favorite", e);
-        }
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
+    private void showUnfavoriteConfirmation(ProductModel product, int position) {
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.unfavorite_title)
+                .setMessage(getString(R.string.unfavorite_message_format, product.getName()))
+                .setPositiveButton(R.string.unfavorite_positive, (dialog, which) -> {
+                    if (productViewModel != null) {
+                        productViewModel.toggleFavoriteProduct(product.getProductId());
+                        ProductSync.FavoriteSync.update(product.getProductId(), false);
+                    }
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
     }
 
     @Override
-    public void onShopClick(ShopModel shop, int position) {
+    public void onShopClick(ShopModel shop) {
         try {
             if (shop == null) {
                 Log.e(TAG, "Shop model is null");
                 return;
             }
 
-            Log.d(TAG, "Shop clicked: " + shop.getName() + " at position " + position);
+            Log.d(TAG, "Shop clicked: " + shop.getName());
             
             // Create bundle with shop data
             Bundle args = new Bundle();
@@ -465,7 +547,7 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
         } catch (Exception e) {
             Log.e(TAG, "Error navigating to shop detail", e);
             if (getContext() != null) {
-                Toast.makeText(getContext(), "Erreur lors de l'ouverture de la boutique", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), R.string.shop_open_error, Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -493,7 +575,7 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
             Log.e(TAG, "User not authenticated - cannot like shop");
             isUserInteracting = false;
             if (getContext() != null) {
-                Toast.makeText(getContext(), "Vous devez être connecté pour liker", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), R.string.login_required_like, Toast.LENGTH_SHORT).show();
             }
             return;
         }
@@ -507,6 +589,9 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
         // Update model
         shopModel.setLiked(newLikedStatus);
         shopModel.setLikesCount(newLikesCount);
+
+        // ✅ Global synchronization for immediate UI update in other fragments
+        ShopSync.LikeSync.update(shopModel.getShopId(), newLikedStatus, newLikesCount);
 
         // Update UI immediately
         if (shopAdapter != null) {
@@ -590,8 +675,8 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
                     }
 
                     if (getContext() != null) {
-                        Toast.makeText(getContext(), "Erreur lors de la mise à jour du like", Toast.LENGTH_SHORT).show();
-                    }
+                Toast.makeText(getContext(), R.string.like_update_error, Toast.LENGTH_SHORT).show();
+            }
                     
                     // Reset user interaction flag on error
                     isUserInteracting = false;

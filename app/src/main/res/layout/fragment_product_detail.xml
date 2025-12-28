@@ -21,7 +21,7 @@
             android:elevation="4dp"
             app:navigationIcon="@drawable/ic_back_arrow"
             app:navigationIconTint="#E85F4C"
-            app:title="Product Details"
+            app:title="@string/product_details_title"
             app:titleTextColor="#000000"
             android:textStyle="bold"
             android:contentInsetStart="0dp"
@@ -45,7 +45,7 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:src="@drawable/ic_edit"
                     android:tint="#E85F4C"
-                    android:contentDescription="Edit product"
+                    android:contentDescription="@string/edit_product_desc"
                     android:visibility="gone" />
 
                 <ImageButton
@@ -55,7 +55,7 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:src="@drawable/ic_baseline_delete_24"
                     android:tint="#E85F4C"
-                    android:contentDescription="Delete product"
+                    android:contentDescription="@string/delete_product_desc"
                     android:visibility="gone" />
 
             </LinearLayout>
@@ -127,7 +127,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:text="No Image"
+                            android:text="@string/no_image"
                             android:textColor="#718096"
                             android:textSize="14sp" />
 
@@ -169,7 +169,7 @@
                                 android:id="@+id/productName"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="Product Name"
+                                android:text="@string/product_name_placeholder"
                                 android:textColor="#1A202C"
                                 android:textSize="18sp"
                                 android:textStyle="bold" />
@@ -184,61 +184,74 @@
                                 android:paddingTop="4dp"
                                 android:paddingEnd="8dp"
                                 android:paddingBottom="4dp"
-                                android:text="Type"
+                                android:text="@string/product_type_label"
                                 android:textColor="#E85F4C"
                                 android:textSize="10sp"
                                 android:textStyle="bold" />
 
                         </LinearLayout>
-
-                        <!-- Like and Favorite Buttons -->
+                        <!-- Like and Favorite Actions -->
                         <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:layout_marginStart="8dp">
+                            android:gravity="center_vertical">
 
-                            <!-- Like Button -->
-                            <ImageButton
-                                android:id="@+id/likeButton"
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
-                                android:layout_marginEnd="4dp"
-                                android:src="@drawable/ic_heart_outline"
-                                android:background="?attr/selectableItemBackground"
-                                android:scaleType="centerCrop"
-                                android:contentDescription="Like" />
-
-                            <!-- Likes Count -->
-                            <TextView
-                                android:id="@+id/likesCount"
+                            <!-- Like Section -->
+                            <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="0"
-                                android:textSize="12sp"
-                                android:layout_marginEnd="12dp"
-                                android:textColor="#757575" />
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:layout_marginEnd="16dp">
 
-                            <!-- Favorite Button -->
-                            <ImageButton
-                                android:id="@+id/favoriteButton"
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
-                                android:layout_marginEnd="4dp"
-                                android:src="@drawable/ic_star_outline"
-                                android:background="?attr/selectableItemBackground"
-                                android:scaleType="centerCrop"
-                                android:contentDescription="Favorite" />
+                                <ImageButton
+                                    android:id="@+id/likeButton"
+                                    android:layout_width="36dp"
+                                    android:layout_height="36dp"
+                                    android:src="@drawable/ic_heart_outline"
+                                    android:background="?attr/selectableItemBackgroundBorderless"
+                                    android:padding="6dp"
+                                    android:scaleType="fitCenter"
+                                    android:contentDescription="@string/like_product_desc" />
 
-                            <!-- Favorites Count -->
-                            <TextView
-                                android:id="@+id/favoritesCount"
+                                <TextView
+                                    android:id="@+id/likesCount"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/zero"
+                                    android:textColor="#718096"
+                                    android:textSize="14sp"
+                                    android:layout_marginStart="4dp" />
+                            </LinearLayout>
+
+                            <!-- Favorite Section -->
+                            <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="0"
-                                android:textSize="12sp"
-                                android:textColor="#757575" />
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical">
+
+                                <ImageButton
+                                    android:id="@+id/favoriteButton"
+                                    android:layout_width="36dp"
+                                    android:layout_height="36dp"
+                                    android:src="@drawable/ic_star_outline"
+                                    android:background="?attr/selectableItemBackgroundBorderless"
+                                    android:padding="6dp"
+                                    android:scaleType="fitCenter"
+                                    android:contentDescription="@string/favorite_product_desc" />
+
+                                <TextView
+                                    android:id="@+id/favoritesCount"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="0"
+                                    android:textColor="#718096"
+                                    android:textSize="14sp"
+                                    android:layout_marginStart="4dp"
+                                    android:visibility="gone" />
+                            </LinearLayout>
 
                         </LinearLayout>
 
@@ -259,7 +272,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="0.00"
+                            android:text="@string/zero_decimal"
                             android:textColor="#E53E3E"
                             android:textSize="24sp"
                             android:textStyle="bold" />
@@ -269,7 +282,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="6dp"
-                            android:text="MAD"
+                            android:text="@string/currency_mad"
                             android:textColor="#212121"
                             android:textSize="14sp"
                             android:textStyle="bold" />
@@ -285,7 +298,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Description"
+                            android:text="@string/description"
                             android:textColor="#4A5568"
                             android:textSize="14sp"
                             android:textStyle="bold"
@@ -295,7 +308,7 @@
                             android:id="@+id/productDescription"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Product description will appear here..."
+                            android:text="@string/product_description_placeholder"
                             android:textColor="#2D3748"
                             android:textSize="14sp"
                             android:lineSpacingExtra="2dp"
@@ -328,7 +341,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Product Details"
+                        android:text="@string/product_details_title"
                         android:textColor="#4A5568"
                         android:textSize="14sp"
                         android:textStyle="bold"
@@ -347,7 +360,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Weight"
+                            android:text="@string/weight_label"
                             android:textColor="#718096"
                             android:textSize="13sp" />
 
@@ -355,7 +368,7 @@
                             android:id="@+id/productWeight"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="0 kg"
+                            android:text="@string/weight_placeholder"
                             android:textColor="#2D3748"
                             android:textSize="13sp"
                             android:textStyle="bold" />
@@ -375,7 +388,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Length"
+                            android:text="@string/length_label"
                             android:textColor="#718096"
                             android:textSize="13sp" />
 
@@ -383,7 +396,7 @@
                             android:id="@+id/productLength"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="0 cm"
+                            android:text="@string/length_placeholder"
                             android:textColor="#2D3748"
                             android:textSize="13sp"
                             android:textStyle="bold" />
@@ -403,7 +416,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Width"
+                            android:text="@string/width_label"
                             android:textColor="#718096"
                             android:textSize="13sp" />
 
@@ -411,7 +424,7 @@
                             android:id="@+id/productWidth"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="0 cm"
+                            android:text="@string/width_placeholder"
                             android:textColor="#2D3748"
                             android:textSize="13sp"
                             android:textStyle="bold" />
@@ -431,7 +444,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Height"
+                            android:text="@string/height_label"
                             android:textColor="#718096"
                             android:textSize="13sp" />
 
@@ -439,7 +452,7 @@
                             android:id="@+id/productHeight"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="0 cm"
+                            android:text="@string/height_placeholder"
                             android:textColor="#2D3748"
                             android:textSize="13sp"
                             android:textStyle="bold" />
@@ -459,7 +472,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Color"
+                            android:text="@string/color_label"
                             android:textColor="#718096"
                             android:textSize="13sp" />
 
@@ -467,7 +480,7 @@
                             android:id="@+id/productColor"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="N/A"
+                            android:text="@string/color_placeholder"
                             android:textColor="#2D3748"
                             android:textSize="13sp"
                             android:textStyle="bold" />
@@ -487,7 +500,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Material"
+                            android:text="@string/material_label"
                             android:textColor="#718096"
                             android:textSize="13sp" />
 
@@ -495,7 +508,7 @@
                             android:id="@+id/productMaterial"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="N/A"
+                            android:text="@string/material_placeholder"
                             android:textColor="#2D3748"
                             android:textSize="13sp"
                             android:textStyle="bold" />
@@ -522,7 +535,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Contact Seller"
+                        android:text="@string/contact_seller"
                         android:textColor="#4A5568"
                         android:textSize="14sp"
                         android:textStyle="bold"
@@ -542,7 +555,7 @@
                             android:background="@drawable/product_type_badge_background"
                             android:src="@android:drawable/ic_menu_call"
                             android:tint="#E85F4C"
-                            android:contentDescription="Call seller" />
+                            android:contentDescription="@string/call_seller_desc" />
 
                         <ImageButton
                             android:id="@+id/emailButton"
@@ -551,7 +564,7 @@
                             android:background="@drawable/product_type_badge_background"
                             android:src="@android:drawable/ic_menu_send"
                             android:tint="#E85F4C"
-                            android:contentDescription="Email seller" />
+                            android:contentDescription="@string/email_seller_desc" />
 
                     </LinearLayout>
 

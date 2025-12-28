@@ -24,10 +24,16 @@ import java.util.List;
 public class FavoritesTableRepository {
     private static final String TAG = "FavoritesTableRepository";
     private static final String FAVORITES_COLLECTION = "favorites";
-    
+
+    private static FavoritesTableRepository instance;
     private final FirebaseFirestore firestore;
     private final FirebaseAuth firebaseAuth;
+    private final UserProductPreferencesRepository userPreferences;
     private String currentUserId;
+    
+    // Cache for favorite IDs to allow fast enrichment
+    private final java.util.Set<String> favoriteShopIds = new java.util.HashSet<>();
+    private final java.util.Set<String> favoriteProductIds = new java.util.HashSet<>();
     
     // LiveData for favorites
     private final MutableLiveData<List<ShopModel>> favoriteShops = new MutableLiveData<>();
@@ -35,10 +41,18 @@ public class FavoritesTableRepository {
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
     
-    public FavoritesTableRepository(Application application) {
+    private FavoritesTableRepository(Application application) {
         this.firestore = FirebaseFirestore.getInstance();
         this.firebaseAuth = FirebaseAuth.getInstance();
+        this.userPreferences = new UserProductPreferencesRepository(application);
         updateCurrentUser();
+    }
+
+    public static synchronized FavoritesTableRepository getInstance(Application application) {
+        if (instance == null) {
+            instance = new FavoritesTableRepository(application);
+        }
+        return instance;
     }
     
     /**
@@ -60,8 +74,33 @@ public class FavoritesTableRepository {
             if (currentUserId == null) {
                 favoriteShops.postValue(new ArrayList<>());
                 favoriteProducts.postValue(new ArrayList<>());
+                favoriteShopIds.clear();
+                favoriteProductIds.clear();
+            } else {
+                // Pre-load favorite IDs for fast enrichment
+                preloadFavoriteIds();
             }
         }
+    }
+    
+    private void preloadFavoriteIds() {
+        String userId = getCurrentUserId();
+        if (userId == null) return;
+        
+        firestore.collection(FAVORITES_COLLECTION)
+            .whereEqualTo("userId", userId)
+            .get()
+            .addOnSuccessListener(querySnapshot -> {
+                favoriteShopIds.clear();
+                favoriteProductIds.clear();
+                for (QueryDocumentSnapshot doc : querySnapshot) {
+                    String type = doc.getString("itemType");
+                    String id = doc.getString("itemId");
+                    if ("shop".equals(type)) favoriteShopIds.add(id);
+                    else if ("product".equals(type)) favoriteProductIds.add(id);
+                }
+                Log.d(TAG, "Preloaded " + favoriteShopIds.size() + " shop IDs and " + favoriteProductIds.size() + " product IDs");
+            });
     }
     
     /**
@@ -112,11 +151,18 @@ public class FavoritesTableRepository {
             .get()
             .addOnSuccessListener(querySnapshot -> {
                 List<String> shopIds = new ArrayList<>();
+                java.util.Set<String> newIds = new java.util.HashSet<>();
                 for (QueryDocumentSnapshot document : querySnapshot) {
                     String shopId = document.getString("itemId");
                     if (shopId != null) {
                         shopIds.add(shopId);
+                        newIds.add(shopId);
                     }
+                }
+                
+                synchronized (favoriteShopIds) {
+                    favoriteShopIds.clear();
+                    favoriteShopIds.addAll(newIds);
                 }
                 
                 Log.d(TAG, "Found " + shopIds.size() + " favorite shop IDs");
@@ -152,11 +198,18 @@ public class FavoritesTableRepository {
             .get()
             .addOnSuccessListener(querySnapshot -> {
                 List<String> productIds = new ArrayList<>();
+                java.util.Set<String> newIds = new java.util.HashSet<>();
                 for (QueryDocumentSnapshot document : querySnapshot) {
                     String productId = document.getString("itemId");
                     if (productId != null) {
                         productIds.add(productId);
+                        newIds.add(productId);
                     }
+                }
+                
+                synchronized (favoriteProductIds) {
+                    favoriteProductIds.clear();
+                    favoriteProductIds.addAll(newIds);
                 }
                 
                 Log.d(TAG, "Found " + productIds.size() + " favorite product IDs");
@@ -186,6 +239,7 @@ public class FavoritesTableRepository {
             .addOnSuccessListener(documentReference -> {
                 Log.d(TAG, "Shop added to favorites: " + shop.getName());
                 favorite.setFavoriteId(documentReference.getId());
+                favoriteShopIds.add(shop.getShopId());
                 loadFavoriteShops(); // Refresh list
             })
             .addOnFailureListener(e -> {
@@ -211,6 +265,7 @@ public class FavoritesTableRepository {
             .addOnSuccessListener(documentReference -> {
                 Log.d(TAG, "Product added to favorites: " + product.getName());
                 favorite.setFavoriteId(documentReference.getId());
+                favoriteProductIds.add(product.getProductId());
                 loadFavoriteProducts(); // Refresh list
             })
             .addOnFailureListener(e -> {
@@ -239,6 +294,7 @@ public class FavoritesTableRepository {
                     document.getReference().delete()
                         .addOnSuccessListener(aVoid -> {
                             Log.d(TAG, "Shop removed from favorites: " + shopId);
+                            favoriteShopIds.remove(shopId);
                             loadFavoriteShops(); // Refresh list
                         })
                         .addOnFailureListener(e -> {
@@ -273,6 +329,7 @@ public class FavoritesTableRepository {
                     document.getReference().delete()
                         .addOnSuccessListener(aVoid -> {
                             Log.d(TAG, "Product removed from favorites: " + productId);
+                            favoriteProductIds.remove(productId);
                             loadFavoriteProducts(); // Refresh list
                         })
                         .addOnFailureListener(e -> {
@@ -299,6 +356,12 @@ public class FavoritesTableRepository {
             return result;
         }
         
+        if (favoriteShopIds.contains(shopId)) {
+            result.setValue(true);
+            return result;
+        }
+        
+        // Final fallback to Firestore
         firestore.collection(FAVORITES_COLLECTION)
             .whereEqualTo("userId", userId)
             .whereEqualTo("itemId", shopId)
@@ -306,7 +369,9 @@ public class FavoritesTableRepository {
             .limit(1)
             .get()
             .addOnSuccessListener(querySnapshot -> {
-                result.setValue(!querySnapshot.isEmpty());
+                boolean isFav = !querySnapshot.isEmpty();
+                if (isFav) favoriteShopIds.add(shopId);
+                result.setValue(isFav);
             })
             .addOnFailureListener(e -> {
                 Log.e(TAG, "Error checking shop favorite status", e);
@@ -328,6 +393,11 @@ public class FavoritesTableRepository {
             return result;
         }
         
+        if (favoriteProductIds.contains(productId)) {
+            result.setValue(true);
+            return result;
+        }
+        
         firestore.collection(FAVORITES_COLLECTION)
             .whereEqualTo("userId", userId)
             .whereEqualTo("itemId", productId)
@@ -335,7 +405,9 @@ public class FavoritesTableRepository {
             .limit(1)
             .get()
             .addOnSuccessListener(querySnapshot -> {
-                result.setValue(!querySnapshot.isEmpty());
+                boolean isFav = !querySnapshot.isEmpty();
+                if (isFav) favoriteProductIds.add(productId);
+                result.setValue(isFav);
             })
             .addOnFailureListener(e -> {
                 Log.e(TAG, "Error checking product favorite status", e);
@@ -345,6 +417,14 @@ public class FavoritesTableRepository {
         return result;
     }
 
+    public boolean isProductFavoriteSync(String productId) {
+        return productId != null && favoriteProductIds.contains(productId);
+    }
+    
+    public boolean isShopFavoriteSync(String shopId) {
+        return shopId != null && favoriteShopIds.contains(shopId);
+    }
+    
     /**
      * One-shot favorite check with callback to avoid callers using observeForever.
      */
@@ -367,7 +447,9 @@ public class FavoritesTableRepository {
             .limit(1)
             .get()
             .addOnSuccessListener(querySnapshot -> {
-                if (listener != null) listener.onChecked(!querySnapshot.isEmpty());
+                boolean isFav = !querySnapshot.isEmpty();
+                if (isFav) favoriteProductIds.add(productId);
+                if (listener != null) listener.onChecked(isFav);
             })
             .addOnFailureListener(e -> {
                 Log.e(TAG, "Error checking product favorite status", e);
@@ -432,9 +514,10 @@ public class FavoritesTableRepository {
         }
         
         // Load products in batches to avoid Firestore limits
-        List<ProductModel> products = new ArrayList<>();
-        int batchSize = 10;
-        final int[] totalLoaded = {0}; // Use array to make effectively final
+        final List<ProductModel> products = java.util.Collections.synchronizedList(new ArrayList<>());
+        final int batchSize = 10;
+        final int numBatches = (int) Math.ceil((double) productIds.size() / batchSize);
+        final java.util.concurrent.atomic.AtomicInteger batchesProcessed = new java.util.concurrent.atomic.AtomicInteger(0);
         
         for (int i = 0; i < productIds.size(); i += batchSize) {
             int endIndex = Math.min(i + batchSize, productIds.size());
@@ -443,26 +526,26 @@ public class FavoritesTableRepository {
             firestore.collection("products")
                 .whereIn("productId", batch)
                 .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    for (QueryDocumentSnapshot document : querySnapshot) {
-                        ProductModel product = document.toObject(ProductModel.class);
-                        if (product != null) {
-                            product.setProductId(document.getId());
-                            products.add(product);
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            ProductModel product = document.toObject(ProductModel.class);
+                            if (product != null) {
+                                product.setProductId(document.getId());
+                                enrichProduct(product);
+                                products.add(product);
+                            }
                         }
+                    } else {
+                        Log.e(TAG, "Error loading product batch", task.getException());
                     }
-                    
-                    totalLoaded[0] += batch.size();
-                    if (totalLoaded[0] >= productIds.size()) {
-                        favoriteProducts.postValue(products);
+
+                    if (batchesProcessed.incrementAndGet() == numBatches) {
+                        // All batches done
+                        favoriteProducts.postValue(new ArrayList<>(products));
                         isLoading.setValue(false);
-                        Log.d(TAG, "Loaded " + products.size() + " favorite products");
+                        Log.d(TAG, "Finished loading " + products.size() + " favorite products");
                     }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error loading product details", e);
-                    errorMessage.postValue("Failed to load product details: " + e.getMessage());
-                    isLoading.setValue(false);
                 });
         }
     }
@@ -470,6 +553,44 @@ public class FavoritesTableRepository {
     /**
      * Clear error message
      */
+    /**
+     * Notifie le repository qu'un produit a changé.
+     */
+    public void notifyProductChanged(ProductModel updatedProduct) {
+        if (updatedProduct == null || updatedProduct.getProductId() == null) return;
+        
+        List<ProductModel> currentList = favoriteProducts.getValue();
+        if (currentList != null) {
+            List<ProductModel> updatedList = new ArrayList<>(currentList);
+            boolean changed = false;
+            for (int i = 0; i < updatedList.size(); i++) {
+                if (updatedList.get(i).getProductId().equals(updatedProduct.getProductId())) {
+                    // Update the product in the local list
+                    updatedList.set(i, updatedProduct);
+                    changed = true;
+                    break;
+                }
+            }
+            if (changed) {
+                favoriteProducts.postValue(updatedList);
+                Log.d(TAG, "Synchronized product in favorites list: " + updatedProduct.getName());
+            }
+        }
+    }
+
+    /**
+     * Enrichit un produit avec l'état utilisateur (Liked, Favorite)
+     */
+    private void enrichProduct(ProductModel product) {
+        if (product == null || product.getProductId() == null) return;
+        
+        // Favorite state from our own cache
+        product.setFavoriteByUser(favoriteProductIds.contains(product.getProductId()));
+        
+        // Like state from user preferences
+        product.setLikedByUser(userPreferences.isProductLiked(product.getProductId()));
+    }
+    
     public void clearError() {
         errorMessage.setValue(null);
     }

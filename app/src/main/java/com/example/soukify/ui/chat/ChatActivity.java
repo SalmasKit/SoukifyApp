@@ -7,6 +7,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.bumptech.glide.Glide;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
@@ -27,6 +28,7 @@ public class ChatActivity extends AppCompatActivity {
     public static final String EXTRA_SELLER_ID = "seller_id";
     public static final String EXTRA_SHOP_IMAGE = "shop_image";
     public static final String EXTRA_OTHER_USER_NAME = "extra_other_user_name";
+    public static final String EXTRA_OTHER_USER_IMAGE = "extra_other_user_image";
     public static final String EXTRA_IS_SELLER_VIEW = "extra_is_seller_view";
 
     private ChatViewModel viewModel;
@@ -37,6 +39,7 @@ public class ChatActivity extends AppCompatActivity {
     private RecyclerView rvMessages;
     private MaterialToolbar toolbar;
     private TextView tvTitle;
+    private ImageView ivAvatar;
 
     private String conversationId;
     private String currentUserId;
@@ -50,7 +53,7 @@ public class ChatActivity extends AppCompatActivity {
 
         currentUserId = FirebaseAuth.getInstance().getUid();
         if (currentUserId == null || currentUserId.isEmpty()) {
-            Toast.makeText(this, "❌ Vous devez être connecté", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getString(R.string.login_required_error), Toast.LENGTH_LONG).show();
             finish();
             return;
         }
@@ -96,23 +99,32 @@ public class ChatActivity extends AppCompatActivity {
         Log.e(TAG, "   isSellerView: " + isSellerView);
         Log.e(TAG, "════════════════════════════════════════");
 
+        ivAvatar = findViewById(R.id.ivAvatar);
+        String otherUserImage = getIntent().getStringExtra(EXTRA_OTHER_USER_IMAGE);
+
         // 🔥 DÉTERMINER LE NOM À AFFICHER DANS LA TOOLBAR
         if (otherUserName != null && !otherUserName.isEmpty()) {
-            // Nom passé explicitement par ConversationsListActivity
             contactName = otherUserName;
         } else if (isSellerView) {
-            // Fallback : si c'est le vendeur, afficher "Client"
             contactName = "Client";
         } else {
-            // Fallback : si c'est l'acheteur, afficher le nom du shop
             contactName = shopName != null ? shopName : "💬 Chat";
         }
 
-        // 🔥 PROTECTION CONTRE NULL
-        if (tvTitle != null) {
-            tvTitle.setText(contactName);
-        } else {
-            Log.e(TAG, "❌ tvTitle est NULL - vérifiez activity_chat.xml");
+        if (tvTitle != null) tvTitle.setText(contactName);
+
+        // 🔥 CHARGER L'IMAGE DANS LA TOOLBAR
+        if (ivAvatar != null) {
+            String imgUrl = otherUserImage;
+            if (imgUrl == null || imgUrl.isEmpty()) {
+                if (!isSellerView) imgUrl = getIntent().getStringExtra(EXTRA_SHOP_IMAGE);
+            }
+
+            Glide.with(this)
+                    .load(imgUrl != null && !imgUrl.isEmpty() ? imgUrl : R.drawable.ic_profile_placeholder)
+                    .placeholder(R.drawable.ic_profile_placeholder)
+                    .circleCrop()
+                    .into(ivAvatar);
         }
 
         // ==========================
@@ -129,7 +141,7 @@ public class ChatActivity extends AppCompatActivity {
             String shopImage = getIntent().getStringExtra(EXTRA_SHOP_IMAGE);
 
             if (shopId == null || sellerId == null) {
-                Toast.makeText(this, "❌ Données manquantes", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, getString(R.string.missing_data_error), Toast.LENGTH_LONG).show();
                 finish();
                 return;
             }
@@ -167,7 +179,7 @@ public class ChatActivity extends AppCompatActivity {
         viewModel.getError().observe(this, error -> {
             if (error != null && !error.isEmpty()) {
                 Log.e(TAG, "❌ Erreur: " + error);
-                Toast.makeText(this, "❌ " + error, Toast.LENGTH_LONG).show();
+                Toast.makeText(this, getString(R.string.error_x_prefix) + error, Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -180,7 +192,7 @@ public class ChatActivity extends AppCompatActivity {
             String text = etMessage.getText().toString().trim();
 
             if (text.isEmpty()) {
-                Toast.makeText(this, "⚠️ Message vide", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.empty_message_warning), Toast.LENGTH_SHORT).show();
                 return;
             }
 

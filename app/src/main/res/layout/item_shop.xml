@@ -98,7 +98,7 @@
                 android:id="@+id/shop_rating"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="0.0"
+                android:text="@string/rating_format"
                 android:textSize="13sp"
                 android:textColor="#FF6B35"
                 android:textStyle="bold"
@@ -124,15 +124,14 @@
                     android:src="@drawable/like_outline"
                     android:contentDescription="Like"
                     android:focusable="false"
-                    android:focusableInTouchMode="false"
-                    android:tint="#E8574D" />
+                    android:focusableInTouchMode="false" />
 
                 <!-- Nombre de likes -->
                 <TextView
                     android:id="@+id/likes_count"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="0"
+                    android:text="@string/zero"
                     android:textSize="11sp"
                     android:paddingEnd="4dp"
                     android:textColor="#666666" />
@@ -149,7 +148,6 @@
                     android:contentDescription="Favorite"
                     android:focusable="false"
                     android:focusableInTouchMode="false"
-                    android:tint="#FFC107"
                     android:layout_marginStart="2dp" />
 
                 <!-- Share -->
@@ -192,7 +190,7 @@
                         android:layout_gravity="top|end"
                         android:background="@drawable/bg_unread_badge"
                         android:gravity="center"
-                        android:text="0"
+                        android:text="@string/zero"
                         android:textColor="#FFFFFF"
                         android:textSize="10sp"
                         android:textStyle="bold"
@@ -281,7 +279,7 @@
                         android:id="@+id/shop_phone"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="+212 600-000-000"
+                        android:text="@string/phone_placeholder"
                         android:textSize="12sp"
                         android:textColor="#333333"
                         android:textStyle="bold" />
@@ -305,7 +303,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="email@shop.com"
+                        android:text="@string/default_email_shop"
                         android:textSize="12sp"
                         android:textColor="#333333"
                         android:maxLines="1"

@@ -29,7 +29,7 @@
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:src="@drawable/back"
-                android:contentDescription="Retour"
+                android:contentDescription="@string/back_content_description"
                 android:padding="4dp" />
 
             <!-- Titre "Mes Messages" -->
@@ -37,7 +37,7 @@
                 android:id="@+id/tvTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="💬 Mes Messages"
+                android:text="@string/my_messages_title"
                 android:textColor="@android:color/white"
                 android:textSize="20sp"
                 android:layout_marginStart="8dp"
@@ -75,7 +75,7 @@
         android:id="@+id/tvEmpty"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="📭\n\nAucune conversation\nCommencez à discuter !"
+        android:text="@string/no_conversations_placeholder"
         android:textAlignment="center"
         android:textColor="#B0B0B0"
         android:textSize="18sp"

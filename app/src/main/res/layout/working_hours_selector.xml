@@ -9,7 +9,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Working Hours"
+        android:text="@string/working_hours"
         android:textSize="16sp"
         android:textStyle="bold"
         android:textColor="@color/text_primary"
@@ -45,7 +45,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Monday"
+                    android:text="@string/monday"
                     android:textSize="14sp"
                     android:textColor="@color/text_primary" />
 
@@ -61,7 +61,7 @@
                         android:id="@+id/etMondayFrom"
                         android:layout_width="60dp"
                         android:layout_height="36dp"
-                        android:hint="From"
+                        android:hint="@string/from"
                         android:textSize="12sp"
                         android:inputType="time"
                         android:background="@drawable/time_input_background"
@@ -70,7 +70,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text=" - "
+                        android:text="@string/time_separator"
                         android:layout_marginHorizontal="8dp"
                         android:textColor="@color/text_secondary" />
 
@@ -78,7 +78,7 @@
                         android:id="@+id/etMondayTo"
                         android:layout_width="60dp"
                         android:layout_height="36dp"
-                        android:hint="To"
+                        android:hint="@string/to"
                         android:textSize="12sp"
                         android:inputType="time"
                         android:background="@drawable/time_input_background"
@@ -108,7 +108,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Tuesday"
+                    android:text="@string/tuesday"
                     android:textSize="14sp"
                     android:textColor="@color/text_primary" />
 
@@ -124,7 +124,7 @@
                         android:id="@+id/etTuesdayFrom"
                         android:layout_width="60dp"
                         android:layout_height="36dp"
-                        android:hint="From"
+                        android:hint="@string/from"
                         android:textSize="12sp"
                         android:inputType="time"
                         android:background="@drawable/time_input_background"
@@ -133,7 +133,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text=" - "
+                        android:text="@string/time_separator"
                         android:layout_marginHorizontal="8dp"
                         android:textColor="@color/text_secondary" />
 
@@ -141,7 +141,7 @@
                         android:id="@+id/etTuesdayTo"
                         android:layout_width="60dp"
                         android:layout_height="36dp"
-                        android:hint="To"
+                        android:hint="@string/to"
                         android:textSize="12sp"
                         android:inputType="time"
                         android:background="@drawable/time_input_background"
@@ -171,7 +171,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Wednesday"
+                    android:text="@string/wednesday"
                     android:textSize="14sp"
                     android:textColor="@color/text_primary" />
 
@@ -187,7 +187,7 @@
                         android:id="@+id/etWednesdayFrom"
                         android:layout_width="60dp"
                         android:layout_height="36dp"
-                        android:hint="From"
+                        android:hint="@string/from"
                         android:textSize="12sp"
                         android:inputType="time"
                         android:background="@drawable/time_input_background"
@@ -196,7 +196,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text=" - "
+                        android:text="@string/time_separator"
                         android:layout_marginHorizontal="8dp"
                         android:textColor="@color/text_secondary" />
 
@@ -204,7 +204,7 @@
                         android:id="@+id/etWednesdayTo"
                         android:layout_width="60dp"
                         android:layout_height="36dp"
-                        android:hint="To"
+                        android:hint="@string/to"
                         android:textSize="12sp"
                         android:inputType="time"
                         android:background="@drawable/time_input_background"
@@ -234,7 +234,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Thursday"
+                    android:text="@string/thursday"
                     android:textSize="14sp"
                     android:textColor="@color/text_primary" />
 
@@ -250,7 +250,7 @@
                         android:id="@+id/etThursdayFrom"
                         android:layout_width="60dp"
                         android:layout_height="36dp"
-                        android:hint="From"
+                        android:hint="@string/from"
                         android:textSize="12sp"
                         android:inputType="time"
                         android:background="@drawable/time_input_background"
@@ -259,7 +259,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text=" - "
+                        android:text="@string/time_separator"
                         android:layout_marginHorizontal="8dp"
                         android:textColor="@color/text_secondary" />
 
@@ -267,7 +267,7 @@
                         android:id="@+id/etThursdayTo"
                         android:layout_width="60dp"
                         android:layout_height="36dp"
-                        android:hint="To"
+                        android:hint="@string/to"
                         android:textSize="12sp"
                         android:inputType="time"
                         android:background="@drawable/time_input_background"
@@ -297,7 +297,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Friday"
+                    android:text="@string/friday"
                     android:textSize="14sp"
                     android:textColor="@color/text_primary" />
 
@@ -313,7 +313,7 @@
                         android:id="@+id/etFridayFrom"
                         android:layout_width="60dp"
                         android:layout_height="36dp"
-                        android:hint="From"
+                        android:hint="@string/from"
                         android:textSize="12sp"
                         android:inputType="time"
                         android:background="@drawable/time_input_background"
@@ -322,7 +322,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text=" - "
+                        android:text="@string/time_separator"
                         android:layout_marginHorizontal="8dp"
                         android:textColor="@color/text_secondary" />
 
@@ -330,7 +330,7 @@
                         android:id="@+id/etFridayTo"
                         android:layout_width="60dp"
                         android:layout_height="36dp"
-                        android:hint="To"
+                        android:hint="@string/to"
                         android:textSize="12sp"
                         android:inputType="time"
                         android:background="@drawable/time_input_background"
@@ -360,7 +360,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Saturday"
+                    android:text="@string/saturday"
                     android:textSize="14sp"
                     android:textColor="@color/text_primary" />
 
@@ -376,7 +376,7 @@
                         android:id="@+id/etSaturdayFrom"
                         android:layout_width="60dp"
                         android:layout_height="36dp"
-                        android:hint="From"
+                        android:hint="@string/from"
                         android:textSize="12sp"
                         android:inputType="time"
                         android:background="@drawable/time_input_background"
@@ -385,7 +385,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text=" - "
+                        android:text="@string/time_separator"
                         android:layout_marginHorizontal="8dp"
                         android:textColor="@color/text_secondary" />
 
@@ -393,7 +393,7 @@
                         android:id="@+id/etSaturdayTo"
                         android:layout_width="60dp"
                         android:layout_height="36dp"
-                        android:hint="To"
+                        android:hint="@string/to"
                         android:textSize="12sp"
                         android:inputType="time"
                         android:background="@drawable/time_input_background"
@@ -423,7 +423,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Sunday"
+                    android:text="@string/sunday"
                     android:textSize="14sp"
                     android:textColor="@color/text_primary" />
 
@@ -439,7 +439,7 @@
                         android:id="@+id/etSundayFrom"
                         android:layout_width="60dp"
                         android:layout_height="36dp"
-                        android:hint="From"
+                        android:hint="@string/from"
                         android:textSize="12sp"
                         android:inputType="time"
                         android:background="@drawable/time_input_background"
@@ -448,7 +448,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text=" - "
+                        android:text="@string/time_separator"
                         android:layout_marginHorizontal="8dp"
                         android:textColor="@color/text_secondary" />
 

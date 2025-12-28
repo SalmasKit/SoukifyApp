@@ -52,7 +52,7 @@ public class SessionManager {
     
     public void logout() {
         editor.clear();
-        editor.apply();
+        editor.commit();
     }
     
     public void updateUserEmail(String email, String name) {

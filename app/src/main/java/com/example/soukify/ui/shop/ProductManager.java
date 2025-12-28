@@ -40,9 +40,10 @@ public class ProductManager {
     private final MutableLiveData<String> successMessage = new MutableLiveData<>();
     
     private String currentShopId;
+    private boolean isObserving = false;
     
     public ProductManager(Application application) {
-        this.productRepository = new ProductRepository(application);
+        this.productRepository = ProductRepository.getInstance(application);
         FirebaseManager firebaseManager = FirebaseManager.getInstance(application);
         this.firebaseProductImageService = new FirebaseProductImageService(firebaseManager.getFirestore());
         this.cloudinaryService = new CloudinaryImageService(application);
@@ -203,9 +204,10 @@ public class ProductManager {
     // ==================== PRODUCT DELETION ====================
     
     /**
+    /**
      * Delete a product and its associated images/videos
      */
-    public void deleteProduct(ProductModel product) {
+    public void deleteProduct(ProductModel product, Runnable onSuccess) {
         if (product == null || product.getProductId() == null) {
             Log.w(TAG, "Cannot delete null product or product without ID");
             errorMessage.postValue("Invalid product");
@@ -220,9 +222,25 @@ public class ProductManager {
         }
         
         // Delete product from repository
-        productRepository.deleteProduct(product.getProductId(), product.getShopId());
-        successMessage.postValue("Product deleted successfully");
-        Log.d(TAG, "Product deleted from repository");
+        productRepository.deleteProduct(product.getProductId(), product.getShopId(), new ProductRepository.OnProductDeletedListener() {
+            @Override
+            public void onProductDeleted() {
+                successMessage.postValue("Product deleted successfully");
+                Log.d(TAG, "Product deleted from repository");
+                if (onSuccess != null) {
+                    onSuccess.run();
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                errorMessage.postValue("Failed to delete product: " + error);
+            }
+        });
+    }
+
+    public void deleteProduct(ProductModel product) {
+        deleteProduct(product, null);
     }
     
     // ==================== IMAGE OPERATIONS ====================
@@ -594,6 +612,9 @@ public class ProductManager {
     }
     
     private void observeProductData() {
+        if (isObserving) return;
+        
+        isObserving = true;
         productRepository.getShopProducts().observeForever(productList -> {
             Log.d(TAG, "Products received: " + (productList != null ? productList.size() : 0) + " items");
             products.postValue(productList);

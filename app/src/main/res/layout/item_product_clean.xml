@@ -38,7 +38,7 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Like and Favorite Buttons -->
+            <!-- Like, Favorite and Shop Action Bar -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -51,43 +51,47 @@
                     android:id="@+id/likeButton"
                     android:layout_width="28dp"
                     android:layout_height="28dp"
-                    android:layout_marginEnd="4dp"
                     android:src="@drawable/ic_heart_outline"
-                    android:background="?attr/selectableItemBackground"
-                    android:scaleType="centerCrop"
-                    android:contentDescription="Like" />
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="4dp"
+                    android:scaleType="fitCenter"
+                    android:contentDescription="Like product" />
 
-                <!-- Likes Count -->
                 <TextView
                     android:id="@+id/likesCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="0"
+                    android:text="@string/zero"
+                    android:textColor="#757575"
                     android:textSize="12sp"
-                    android:layout_marginEnd="8dp"
-                    android:textColor="#757575" />
+                    android:layout_marginStart="2dp"
+                    android:layout_marginEnd="12dp" />
 
                 <!-- Favorite Button -->
                 <ImageButton
                     android:id="@+id/favoriteButton"
                     android:layout_width="28dp"
                     android:layout_height="28dp"
-                    android:layout_marginEnd="4dp"
                     android:src="@drawable/ic_star_outline"
-                    android:background="?attr/selectableItemBackground"
-                    android:scaleType="centerCrop"
-                    android:contentDescription="Favorite" />
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="4dp"
+                    android:scaleType="fitCenter"
+                    android:contentDescription="Favorite product" />
 
-                <!-- Favorites Count (hidden since favoritesCount field was removed) -->
                 <TextView
                     android:id="@+id/favoritesCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="0"
-                    android:textSize="12sp"
-                    android:layout_marginEnd="8dp"
+                    android:text="@string/zero"
                     android:textColor="#757575"
+                    android:textSize="12sp"
+                    android:layout_marginStart="2dp"
                     android:visibility="gone" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
 
                 <!-- Shop Link Button -->
                 <ImageButton
@@ -95,8 +99,9 @@
                     android:layout_width="28dp"
                     android:layout_height="28dp"
                     android:src="@android:drawable/ic_menu_send"
-                    android:background="?attr/selectableItemBackground"
-                    android:scaleType="centerCrop"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:scaleType="centerInside"
+                    android:tint="#E85F4C"
                     android:contentDescription="Visit Shop" />
 
             </LinearLayout>
@@ -106,7 +111,7 @@
                 android:id="@+id/productName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Product Name"
+                android:text="@string/product_name_placeholder"
                 android:textColor="#212121"
                 android:textSize="16sp"
                 android:textStyle="bold"
@@ -126,8 +131,8 @@
                 android:paddingTop="4dp"
                 android:paddingEnd="8dp"
                 android:paddingBottom="4dp"
-                android:text="Type"
-                android:textColor="#E85F4C"
+                android:text="@string/Type"
+                android:textColor="#E8574D"
                 android:textSize="10sp"
                 android:textStyle="bold" />
 
@@ -145,8 +150,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="0.00"
-                    android:textColor="#E53935"
+                    android:text="@string/price_placeholder"
+                    android:textColor="#E8574D"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:lineSpacingExtra="2dp" />
@@ -157,7 +162,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4dp"
-                    android:text="MAD"
+                    android:text="@string/currency_mad"
                     android:textColor="#757575"
                     android:textSize="14sp"
                     android:textStyle="bold" />

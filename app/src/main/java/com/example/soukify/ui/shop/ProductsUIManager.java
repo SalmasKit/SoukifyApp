@@ -52,6 +52,7 @@ public class ProductsUIManager {
     public interface OnProductClickListener {
         void onProductClick(ProductModel product);
         void onProductLongClick(ProductModel product);
+        void onFavoriteClick(ProductModel product, int position);
     }
     
     private OnProductClickListener productClickListener;
@@ -71,7 +72,6 @@ public class ProductsUIManager {
         // Find UI components
         productsRecyclerView = rootView.findViewById(R.id.productsRecyclerView);
         emptyProductsLayout = rootView.findViewById(R.id.emptyProductsLayout);
-        productsHeaderCount = rootView.findViewById(R.id.productsHeaderCount);
         productsCount = rootView.findViewById(R.id.productsCount);
         
         // Setup RecyclerView
@@ -105,6 +105,13 @@ public class ProductsUIManager {
             public void onProductLongClick(ProductModel product) {
                 if (productClickListener != null) {
                     productClickListener.onProductLongClick(product);
+                }
+            }
+
+            @Override
+            public void onFavoriteClick(ProductModel product, int position) {
+                if (productClickListener != null) {
+                    productClickListener.onFavoriteClick(product, position);
                 }
             }
         }, productViewModel);

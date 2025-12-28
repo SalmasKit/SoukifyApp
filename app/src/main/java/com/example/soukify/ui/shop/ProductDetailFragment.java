@@ -43,11 +43,16 @@ import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import com.example.soukify.data.sync.ShopSync;
+import com.example.soukify.data.sync.ProductSync;
+import java.util.HashMap;
+import java.util.Map;
 
-public class ProductDetailFragment extends Fragment implements ProductDialogHelper.OnProductUpdatedListener {
+public class ProductDetailFragment extends Fragment implements ProductDialogHelper.OnProductUpdatedListener, ShopSync.SyncListener, ProductSync.SyncListener {
 
     private static final String TAG = "ProductDetailFragment";
     private static final String ARG_PRODUCT = "product";
+    private static final String ARG_PRODUCT_ID = "productId";
     private static final String ARG_SOURCE = "source";
     private static final String SOURCE_FAVORITES = "favorites";
 
@@ -116,6 +121,7 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
 
         if (getArguments() != null) {
             product = getArguments().getParcelable(ARG_PRODUCT);
+            productId = getArguments().getString(ARG_PRODUCT_ID);
             source = getArguments().getString(ARG_SOURCE);
             if (product == null) {
                 product = getArguments().getParcelable("product");
@@ -128,8 +134,11 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
                 new ProductViewModel.Factory(requireActivity().getApplication())).get(ProductViewModel.class);
 
         if (product != null) {
-            productViewModel.loadProduct(product.getProductId());
             productId = product.getProductId();
+        }
+
+        if (productId != null) {
+            productViewModel.loadProduct(productId);
         }
 
         productManager = new ProductManager(requireActivity().getApplication());
@@ -245,32 +254,29 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
 
         // Weight
         if (product.getWeight() != null && product.getWeight() > 0) {
-            productWeight.setText(String.format("%.1f kg", product.getWeight()));
+            productWeight.setText(getString(R.string.weight_format, product.getWeight(), getString(R.string.unit_kg)));
             weightRow.setVisibility(View.VISIBLE);
         } else {
             weightRow.setVisibility(View.GONE);
         }
 
         // Dimensions
-        String length = product.getFormattedLength();
-        if (length != null) {
-            productLength.setText(length);
+        if (product.getLength() != null && product.getLength() > 0) {
+            productLength.setText(getString(R.string.dimension_format, product.getLength(), getString(R.string.unit_cm)));
             lengthRow.setVisibility(View.VISIBLE);
         } else {
             lengthRow.setVisibility(View.GONE);
         }
 
-        String width = product.getFormattedWidth();
-        if (width != null) {
-            productWidth.setText(width);
+        if (product.getWidth() != null && product.getWidth() > 0) {
+            productWidth.setText(getString(R.string.dimension_format, product.getWidth(), getString(R.string.unit_cm)));
             widthRow.setVisibility(View.VISIBLE);
         } else {
             widthRow.setVisibility(View.GONE);
         }
 
-        String height = product.getFormattedHeight();
-        if (height != null) {
-            productHeight.setText(height);
+        if (product.getHeight() != null && product.getHeight() > 0) {
+            productHeight.setText(getString(R.string.dimension_format, product.getHeight(), getString(R.string.unit_cm)));
             heightRow.setVisibility(View.VISIBLE);
         } else {
             heightRow.setVisibility(View.GONE);
@@ -464,27 +470,50 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
     }
 
     /**
-     * Observer le ProductViewModel pour les mises à jour de like/favorite
+     * Observer le ProductViewModel pour les mises à jour
      */
     private void observeProductViewModel() {
         if (productViewModel == null) return;
 
+        // Connecter le ViewModel au Repository via le LifecycleOwner de la vue
+        productViewModel.setupObservers(getViewLifecycleOwner());
+
+        // Observer les changements du produit
         // Observer les changements du produit
         productViewModel.getCurrentProduct().observe(getViewLifecycleOwner(), updatedProduct -> {
-            if (updatedProduct != null && product != null &&
-                    updatedProduct.getProductId().equals(product.getProductId())) {
+            // Fix: Allow update if product is null (e.g., opened from notification with only ID)
+            if (updatedProduct != null && (product == null || 
+                    updatedProduct.getProductId().equals(product.getProductId()))) {
 
-                Log.d(TAG, "✅ Product updated: " + updatedProduct.getName() +
-                        " (liked=" + updatedProduct.isLikedByUser() +
-                        ", favorite=" + updatedProduct.isFavoriteByUser() +
-                        ", likes=" + updatedProduct.getLikesCount() + ")");
+                Log.d(TAG, "✅ Product updated: " + updatedProduct.getName());
 
                 // Mettre à jour la référence locale
                 product = updatedProduct;
 
-                // Mettre à jour l'UI
-                updateLikeButton(product.isLikedByUser(), product.getLikesCount());
-                updateFavoriteButton(product.isFavoriteByUser());
+                // Mettre à jour l'UI complète
+                setupProductInfo();
+                setupProductDetails();
+                
+                // Mettre à jour l'image si elle a changé
+                // Note: loadProductImage vérifie si l'image est déjà chargée ou différente
+                // Mais pour être sûr lors d'un edit, on peut recharger
+                if (updatedProduct.hasImages() || updatedProduct.getPrimaryImageId() != null) {
+                     loadProductImage();
+                }
+
+                // Use Sync States for initial display
+                if (getActivity() != null && getActivity().getApplication() != null) {
+                    android.app.Application app = (android.app.Application) getActivity().getApplication();
+                    ProductSync.LikeSync.LikeState likeState = ProductSync.LikeSync.getState(product.getProductId());
+                    boolean liked = likeState != null ? likeState.isLiked : product.isLikedByUser();
+                    int count = likeState != null ? likeState.count : product.getLikesCount();
+                    
+                    ProductSync.FavoriteSync.FavoriteState favState = ProductSync.FavoriteSync.getState(product.getProductId(), app);
+                    boolean fav = favState != null ? favState.isFavorite : product.isFavoriteByUser();
+    
+                    updateLikeButton(liked, count);
+                    updateFavoriteButton(fav);
+                }
             }
         });
 
@@ -497,6 +526,46 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
         });
     }
 
+
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        ShopSync.LikeSync.register(this);
+        ShopSync.FavoriteSync.register(this);
+        ProductSync.LikeSync.register(this);
+        ProductSync.FavoriteSync.register(this);
+    }
+
+    @Override
+    public void onStop() {
+        ShopSync.LikeSync.unregister(this);
+        ShopSync.FavoriteSync.unregister(this);
+        ProductSync.LikeSync.unregister(this);
+        ProductSync.FavoriteSync.unregister(this);
+        super.onStop();
+    }
+
+    @Override
+    public void onShopSyncUpdate(String shopId, Bundle payload) {
+        // Implement if shop likes/favorites are shown in product detail
+    }
+
+    @Override
+    public void onProductSyncUpdate(String productId, Bundle payload) {
+        if (product != null && productId.equals(product.getProductId())) {
+            if (payload.containsKey("isLiked")) {
+                boolean liked = payload.getBoolean("isLiked");
+                int count = payload.getInt("likesCount", product.getLikesCount());
+                updateLikeButton(liked, count);
+            }
+            if (payload.containsKey("isFavorite")) {
+                boolean fav = payload.getBoolean("isFavorite");
+                updateFavoriteButton(fav);
+            }
+        }
+    }
+
     /**
      * Met à jour le bouton like avec l'état et le compteur
      */
@@ -504,12 +573,11 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
         if (likeButton != null) {
             likeButton.setImageResource(liked ?
                     R.drawable.ic_heart_filled : R.drawable.ic_heart_outline);
-            likeButton.setColorFilter(liked ? 0xFFE85F4C : 0xFF757575);
+            likeButton.setColorFilter(liked ? 0xFFE8574D : 0xFF757575);
         }
         if (likesCount != null) {
             likesCount.setText(String.valueOf(count));
         }
-        Log.d(TAG, "✅ Like button updated: liked=" + liked + ", count=" + count);
     }
 
     /**
@@ -521,10 +589,34 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
                     R.drawable.ic_star_filled : R.drawable.ic_star_outline);
             favoriteButton.setColorFilter(favorite ? 0xFFFFC107 : 0xFF757575);
         }
-        Log.d(TAG, "✅ Favorite button updated: favorite=" + favorite);
     }
 
     private void setupClickListeners() {
+        // Like button
+        if (likeButton != null) {
+            likeButton.setOnClickListener(v -> {
+                if (product != null && productViewModel != null) {
+                    boolean newLiked = !product.isLikedByUser();
+                    int newCount = product.getLikesCount() + (newLiked ? 1 : -1);
+                    product.setLikedByUser(newLiked);
+                    product.setLikesCount(newCount);
+                    ProductSync.LikeSync.update(product.getProductId(), newLiked, newCount);
+                    productViewModel.toggleLikeProduct(product.getProductId());
+                }
+            });
+        }
+
+        // Favorite button
+        if (favoriteButton != null) {
+            favoriteButton.setOnClickListener(v -> {
+                if (product != null && productViewModel != null) {
+                    boolean newFavorite = !product.isFavoriteByUser();
+                    product.setFavoriteByUser(newFavorite);
+                    ProductSync.FavoriteSync.update(product.getProductId(), newFavorite);
+                    productViewModel.toggleFavoriteProduct(product.getProductId());
+                }
+            });
+        }
         if (toolbar != null) {
             toolbar.setNavigationOnClickListener(v -> {
                 if (getActivity() != null) {
@@ -533,31 +625,7 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
             });
         }
 
-        // Like button - déléguer au ViewModel
-        if (likeButton != null) {
-            likeButton.setOnClickListener(v -> {
-                Log.d(TAG, "❤️ Like button clicked");
-                if (product != null && productViewModel != null) {
-                    productViewModel.toggleLikeProduct(product.getProductId());
-                    // L'UI sera mise à jour via l'observer
-                } else {
-                    Log.e(TAG, "❌ Cannot toggle like: product or viewModel is null");
-                }
-            });
-        }
 
-        // Favorite button - déléguer au ViewModel
-        if (favoriteButton != null) {
-            favoriteButton.setOnClickListener(v -> {
-                Log.d(TAG, "⭐ Favorite button clicked");
-                if (product != null && productViewModel != null) {
-                    productViewModel.toggleFavoriteProduct(product.getProductId());
-                    // L'UI sera mise à jour via l'observer
-                } else {
-                    Log.e(TAG, "❌ Cannot toggle favorite: product or viewModel is null");
-                }
-            });
-        }
 
         if (editButton != null) {
             editButton.setOnClickListener(v -> {
@@ -590,8 +658,8 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
                 if (currentShop != null && currentShop.getEmail() != null) {
                     Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
                     emailIntent.setData(Uri.parse("mailto:" + currentShop.getEmail()));
-                    emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Inquiry about product: " +
-                            (product != null ? product.getName() : "Unknown"));
+                    emailIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.inquiry_subject,
+                            (product != null ? product.getName() : getString(R.string.unknown_product))));
                     startActivity(emailIntent);
                 }
             });
@@ -628,43 +696,34 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
         if (getContext() == null || product == null) return;
 
         new MaterialAlertDialogBuilder(getContext())
-                .setTitle("Delete Product")
-                .setMessage("Are you sure you want to delete " + product.getName() + "?")
-                .setPositiveButton("Delete", (dialog, which) -> deleteProduct())
-                .setNegativeButton("Cancel", null)
+                .setTitle(R.string.delete_product_title)
+                .setMessage(getString(R.string.delete_product_message, product.getName()))
+                .setPositiveButton(R.string.delete, (dialog, which) -> deleteProduct())
+                .setNegativeButton(R.string.cancel, null)
                 .show();
     }
 
     private void deleteProduct() {
         if (productManager != null && product != null) {
-            if (getContext() != null) {
-                Toast.makeText(getContext(), getString(R.string.deleting_product), Toast.LENGTH_SHORT).show();
+            final android.content.Context context = getContext();
+            
+            if (context != null) {
+                Toast.makeText(context, getString(R.string.deleting_product), Toast.LENGTH_SHORT).show();
             }
 
-            final boolean[] messageHandled = {false};
-
-            productManager.getSuccessMessage().observe(getViewLifecycleOwner(), message -> {
-                if (!messageHandled[0] && message != null && !message.isEmpty()) {
-                    messageHandled[0] = true;
-                    if (getContext() != null) {
-                        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
-                    }
-                    if (getActivity() != null) {
-                        getActivity().onBackPressed();
-                    }
+            // Fire and forget (let Repository handle background work)
+            productManager.deleteProduct(product, null);
+            
+            // Close immediately as requested
+            if (getActivity() != null) {
+                // Perform navigation back
+                getActivity().onBackPressed();
+                
+                // Show toast using captured context if available, otherwise skip
+                if (context != null) {
+                    Toast.makeText(context, context.getString(R.string.product_deleted_success), Toast.LENGTH_SHORT).show();
                 }
-            });
-
-            productManager.getErrorMessage().observe(getViewLifecycleOwner(), message -> {
-                if (!messageHandled[0] && message != null && !message.isEmpty()) {
-                    messageHandled[0] = true;
-                    if (getContext() != null) {
-                        Toast.makeText(getContext(), "Error: " + message, Toast.LENGTH_LONG).show();
-                    }
-                }
-            });
-
-            productManager.deleteProduct(product);
+            }
         }
     }
 
@@ -702,18 +761,7 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
     private void applyProductSnapshot(DocumentSnapshot snapshot) {
         if (snapshot == null || !snapshot.exists() || product == null) return;
 
-        // Mettre à jour le compteur de likes depuis Firestore
-        Long likesLong = snapshot.getLong("likesCount");
-        if (likesLong != null) {
-            int newLikesCount = likesLong.intValue();
-            if (newLikesCount != product.getLikesCount()) {
-                product.setLikesCount(newLikesCount);
-                if (likesCount != null) {
-                    likesCount.setText(String.valueOf(newLikesCount));
-                }
-                Log.d(TAG, "📊 Likes count updated from Firestore: " + newLikesCount);
-            }
-        }
+
     }
 
     @Override
@@ -739,6 +787,7 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
         deleteButton = null;
         callButton = null;
         emailButton = null;
+
         likeButton = null;
         favoriteButton = null;
         likesCount = null;

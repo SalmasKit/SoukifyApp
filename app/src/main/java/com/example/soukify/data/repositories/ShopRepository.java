@@ -21,6 +21,8 @@
  import java.util.List;
  import java.util.concurrent.ExecutorService;
  import java.util.concurrent.Executors;
+ import com.example.soukify.services.NotificationSenderService;
+import com.google.firebase.auth.FirebaseAuth;
 
  /**
   * Shop Repository - Firebase implementation
@@ -37,14 +39,16 @@
      private final MutableLiveData<List<ShopModel>> favoriteShops = new MutableLiveData<>();
      private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
      private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
+     private final NotificationSenderService notificationSenderService;
      private final ExecutorService executor = Executors.newFixedThreadPool(2);
     
      public ShopRepository(Application application) {
          FirebaseManager firebaseManager = FirebaseManager.getInstance(application);
          this.shopService = new FirebaseShopService(firebaseManager.getFirestore());
          this.storageService = new FirebaseStorageService(firebaseManager.getStorage());
-         this.productRepository = new ProductRepository(application);
+         this.productRepository = ProductRepository.getInstance(application);
          this.productImageRepository = new ProductImageRepository(application);
+         this.notificationSenderService = new NotificationSenderService();
      }
     
      public LiveData<ShopModel> getCurrentShop() {
@@ -134,16 +138,48 @@
         android.util.Log.d("ShopRepository", "Updating shop in Firestore: " + shop.getName());
         android.util.Log.d("ShopRepository", "Toggle values being sent to Firestore - hasPromotion: " + shop.isHasPromotion() + ", hasLivraison: " + shop.isHasLivraison());
         
-        shopService.updateShop(shop.getShopId(), shop)
+        // 🔍 Récupérer l'état actuel pour détecter l'activation d'une promotion
+        shopService.getShopById(shop.getShopId()).addOnSuccessListener(doc -> {
+            boolean previouslyHadPromotion = false;
+            if (doc.exists() && doc.contains("hasPromotion")) {
+                Boolean val = doc.getBoolean("hasPromotion");
+                previouslyHadPromotion = val != null && val;
+            }
+            
+            final boolean isNewPromotion = !previouslyHadPromotion && shop.isHasPromotion();
+            
+            shopService.updateShop(shop.getShopId(), shop)
                  .addOnSuccessListener(aVoid -> {
                      currentShop.postValue(shop);
                      loadUserShops(); // Refresh user shops list
                      isLoading.postValue(false);
+                     
+                     if (isNewPromotion) {
+                         android.util.Log.d("ShopRepository", "🔔 Promotion activée ! Envoi des notifications...");
+                         notificationSenderService.sendPromotionNotification(
+                             shop.getShopId(), 
+                             shop.getName(), 
+                             "Profitez de nos nouvelles offres promotionnelles !"
+                         );
+                     }
                  })
                  .addOnFailureListener(e -> {
                      errorMessage.postValue("Failed to update shop: " + e.getMessage());
                      isLoading.postValue(false);
                  });
+        }).addOnFailureListener(e -> {
+            // Fallback: update anyway even if fetch fails
+            shopService.updateShop(shop.getShopId(), shop)
+                 .addOnSuccessListener(aVoid -> {
+                     currentShop.postValue(shop);
+                     loadUserShops();
+                     isLoading.postValue(false);
+                 })
+                 .addOnFailureListener(err -> {
+                     errorMessage.postValue("Failed to update shop: " + err.getMessage());
+                     isLoading.postValue(false);
+                 });
+        });
      }
     
      public Task<Void> deleteShop(String shopId) {
@@ -440,6 +476,24 @@
          if (document.contains("liked")) {
              shop.setLiked(document.getBoolean("liked"));
          }
+         
+         // Handle likedByUserIds
+         if (document.contains("likedByUserIds")) {
+             Object likedByUserIdsObj = document.get("likedByUserIds");
+             if (likedByUserIdsObj instanceof List) {
+                 ArrayList<String> likedByUserIds = new ArrayList<>((List<String>) likedByUserIdsObj);
+                 shop.setLikedByUserIds(likedByUserIds);
+                 
+                 String currentUserId = FirebaseAuth.getInstance().getUid();
+                 if (currentUserId != null && likedByUserIds.contains(currentUserId)) {
+                     shop.setLiked(true);
+                 } else if (currentUserId != null) {
+                     // Only overwrite if we have a user and they are NOT in the list
+                     // Otherwise keep the simple 'liked' boolean if it was true (though it shouldn't be relied upon)
+                     shop.setLiked(false);
+                 }
+             }
+         }
          if (document.contains("hasPromotion")) {
             shop.setHasPromotion(document.getBoolean("hasPromotion"));
         }
@@ -551,6 +605,22 @@
          }
          if (document.contains("liked")) {
              shop.setLiked(document.getBoolean("liked"));
+         }
+
+         // Handle likedByUserIds
+         if (document.contains("likedByUserIds")) {
+             Object likedByUserIdsObj = document.get("likedByUserIds");
+             if (likedByUserIdsObj instanceof List) {
+                 ArrayList<String> likedByUserIds = new ArrayList<>((List<String>) likedByUserIdsObj);
+                 shop.setLikedByUserIds(likedByUserIds);
+                 
+                 String currentUserId = FirebaseAuth.getInstance().getUid();
+                 if (currentUserId != null && likedByUserIds.contains(currentUserId)) {
+                     shop.setLiked(true);
+                 } else if (currentUserId != null) {
+                     shop.setLiked(false);
+                 }
+             }
          }
          if (document.contains("hasPromotion")) {
             shop.setHasPromotion(document.getBoolean("hasPromotion"));

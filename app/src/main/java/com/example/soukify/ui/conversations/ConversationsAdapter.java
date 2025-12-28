@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import de.hdodenhof.circleimageview.CircleImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -121,19 +122,29 @@ public class ConversationsAdapter
         }
 
         // ==========================
-        // Image boutique
+        // Image (Boutique ou Acheteur)
         // ==========================
-        if (conversation.getShopImage() != null
-                && !conversation.getShopImage().isEmpty()) {
+        String imageUrl;
+        if (currentUserId != null && currentUserId.equals(conversation.getSellerId())) {
+            // Mode VENDEUR -> Afficher la photo de l'ACHETEUR
+            imageUrl = conversation.getBuyerImage();
+        } else {
+            // Mode ACHETEUR -> Afficher l'image du SHOP
+            imageUrl = conversation.getShopImage();
+        }
 
+        Log.d(TAG, "🖼️ Loading image for " + displayName + " | url: " + imageUrl);
+
+        if (imageUrl != null && !imageUrl.isEmpty()) {
             Glide.with(context)
-                    .load(conversation.getShopImage())
-                    .placeholder(R.drawable.ic_launcher_background)
+                    .load(imageUrl)
+                    .placeholder(R.drawable.ic_profile_placeholder)
+                    .error(R.drawable.ic_profile_placeholder)
                     .circleCrop()
                     .into(holder.ivShopImage);
-
         } else {
-            holder.ivShopImage.setImageResource(R.drawable.ic_launcher_background);
+            Log.w(TAG, "⚠️ No image URL for " + displayName + ", using placeholder");
+            holder.ivShopImage.setImageResource(R.drawable.ic_profile_placeholder);
         }
 
         // ==========================
@@ -166,7 +177,7 @@ public class ConversationsAdapter
     // ==========================
     static class ConversationViewHolder extends RecyclerView.ViewHolder {
 
-        ImageView ivShopImage;
+        CircleImageView ivShopImage;
         TextView tvName, tvLastMessage, tvTimestamp, tvUnreadBadge;
 
         public ConversationViewHolder(@NonNull View itemView) {

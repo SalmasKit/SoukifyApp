@@ -10,7 +10,7 @@ const messaging = admin.messaging();
 // 1. NEW CHAT MESSAGE NOTIFICATION
 // ============================================
 exports.sendMessageNotification = functions.firestore
-    .document('conversations/{conversationId}/messages/{messageId}')
+    .document('Conversation/{conversationId}/messages/{messageId}')
     .onCreate(async (snap, context) => {
         const message = snap.data();
         const conversationId = context.params.conversationId;
@@ -19,7 +19,7 @@ exports.sendMessageNotification = functions.firestore
 
         try {
             // Get conversation details
-            const conversationDoc = await db.collection('conversations').doc(conversationId).get();
+            const conversationDoc = await db.collection('Conversation').doc(conversationId).get();
             if (!conversationDoc.exists) {
                 console.log('Conversation not found');
                 return null;
@@ -154,7 +154,7 @@ exports.sendNewProductNotification = functions.firestore
                         body: product.title || 'Check out the latest addition!',
                     },
                     data: {
-                        type: 'new_product',
+                        type: 'nouveau produit',
                         shopId: shopId,
                         productId: context.params.productId,
                     },

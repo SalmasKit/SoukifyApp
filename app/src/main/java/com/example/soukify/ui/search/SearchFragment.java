@@ -47,6 +47,8 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
 public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickListener {
 
     private EditText searchInput;
@@ -57,7 +59,7 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
     private LinearLayout catTapis, catFood, catPotterie, catTraditionalWear, catLeatherCrafts, catHerbs,
             catJwellery, catMetal, catDraws, catWood;
 
-    private Button btnPromotions, btnObjectType, btnSortBy, btnTopRated;
+    private Button btnPromotions, btnObjectType, btnSortBy, btnTopRated, btnTrend;
 
     private ShopAdapter shopAdapter;
     private final List<ShopModel> allShops = new ArrayList<>();
@@ -97,26 +99,36 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
 
         FirebaseManager firebaseManager = FirebaseManager.getInstance(requireActivity().getApplication());
         shopService = new FirebaseShopService(firebaseManager.getFirestore());
-        favoritesRepository = new FavoritesTableRepository(requireActivity().getApplication());
+        favoritesRepository = FavoritesTableRepository.getInstance(requireActivity().getApplication());
 
         initViews(view);
 
-        if (getArguments() != null) {
+        // Check for selected city in arguments or SharedPreferences
+        if (getArguments() != null && getArguments().containsKey("selectedCity")) {
             selectedCity = getArguments().getString("selectedCity");
-            if (selectedCity != null && textViewVille != null) {
-                textViewVille.setText(selectedCity);
+        } else {
+            // Check SharedPreferences as fallback
+            selectedCity = requireActivity().getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
+                    .getString("selected_city", null);
+        }
+
+        if (selectedCity != null && !selectedCity.isEmpty() && textViewVille != null) {
+            textViewVille.setText(selectedCity);
+            
+            // Show location selector when a city is selected
+            LinearLayout locationSelector = view.findViewById(R.id.location_selector);
+            if (locationSelector != null) {
+                locationSelector.setVisibility(View.VISIBLE);
+            }
+        } else {
+            // Hide location selector if no city is selected
+            LinearLayout locationSelector = view.findViewById(R.id.location_selector);
+            if (locationSelector != null) {
+                locationSelector.setVisibility(View.GONE);
             }
         }
 
-        // ✅ AJOUTEZ LE BOUTON MESSAGES ICI (AVANT le return view)
-        Button btnMessages = view.findViewById(R.id.btnChat); // ✅ view.findViewById()
-        if (btnMessages != null) { // ✅ Vérifier que le bouton existe
-            btnMessages.setOnClickListener(v -> {
-                Intent intent = new Intent(requireActivity(), ConversationsListActivity.class);
-                intent.putExtra(ConversationsListActivity.EXTRA_IS_SELLER_VIEW, true);
-                startActivity(intent);
-            });
-        }
+
 
         setupRecyclerView();
         setupCategoryListeners();
@@ -152,11 +164,21 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
 
         btnPromotions = view.findViewById(R.id.btn_promotions);
         btnObjectType = view.findViewById(R.id.btnLiv);
-        btnSortBy = view.findViewById(R.id.btn_sort_by);
+        btnTrend = view.findViewById(R.id.btntrend);
         btnTopRated = view.findViewById(R.id.btn_top_rated);
 
         if (btnObjectType != null) {
             btnObjectType.setOnClickListener(v -> filterByLivraison());
+        }
+        
+        // Setup location selector click listener to navigate back to home
+        LinearLayout locationSelector = view.findViewById(R.id.location_selector);
+        if (locationSelector != null) {
+            locationSelector.setOnClickListener(v -> {
+                // Navigate to home fragment
+                androidx.navigation.NavController navController = Navigation.findNavController(requireView());
+                navController.navigate(R.id.navigation_home);
+            });
         }
     }
 
@@ -182,11 +204,11 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
                                 );
                         count++;
                     }
-                    safeToast("Tous les likes ont été réinitialisés (" + count + " boutiques)");
+                    safeToast(getString(R.string.likes_reset_msg, count));
                     loadShopsFromFirebase();
                 })
                 .addOnFailureListener(e -> {
-                    safeToast("Erreur lors de la réinitialisation: " + e.getMessage());
+                    safeToast(getString(R.string.reset_error_msg, e.getMessage()));
                     android.util.Log.e("ResetLikes", "Erreur: ", e);
                 });
     }
@@ -202,7 +224,7 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
         shopsListener = db.collection("shops").addSnapshotListener(executor, (querySnapshot, error) -> {
             if (error != null) {
                 Log.e("SearchFragment", "Firestore listener error", error);
-                showError("Erreur de connexion: " + error.getMessage());
+                showError(getString(R.string.connection_error_prefix) + error.getMessage());
                 return;
             }
 
@@ -391,11 +413,27 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
         }
 
         boolean wasFavorite = shop.isFavorite();
-        boolean newFavoriteState = !wasFavorite;
+        if (wasFavorite) {
+            // Show confirmation before unfavoriting
+            new MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.unfavorite_title)
+                    .setMessage(getString(R.string.unfavorite_message_format, shop.getName()))
+                    .setPositiveButton(R.string.unfavorite_positive, (dialog, which) -> {
+                        performFavoriteToggle(shop, position, false);
+                    })
+                    .setNegativeButton(R.string.cancel, null)
+                    .show();
+        } else {
+            // Favorite immediately
+            performFavoriteToggle(shop, position, true);
+        }
+    }
+
+    private void performFavoriteToggle(ShopModel shop, int position, boolean newFavoriteState) {
         shop.setFavorite(newFavoriteState);
 
-        ShopModel adapterShop = filteredShops.get(position);
-        adapterShop.setFavorite(newFavoriteState);
+        // ✅ Global synchronization for immediate UI update
+        com.example.soukify.data.sync.ShopSync.FavoriteSync.update(shop.getShopId(), newFavoriteState);
 
         if (shopAdapter != null) shopAdapter.notifyItemChanged(position);
 
@@ -410,7 +448,7 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
             if (shop.getShopId() != null) favoriteShopIds.remove(shop.getShopId());
         }
 
-        safeToast(shop.getName() + (newFavoriteState ? " ajouté aux favoris" : " retiré des favoris"));
+        safeToast(getString(newFavoriteState ? R.string.added_to_favorites_msg : R.string.removed_from_favorites_msg, shop.getName()));
 
         android.util.Log.d("SearchFragment", "Favorite toggled - New status: " + newFavoriteState);
     }
@@ -433,13 +471,20 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
 
         final String currentUserId = FirebaseManager.getInstance(requireActivity().getApplication()).getCurrentUserId();
         if (currentUserId == null) {
-            safeToast("Vous devez être connecté pour liker");
+            safeToast(getString(R.string.login_to_like_msg));
             return;
         }
 
-        // ✅ Les valeurs sont déjà mises à jour par l'adapter
-        final boolean newLikedStatus = shop.isLiked();
-        final int newLikesCount = shop.getLikesCount();
+        // ✅ Modèle déjà mis à jour par l'adapter? Non, ici c'est le fragment qui gère.
+        boolean wasLiked = shop.isLiked();
+        boolean newLikedStatus = !wasLiked;
+        int newLikesCount = newLikedStatus ? shop.getLikesCount() + 1 : Math.max(0, shop.getLikesCount() - 1);
+        
+        shop.setLiked(newLikedStatus);
+        shop.setLikesCount(newLikesCount);
+
+        // ✅ Global synchronization for immediate UI update
+        com.example.soukify.data.sync.ShopSync.LikeSync.update(shop.getShopId(), newLikedStatus, newLikesCount);
 
         Log.d("SearchFragment", "Like status updated - newLikedStatus: " + newLikedStatus + ", newLikesCount: " + newLikesCount);
 
@@ -480,8 +525,8 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
 
                     // ✅ Message de confirmation
                     String message = newLikedStatus ?
-                            "Vous avez liké! (" + newLikesCount + " like" + (newLikesCount > 1 ? "s" : "") + ")" :
-                            "Like retiré (" + newLikesCount + " like" + (newLikesCount > 1 ? "s" : "") + ")";
+                            getString(R.string.liked_success_format, newLikesCount, newLikesCount > 1 ? getString(R.string.like_plural_suffix) : "") :
+                            getString(R.string.unliked_success_format, newLikesCount, newLikesCount > 1 ? getString(R.string.like_plural_suffix) : "");
                     safeToast(message);
                 })
                 .addOnFailureListener(e -> {
@@ -507,7 +552,7 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
                         shopAdapter.notifyItemChanged(position);
                     }
 
-                    safeToast("Erreur lors de la mise à jour du like");
+                    safeToast(getString(R.string.like_update_error));
                 });
 
         // ❌ SUPPRIMÉ : shopAdapter.notifyItemChanged(position)
@@ -516,8 +561,16 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
     }
 
     @Override
-    public void onShopClick(ShopModel shop, int position) {
+    public void onShopClick(ShopModel shop) {
         if (isAdded() && shop != null) {
+            // Save selected city to SharedPreferences for toolbar display
+            if (selectedCity != null && !selectedCity.isEmpty()) {
+                requireActivity().getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
+                        .edit()
+                        .putString("selected_city", selectedCity)
+                        .apply();
+            }
+            
             // Pass shop data as individual strings (ShopModel is not Parcelable)
             Bundle args = new Bundle();
             args.putString("shopId", shop.getShopId() != null ? shop.getShopId() : "");
@@ -546,29 +599,30 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
     }
 
     private void setupCategoryListeners() {
-        if (catTapis != null) catTapis.setOnClickListener(v -> filterByCategory(getString(R.string.tapestry), catTapis));
-        if (catFood != null) catFood.setOnClickListener(v -> filterByCategory(getString(R.string.food), catFood));
-        if (catPotterie != null) catPotterie.setOnClickListener(v -> filterByCategory(getString(R.string.pottery), catPotterie));
-        if (catTraditionalWear != null) catTraditionalWear.setOnClickListener(v -> filterByCategory(getString(R.string.traditional_wear), catTraditionalWear));
-        if (catLeatherCrafts != null) catLeatherCrafts.setOnClickListener(v -> filterByCategory("Leather Crafts", catLeatherCrafts));
-        if (catHerbs != null) catHerbs.setOnClickListener(v -> filterByCategory(getString(R.string.naturalProducts), catHerbs));
-        if (catJwellery != null) catJwellery.setOnClickListener(v -> filterByCategory(getString(R.string.jewellery), catJwellery));
-        if (catMetal != null) catMetal.setOnClickListener(v -> filterByCategory(getString(R.string.metal), catMetal));
-        if (catDraws != null) catDraws.setOnClickListener(v -> filterByCategory(getString(R.string.paintings), catDraws));
-        if (catWood != null) catWood.setOnClickListener(v -> filterByCategory(getString(R.string.woodwork), catWood));
+        if (catTapis != null) catTapis.setOnClickListener(v -> filterByCategory("textile_tapestry", catTapis));
+        if (catFood != null) catFood.setOnClickListener(v -> filterByCategory("gourmet_foods", catFood));
+        if (catPotterie != null) catPotterie.setOnClickListener(v -> filterByCategory("pottery_ceramics", catPotterie));
+        if (catTraditionalWear != null) catTraditionalWear.setOnClickListener(v -> filterByCategory("traditional_wear", catTraditionalWear));
+        if (catLeatherCrafts != null) catLeatherCrafts.setOnClickListener(v -> filterByCategory("leather_crafts", catLeatherCrafts));
+        if (catHerbs != null) catHerbs.setOnClickListener(v -> filterByCategory("wellness_products", catHerbs));
+        if (catJwellery != null) catJwellery.setOnClickListener(v -> filterByCategory("jewelry_accessories", catJwellery));
+        if (catMetal != null) catMetal.setOnClickListener(v -> filterByCategory("metal_brass", catMetal));
+        if (catDraws != null) catDraws.setOnClickListener(v -> filterByCategory("painting_calligraphy", catDraws));
+        if (catWood != null) catWood.setOnClickListener(v -> filterByCategory("woodwork", catWood));
     }
 
-    private void filterByCategory(String category, LinearLayout categoryView) {
+    private void filterByCategory(String categoryKey, LinearLayout categoryView) {
         if (categoryView == null) return;
 
-        selectedCategory = category;
+        selectedCategory = categoryKey;
         filteredShops.clear();
 
         for (ShopModel shop : allShops) {
             String shopCategory = safeString(shop.getCategory()).trim();
-            String targetCategory = category.trim();
-
-            if (shopCategory.equalsIgnoreCase(targetCategory)) {
+            // Compare normalized keys
+            String shopKey = com.example.soukify.utils.CategoryUtils.getCategoryKey(requireContext(), shopCategory);
+            
+            if (shopKey.equalsIgnoreCase(categoryKey)) {
                 filteredShops.add(shop);
             }
         }
@@ -576,17 +630,12 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
         shopAdapter.notifyDataSetChanged();
         highlightCategory(categoryView);
 
+        String localizedCategoryName = com.example.soukify.utils.CategoryUtils.getLocalizedCategory(requireContext(), categoryKey);
         if (filteredShops.isEmpty()) {
-            safeToast("Aucune boutique trouvée pour: " + category);
-            android.util.Log.d("SearchFragment", "Catégorie recherchée: '" + category + "'");
-            java.util.Set<String> availableCategories = new java.util.HashSet<>();
-            for (ShopModel shop : allShops) {
-                String cat = safeString(shop.getCategory());
-                if (!cat.isEmpty()) availableCategories.add(cat);
-            }
-            android.util.Log.d("SearchFragment", "Catégories disponibles dans la BD: " + availableCategories);
+            safeToast(getString(R.string.no_shops_found_category, localizedCategoryName));
+            android.util.Log.d("SearchFragment", "Key recherchée: '" + categoryKey + "'");
         } else {
-            safeToast(filteredShops.size() + " boutique(s) - " + category);
+            safeToast(getString(R.string.shops_found_count_category, filteredShops.size(), localizedCategoryName));
         }
     }
     private void filterShopsByCity(String cityName) {
@@ -647,10 +696,10 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
 
         if (filteredShops.isEmpty()) {
             showNotFoundMessage();
-            safeToast("Aucune boutique trouvée à " + cityName);
+            safeToast(getString(R.string.no_shops_found_city, cityName));
         } else {
             hideNotFoundMessage();
-            safeToast(filteredShops.size() + " boutique(s) à " + cityName);
+            safeToast(getString(R.string.shops_found_count_city, filteredShops.size(), cityName));
         }
     }
     @Override
@@ -667,6 +716,15 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
 
                 if (textViewVille != null) {
                     textViewVille.setText(pendingCity);
+                    
+                    // Show location selector when a city is loaded
+                    View rootView = getView();
+                    if (rootView != null) {
+                        LinearLayout locationSelector = rootView.findViewById(R.id.location_selector);
+                        if (locationSelector != null) {
+                            locationSelector.setVisibility(View.VISIBLE);
+                        }
+                    }
                 }
 
                 if (shopsLoaded) {
@@ -817,7 +875,7 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
             if (shopAdapter != null) shopAdapter.notifyDataSetChanged();
 
         } catch (Exception e) {
-            safeToast("Erreur lors de la recherche: " + e.getMessage());
+            safeToast(getString(R.string.search_error_msg, e.getMessage()));
         }
     }
     private void showNotFoundMessage() {
@@ -839,16 +897,16 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
         // Exemple : partager le nom et la localisation de la boutique
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.setType("text/plain");
-        String shareText = "Regarde cette boutique : " + shop.getName() + " - " + shop.getLocation();
+        String shareText = getString(R.string.share_shop_prefix, shop.getName(), shop.getLocation());
         shareIntent.putExtra(Intent.EXTRA_TEXT, shareText);
-        startActivity(Intent.createChooser(shareIntent, "Partager via"));
+        startActivity(Intent.createChooser(shareIntent, getString(R.string.share_via)));
     }
 
     @Override
     public void onRatingChanged(ShopModel shop, float newRating, int position) {
         // Vérifier que l'utilisateur est connecté
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
-            Toast.makeText(getContext(), "Vous devez être connecté pour évaluer", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getString(R.string.login_to_rate), Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -892,7 +950,7 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
                 .update(updates)
                 .addOnSuccessListener(aVoid -> {
                     android.util.Log.d("RatingDebug", "✅ Firebase mise à jour avec succès!");
-                    Toast.makeText(getContext(), "Évaluation enregistrée : " + newRating + "⭐", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), getString(R.string.rating_saved_prefix) + newRating + "⭐", Toast.LENGTH_SHORT).show();
 
                     // Mettre à jour aussi dans la liste allShops
                     for (ShopModel s : allShops) {
@@ -911,14 +969,15 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
                 })
                 .addOnFailureListener(e -> {
                     android.util.Log.e("RatingDebug", "❌ Erreur Firebase: " + e.getMessage());
-                    Toast.makeText(getContext(), "Erreur : " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), getString(R.string.rating_error_prefix) + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }
 
     private void setupFilterListeners() {
         if (btnPromotions != null) btnPromotions.setOnClickListener(v -> filterByPromotions());
         if (btnTopRated != null) btnTopRated.setOnClickListener(v -> filterByTopSearched());
-        if (btnSortBy != null) btnSortBy.setOnClickListener(v -> showSortDialog());
+        if (btnTrend != null) btnTrend.setOnClickListener(v -> sortByTrend());
+        if (btnObjectType != null) btnObjectType.setOnClickListener(v -> filterByLivraison());
     }
 
     private void filterByPromotions() {
@@ -933,10 +992,10 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
         if (shopAdapter != null) shopAdapter.notifyDataSetChanged();
 
         if (filteredShops.isEmpty()) {
-            safeToast("Aucune boutique en promotion actuellement");
+            safeToast(getString(R.string.no_promos_found));
             android.util.Log.d("SearchFragment", "Aucune boutique avec hasPromotion=true trouvée");
         } else {
-            safeToast(filteredShops.size() + " boutique(s) en promotion");
+            safeToast(getString(R.string.shops_found_promo, filteredShops.size()));
             android.util.Log.d("SearchFragment", filteredShops.size() + " boutiques en promotion trouvées");
         }
     }
@@ -944,14 +1003,25 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
     private void filterByTopSearched() {
         filteredShops.clear();
         filteredShops.addAll(allShops);
-        Collections.sort(filteredShops, (s1, s2) -> Integer.compare(s2.getSearchCount(), s1.getSearchCount()));
+        Collections.sort(filteredShops, (s1, s2) -> Double.compare(s2.getRating(), s1.getRating()));
+
         if (filteredShops.size() > 10) {
             List<ShopModel> top = new ArrayList<>(filteredShops.subList(0, 10));
             filteredShops.clear();
             filteredShops.addAll(top);
         }
+
         if (shopAdapter != null) shopAdapter.notifyDataSetChanged();
-        safeToast("Top " + filteredShops.size() + " boutiques les plus cherchées");
+        safeToast(getString(R.string.top_rated_shops_msg, filteredShops.size()));
+    }
+
+    private void sortByTrend() {
+        Collections.sort(filteredShops, (s1, s2) -> Integer.compare(s2.getSearchCount(), s1.getSearchCount()));
+
+        if (shopAdapter != null) {
+            shopAdapter.notifyDataSetChanged();
+        }
+        safeToast(getString(R.string.sorted_by_trending));
     }
 
     private void filterByLivraison() {
@@ -966,18 +1036,18 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
         if (shopAdapter != null) shopAdapter.notifyDataSetChanged();
 
         if (filteredShops.isEmpty()) {
-            safeToast("Aucune boutique avec livraison disponible");
+            safeToast(getString(R.string.no_delivery_found));
         } else {
-            safeToast(filteredShops.size() + " boutique(s) avec livraison");
+            safeToast(getString(R.string.shops_found_delivery, filteredShops.size()));
         }
     }
 
     // Méthode appelée lors du clic sur le bouton "Sort"
     private void showSortDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        builder.setTitle("Trier par date");
+        builder.setTitle(getString(R.string.sort_by_date_dialog_title));
 
-        String[] options = {"recent", "ancien"};
+        String[] options = {getString(R.string.sort_recent), getString(R.string.sort_oldest)};
 
         builder.setItems(options, (dialog, which) -> {
             if (which == 0) {
@@ -989,7 +1059,7 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
             }
         });
 
-        builder.setNegativeButton("Annuler", null);
+        builder.setNegativeButton(getString(R.string.cancel), null);
         builder.show();
     }
 
@@ -1027,7 +1097,7 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
         if (shopAdapter != null) {
             shopAdapter.notifyDataSetChanged();
         }
-        safeToast("Trié par : Récent → Ancien");
+        safeToast(getString(R.string.sorted_by_newest));
     }
 
 
@@ -1065,7 +1135,7 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
         if (shopAdapter != null) {
             shopAdapter.notifyDataSetChanged();
         }
-        safeToast("Trié par : Ancien → Récent");
+        safeToast(getString(R.string.sorted_by_oldest));
     }
 
 
@@ -1077,7 +1147,7 @@ public class SearchFragment extends Fragment implements ShopAdapter.OnShopClickL
         filteredShops.addAll(allShops);
         if (shopAdapter != null) shopAdapter.notifyDataSetChanged();
         if (searchInput != null) searchInput.setText("");
-        safeToast("Filtres réinitialisés");
+        safeToast(getString(R.string.filters_reset_msg));
     }
 
     // Méthode helper pour éviter les null

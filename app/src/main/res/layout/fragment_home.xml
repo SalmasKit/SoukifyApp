@@ -74,7 +74,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Discover Authentic Moroccan Businesses"
+                        android:text="@string/home_intro_title"
                         android:textSize="28sp"
                         android:textStyle="bold"
                         android:textColor="#FFFFFF"
@@ -90,7 +90,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Explore local shops, traditional crafts, and unique products from across Morocco. Support small businesses and discover the richness of Moroccan culture."
+                        android:text="@string/home_intro_desc"
                         android:textSize="16sp"
                         android:textColor="#F0F0F0"
                         android:lineSpacingExtra="6dp"
@@ -112,7 +112,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="20dp"
                     android:fontFamily="serif"
-                    android:text="Select Your Location"
+                    android:text="@string/select_location_title"
                     android:textColor="#1A1A1A"
                     android:textSize="24sp"
                     android:textStyle="bold" />
@@ -146,7 +146,7 @@
                             android:layout_alignParentTop="true"
                             android:layout_margin="16dp"
                             android:src="@drawable/ic_my_location"
-                            android:contentDescription="Find my location"
+                            android:contentDescription="@string/find_my_location_desc"
                             app:tint="#FFFFFF"
                             app:backgroundTint="#FF6B35"
                             app:elevation="8dp"
@@ -177,7 +177,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Selected Location"
+                                    android:text="@string/selected_location_label"
                                     android:textColor="#F0F0F0"
                                     android:textSize="12sp"
                                     android:layout_marginBottom="4dp" />
@@ -186,7 +186,7 @@
                                     android:id="@+id/selected_city_text"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Casablanca"
+                                    android:text="@string/default_city_casablanca"
                                     android:textColor="#FFFFFF"
                                     android:textSize="20sp"
                                     android:textStyle="bold"
@@ -205,7 +205,7 @@
                                 android:backgroundTint="#FFFFFF"
                                 android:paddingStart="28dp"
                                 android:paddingEnd="28dp"
-                                android:text="Confirm"
+                                android:text="@string/confirm_button"
                                 android:textAllCaps="false"
                                 android:textColor="#E85F4C"
                                 android:textSize="15sp"

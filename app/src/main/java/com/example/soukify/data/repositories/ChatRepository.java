@@ -7,6 +7,8 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.example.soukify.data.models.Conversation;
 import com.example.soukify.data.models.Message;
+import com.example.soukify.services.NotificationSenderService;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -14,6 +16,7 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.storage.FirebaseStorage;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,10 +32,14 @@ public class ChatRepository {
 
     private final FirebaseFirestore db;
     private final FirebaseAuth auth;
+    private final FirebaseStorage storage;
+    private final NotificationSenderService notificationSenderService;
 
     public ChatRepository() {
         this.db = FirebaseFirestore.getInstance();
         this.auth = FirebaseAuth.getInstance();
+        this.storage = FirebaseStorage.getInstance();
+        this.notificationSenderService = new NotificationSenderService();
     }
 
     private String getCurrentUserId() {
@@ -55,48 +62,44 @@ public class ChatRepository {
     // ==========================
     // 🔥 RÉCUPÉRER LE fullName D'UN UTILISATEUR
     // ==========================
-    private void getUserFullName(String userId, OnUserNameLoadedListener listener) {
+    private void getUserInfo(String userId, OnUserInfoLoadedListener listener) {
         if (userId == null || userId.isEmpty()) {
-            listener.onLoaded("Utilisateur");
+            listener.onLoaded("Utilisateur", "");
             return;
         }
 
-        Log.d(TAG, "🔍 Récupération fullName pour userId: " + userId);
+        Log.d(TAG, "🔍 Récupération info pour userId: " + userId);
 
         db.collection(COLLECTION_USERS)
                 .document(userId)
                 .get()
                 .addOnSuccessListener(doc -> {
                     if (doc.exists()) {
-                        // 🔥 RÉCUPÉRER fullName (pas "name")
                         String fullName = doc.getString("fullName");
+                        String profileImage = doc.getString("profileImage");
 
-                        Log.d(TAG, "✅ fullName récupéré: " + fullName);
+                        Log.d(TAG, "✅ Info récupérées: " + fullName + " | image: " + profileImage);
 
-                        if (fullName != null && !fullName.isEmpty()) {
-                            listener.onLoaded(fullName);
-                        } else {
-                            // Fallback sur "name" si fullName n'existe pas
-                            String name = doc.getString("name");
-                            if (name != null && !name.isEmpty()) {
-                                listener.onLoaded(name);
-                            } else {
-                                listener.onLoaded("Utilisateur");
+                        if (fullName == null || fullName.isEmpty()) {
+                            fullName = doc.getString("name");
+                            if (fullName == null || fullName.isEmpty()) {
+                                fullName = "Utilisateur";
                             }
                         }
+                        listener.onLoaded(fullName, profileImage != null ? profileImage : "");
                     } else {
                         Log.w(TAG, "⚠️ Document utilisateur inexistant");
-                        listener.onLoaded("Utilisateur");
+                        listener.onLoaded("Utilisateur", "");
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "❌ Erreur récupération fullName", e);
-                    listener.onLoaded("Utilisateur");
+                    Log.e(TAG, "❌ Erreur récupération info", e);
+                    listener.onLoaded("Utilisateur", "");
                 });
     }
 
-    private interface OnUserNameLoadedListener {
-        void onLoaded(String name);
+    private interface OnUserInfoLoadedListener {
+        void onLoaded(String name, String image);
     }
 
     // ==========================
@@ -135,7 +138,19 @@ public class ChatRepository {
                 Conversation conversation = snapshot.toObject(Conversation.class);
                 if (conversation != null) {
                     conversation.setId(conversationId);
-                    listener.onSuccess(conversation);
+                    
+                    // 🔥 REPAIR: Si l'photo de l'acheteur est manquante, on la récupère et on MAJ
+                    if (conversation.getBuyerImage() == null || conversation.getBuyerImage().isEmpty()) {
+                        getUserInfo(buyerId, (name, image) -> {
+                            if (image != null && !image.isEmpty()) {
+                                conversationRef.update("buyerImage", image);
+                                conversation.setBuyerImage(image);
+                            }
+                            listener.onSuccess(conversation);
+                        });
+                    } else {
+                        listener.onSuccess(conversation);
+                    }
                 }
                 return;
             }
@@ -143,14 +158,15 @@ public class ChatRepository {
             // 🆕 CRÉATION NOUVELLE CONVERSATION
             Log.e(TAG, "🆕 Création nouvelle conversation");
 
-            // 🔥 RÉCUPÉRER LE fullName DE L'ACHETEUR
-            getUserFullName(buyerId, buyerFullName -> {
-                Log.e(TAG, "✅ fullName acheteur récupéré: " + buyerFullName);
+            // 🔥 RÉCUPÉRER LES INFOS DE L'ACHETEUR
+            getUserInfo(buyerId, (buyerFullName, buyerProfileImage) -> {
+                Log.e(TAG, "✅ Infos acheteur récupérées: " + buyerFullName + " | " + buyerProfileImage);
 
                 Map<String, Object> data = new HashMap<>();
                 data.put("id", conversationId);
                 data.put("buyerId", buyerId);
-                data.put("buyerName", buyerFullName); // 🔥 fullName de l'acheteur
+                data.put("buyerName", buyerFullName);
+                data.put("buyerImage", buyerProfileImage); // 🔥 Photo de profil de l'acheteur
                 data.put("sellerId", sellerId);
                 data.put("shopId", shopId);
                 data.put("shopName", shopName);
@@ -168,6 +184,7 @@ public class ChatRepository {
                             c.setId(conversationId);
                             c.setBuyerId(buyerId);
                             c.setBuyerName(buyerFullName);
+                            c.setBuyerImage(buyerProfileImage);
                             c.setSellerId(sellerId);
                             c.setShopId(shopId);
                             c.setShopName(shopName);
@@ -203,14 +220,14 @@ public class ChatRepository {
         Log.e(TAG, "   Text: " + text.trim());
         Log.e(TAG, "════════════════════════════════════════");
 
-        // 🔥 RÉCUPÉRER LE fullName DE L'EXPÉDITEUR AUTOMATIQUEMENT
-        getUserFullName(senderId, senderFullName -> {
-            Log.e(TAG, "✅ fullName expéditeur récupéré: " + senderFullName);
+        // 🔥 RÉCUPÉRER LES INFOS DE L'EXPÉDITEUR AUTOMATIQUEMENT
+        getUserInfo(senderId, (senderFullName, senderImage) -> {
+            Log.e(TAG, "✅ Info expéditeur récupérées: " + senderFullName);
 
             Map<String, Object> message = new HashMap<>();
             message.put("conversationId", conversationId);
             message.put("senderId", senderId);
-            message.put("senderName", senderFullName); // 🔥 fullName auto
+            message.put("senderName", senderFullName);
             message.put("text", text.trim());
             message.put("timestamp", System.currentTimeMillis());
             message.put("isRead", false);
@@ -223,6 +240,10 @@ public class ChatRepository {
                     .addOnSuccessListener(docRef -> {
                         Log.e(TAG, "✅ Message envoyé avec senderName: " + senderFullName);
                         updateConversationAfterMessage(conversationId, text.trim(), senderId);
+                        
+                        // 🔔 Send notification to recipient
+                        sendMessageNotification(conversationId, senderId, senderFullName, text.trim());
+                        
                         callback.onSuccess();
                     })
                     .addOnFailureListener(e -> {
@@ -230,6 +251,31 @@ public class ChatRepository {
                         callback.onError(e.getMessage());
                     });
         });
+    }
+    
+    // ==========================
+    // 🔔 SEND MESSAGE NOTIFICATION
+    // ==========================
+    private void sendMessageNotification(String conversationId, String senderId, String senderName, String messageText) {
+        db.collection(COLLECTION_CONVERSATIONS)
+                .document(conversationId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (!doc.exists()) return;
+                    
+                    String buyerId = doc.getString("buyerId");
+                    String recipientId = senderId.equals(buyerId) ? doc.getString("sellerId") : buyerId;
+                    
+                    if (recipientId != null) {
+                        // Delegate to centralized NotificationSenderService which now handles OneSignal
+                        notificationSenderService.sendMessageNotification(
+                            recipientId, 
+                            senderName, 
+                            messageText, 
+                            conversationId
+                        );
+                    }
+                });
     }
 
     // ==========================

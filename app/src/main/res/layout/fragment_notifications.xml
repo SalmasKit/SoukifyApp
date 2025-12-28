@@ -117,21 +117,21 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:text="New Messages" />
+                    android:text="@string/notification_new_messages" />
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchNewProducts"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:text="New Products form Liked Shops" />
+                    android:text="@string/notification_new_products" />
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchShopPromotions"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:text="Promotions from Liked Shops" />
+                    android:text="@string/notification_shop_promotions" />
 
 
                 <com.google.android.material.switchmaterial.SwitchMaterial

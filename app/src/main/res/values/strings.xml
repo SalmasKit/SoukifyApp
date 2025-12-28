@@ -16,7 +16,10 @@
     <string name="all_fields_required">All fields are required</string>
     <string name="all_fields_obligatory">All fields are mandatory</string>
     <string name="invalid_email">Invalid email</string>
-    <string name="passwords_do_not_match_fr">Passwords do not match</string>
+    <string name="passwords_do_not_match">Passwords do not match</string>
+    <string name="invalid_phone_format">Invalid number (06 or 07 + 8 digits)</string>
+    <string name="password_too_short">Password must contain at least 6 characters</string>
+    <string name="invalid_phone">Invalid phone number</string>
     <string name="error_prefix">Error: %1$s</string>
 
     <!-- ==================== NAVIGATION ==================== -->
@@ -36,29 +39,11 @@
     <string name="Sort">Sort</string>
     <string name="Top">Top</string>
     <string name="item_not_found">Item not found</string>
-    <string name="item_not_found_fr">Item not found</string>
 
     <!-- ==================== CATEGORIES ==================== -->
 
     <string name="category">Category</string>
     <string name="category_label">Category</string>
-    <string name="category_label_en">Category</string>
-    <string name="category_pottery">Pottery &amp; Ceramics</string>
-    <string name="category_textile">Textiles &amp; Tapestry</string>
-    <string name="category_food">Gourmet &amp; Local Products</string>
-    <string name="category_wellness">Natural Wellness Products</string>
-    <string name="category_jewelry">Jewelry &amp; Accessories</string>
-    <string name="category_metal">Metal &amp; Brass Crafts</string>
-    <string name="category_painting">Painting &amp; Calligraphy</string>
-    <string name="category_woodwork">Woodwork</string>
-    <string name="tapestry">Textiles &amp; Tapestry</string>
-    <string name="food">Gourmet &amp; Local Products</string>
-    <string name="pottery">Pottery &amp; Ceramics</string>
-    <string name="traditional_wear">Traditional Clothing</string>
-    <string name="naturalProducts">Natural Wellness Products</string>
-    <string name="jewellery">Jewelry &amp; Accessories</string>
-    <string name="metal">Metal &amp; Brass Crafts</string>
-    <string name="paintings">Painting &amp; Calligraphy</string>
     <string name="woodwork">Woodwork</string>
     <string name="leather_crafts">Leather Crafts</string>
 
@@ -157,14 +142,21 @@
     <string name="color_label">Color</string>
     <string name="color_placeholder">N/A</string>
     <string name="material_label">Material</string>
+    <string name="weight_format">%1$.1f %2$s</string>
+    <string name="dimension_format">%1$.1f %2$s</string>
+    <string name="unit_kg">kg</string>
+    <string name="unit_g">g</string>
+    <string name="unit_mg">mg</string>
+    <string name="unit_cm">cm</string>
+    <string name="unit_km">km</string>
+    <string name="unit_m">m</string>
+    <string name="unit_mm">mm</string>
     <string name="material_placeholder">N/A</string>
     <string name="no_image">No Image</string>
 
     <!-- ==================== LOCATION ==================== -->
 
     <string name="location_label">Location</string>
-    <string name="location_label_en">Location</string>
-    <string name="location_text">Location</string>
     <string name="map_label">Map</string>
 
     <!-- ==================== CONTACT ==================== -->
@@ -303,8 +295,6 @@
     <string name="choose_stronger_password">Please choose a stronger password</string>
     <string name="password_letters_numbers">Password must contain letters and numbers</string>
     <string name="password_required">Password is required</string>
-    <string name="password_too_short">Password must be at least 6 characters</string>
-    <string name="passwords_do_not_match">Passwords do not match</string>
     <string name="password_updated">Password updated</string>
 
     <!-- ==================== PROFILE/SETTINGS MESSAGES ==================== -->
@@ -429,5 +419,360 @@
     <!-- Logout Dialog -->
     <string name="logout_confirm_title">Log out</string>
     <string name="logout_confirm_message">Are you sure you want to log out?</string>
+
+    <!-- ==================== NEW EXTRACTED STRINGS ==================== -->
+
+    <!-- Login Activity -->
+    <string name="login_title">Login</string>
+    <string name="email_hint_lower">email</string>
+    <string name="password_hint_lower">password</string>
+    <string name="forgot_password">Forgot Password</string>
+    <string name="login_button" translatable="false">login</string>
+    <string name="dont_have_account">Don\'t Have An Account?</string>
+    <string name="signup_link">Signup</string>
+    <string name="or_login_with">or log in with</string>
+
+    <!-- Sign Activity -->
+    <string name="sign_up_title">Sign Up</string>
+    <string name="confirm_password_hint">confirm</string>
+    <string name="username_hint">username</string>
+    <string name="phone_optional_hint">phone (optional)</string>
+    <string name="sign_up_button" translatable="false">sign up</string>
+    <string name="already_have_account">Already have on account?</string>
+    <string name="login_link">log in</string>
+
+    <!-- Settings Fragment -->
+    <string name="email_placeholder_value" translatable="false">bksalma26@gmail.com</string>
+    <string name="messages">Messages</string>
+
+    <!-- Home Fragment -->
+    <string name="home_intro_title">Discover Authentic Moroccan Businesses</string>
+    <string name="home_intro_desc">Explore local shops, traditional crafts, and unique products from across Morocco. Support small businesses and discover the richness of Moroccan culture.</string>
+    <string name="select_location_title">Select Your Location</string>
+    <string name="find_my_location_desc">Find my location</string>
+    <string name="selected_location_label">Selected Location</string>
+    <string name="default_city_casablanca">Casablanca</string>
+    <string name="confirm_button">Confirm</string>
+
+    <!-- Search Fragment -->
+    <string name="promo_button">Promotion</string>
+    <string name="delivery_button">Delivery</string>
+    <string name="trending_button">Tendance</string>
+
+    <!-- Product Details -->
+    <string name="product_details_title">Product Details</string>
+    <string name="edit_product_desc">Edit product</string>
+    <string name="delete_product_desc">Delete product</string>
+    <string name="product_type_label">Type</string>
+    <string name="like_product_desc">Like product</string>
+    <string name="favorite_product_desc">Favorite product</string>
+    <string name="call_seller_desc">Call seller</string>
+    <string name="email_seller_desc">Email seller</string>
+
+    <!-- Dialog Add Product -->
+    <string name="fill_required_fields">Please fill all the required fields</string>
+    <string name="add_product_media">Add Product Photo/Video</string>
+    <string name="tap_to_select_media">Tap to select images or videos</string>
+    <string name="multiple_selections">Multiple selections supported</string>
+    <string name="one_image_added">1 image added</string>
+    <string name="add_more">Add More</string>
+    <string name="price_label">Price</string>
+    <string name="unit_label">Unit</string>
+    <string name="product_details_section">Product Details</string>
+
+    <!-- Shop Home Fragment -->
+    <string name="city_hint">City</string>
+    <string name="shop_description_default">Shop description goes here...</string>
+    <string name="loading_contact_short">Loading contact info...</string>
+    <string name="loading_working_hours">Loading working hours...</string>
+    <string name="likes_stat_label">Likes</string>
+    <string name="rating_stat_label">Rating</string>
+    <string name="default_email_shop">email@shop.com</string>
+    
+    <!-- Notifications Fragment -->
+    <string name="notification_new_messages">New Messages</string>
+    <string name="notification_new_products">New Products from Liked Shops</string>
+    <string name="notification_shop_promotions">Promotions from Liked Shops</string>
+
+    <!-- Favorites Fragment -->
+    <string name="shops_filter">Shops</string>
+    <string name="products_filter">Products</string>
+
+    <!-- Dialog Edit Shop -->
+    <string name="change_cover_photo">Change Cover Photo</string>
+    <string name="shop_status_active">Shop Status: Active</string>
+    <string name="id_placeholder">ID: #12345</string>
+    <string name="shop_statistics">Shop Statistics</string>
+    <string name="created_prefix">Created: </string>
+    <string name="date_placeholder">January 1, 2024</string>
+    <string name="age_label">Age</string>
+    <string name="age_placeholder">0d</string>
+
+    <!-- Dialog Edit Product -->
+    <string name="edit_product_info">Edit product information below</string>
+    <string name="update_product_media">Update Product Photo/Video</string>
+    <string name="tap_to_change_media">Tap to change images or videos</string>
+
+    <!-- Dialog Password Input -->
+    <string name="enter_password_verify">Enter your current password to verify your identity:</string>
+
+    <!-- Chat Activity -->
+    <string name="chat_title">💬 Chat</string>
+    <string name="no_messages_placeholder">💬\n\nAucun message\nCommencez la conversation !</string>
+    <string name="write_message_hint">Écrivez votre message...</string>
+    <string name="send_content_description">Envoyer</string>
+    <string name="back_content_description">Retour</string>
+
+    <!-- Conversations List -->
+    <string name="my_messages_title">💬 Mes Messages</string>
+    <string name="no_conversations_placeholder">📭\n\nNo conversations\nStart chatting!</string>
+
+    <!-- Java Strings -->
+    <string name="long_clicked_prefix">Long clicked: </string>
+    <string name="error_update_like">Failed to update like</string>
+    <string name="login_to_like_shops">Please login to like shops</string>
+    <string name="verifying_password">Verifying password...</string>
+    <string name="error_open_link">Unable to open link</string>
+    <string name="error_open_product">Error opening product details</string>
+    <string name="product_deleted_success">Product deleted</string>
+
+    <!-- Search Fragment -->
+    <string name="login_to_rate">You must be logged in to rate</string>
+    <string name="rating_saved_prefix">Rating saved: </string>
+    <string name="rating_error_prefix">Error: </string>
+
+    <!-- Login Activity -->
+    <string name="google_result_null">Google result NULL</string>
+    <string name="google_token_ok">Google Token OK</string>
+    <string name="google_token_missing">Google ID Token missing</string>
+    <string name="enter_email_reset">Enter your email first</string>
+    <string name="error_x_prefix">❌ </string>
+    <string name="success_email_prefix">📨 </string>
+    <string name="google_error_prefix">Erreur Google: </string>
+    <string name="google_signout_error_prefix">Erreur Google SignOut: </string>
+    <string name="reset_password_title">Reset Password</string>
+    <string name="reset_password_message">Would you like to reset your password? An email will be sent to %s</string>
+
+
+    <!-- Chat Activity -->
+    <string name="login_required_error">❌ Vous devez être connecté</string>
+    <string name="missing_data_error">❌ Données manquantes</string>
+    <string name="empty_message_warning">⚠️ Message vide</string>
+
+    <!-- Shop Fragment -->
+    <string name="shop_not_found">Shop not found</string>
+    <string name="error_loading_shop">Error loading shop</string>
+    <string name="create_shop_title">Create Your Shop</string>
+    <string name="create_shop_button">Create Shop</string>
+    <string name="shop_creation_initiated">Shop creation initiated!</string>
+    <string name="edit_shop_title">Edit Your Shop</string>
+
+    <string name="shop_updated_success">Shop updated successfully!</string>
+
+    <!-- Product Dialog Helper -->
+    <string name="invalid_price_format">Invalid price format</string>
+    <string name="invalid_weight_format">Invalid weight format</string>
+    <string name="product_updated_success">Product updated successfully</string>
+    <string name="product_added_success">Product added successfully</string>
+    <string name="media_deleted">Media deleted</string>
+    <string name="add_product_title">Add Product</string>
+    <string name="edit_product_title">Edit Product</string>
+    <string name="delete_product_title">Delete Product</string>
+    <string name="add_product_btn">Add Product</string>
+    <string name="update_product_btn">Update Product</string>
+    <string name="select_product_media">Select Product Media</string>
+
+    <!-- Account Settings Fragment -->
+    <string name="change_photo_btn">Change Photo</string>
+    <string name="uploading_status">Uploading...</string>
+    <plurals name="images_count">
+        <item quantity="one">%d image</item>
+        <item quantity="other">%d images</item>
+    </plurals>
+    <plurals name="videos_count">
+        <item quantity="one">%d video</item>
+        <item quantity="other">%d videos</item>
+    </plurals>
+    <string name="image_video_separator">, </string>
+
+    <string name="saving_status">Saving...</string>
+    <string name="name_required_error">Name is required</string>
+    <string name="email_required_error">Email is required</string>
+    <string name="email_invalid_error">Please enter a valid email</string>
+    <string name="phone_required_error">Phone number is required</string>
+    <string name="phone_invalid_error">Please enter a valid phone number</string>
+    <string name="no_changes_to_save">No changes to save</string>
+    <string name="confirm_changes_title">Confirm Changes</string>
+    <string name="confirm_changes_message">Are you sure you want to save these changes?\n\n</string>
+    <string name="change_summary_name">• Name: </string>
+    <string name="change_summary_email">• Email: </string>
+    <string name="change_summary_phone">• Phone: </string>
+    <string name="change_summary_photo">• Profile photo: New photo selected\n</string>
+    <string name="email_change_verification_title">Email Change Verification</string>
+    <string name="email_change_verification_message">Changing your email requires verification. Please enter your current password to continue.</string>
+    <string name="verify_btn">Verify</string>
+    <string name="password_required_error">Password is required</string>
+    <string name="photo_selected">Photo Selected</string>
+    <string name="change_password_title">Change Password</string>
+    <string name="change_password_btn">Change Password</string>
+    <string name="updating_status">Updating...</string>
+    <string name="permission_denied_gallery">Permission denied to access gallery</string>
+    <string name="error_no_user_logged_in">No user logged in</string>
+    <string name="email_same_as_current">Email address is the same as current email</string>
+    <string name="error_no_user_data">No user data available</string>
+    <string name="error_no_image_selected">No image selected</string>
+    <string name="error_upload_failed">Failed to upload image: %1$s</string>
+
+    <!-- Home Fragment -->
+    <string name="getting_location_info">Getting location info...</string>
+    <string name="navigating_to_city_shops">Navigating to %s shops...</string>
+    <string name="please_select_city_first">Please select a city first</string>
+    <string name="error_navigating_to_search">Error navigating to search</string>
+    <string name="finding_your_location">Finding your location...</string>
+    <string name="unable_to_get_precise_location">Unable to get precise location. Please ensure GPS is enabled.</string>
+    <string name="your_location_marker">Your Location</string>
+    <string name="permission_granted_tap_gps">Permission granted! Tap GPS button again.</string>
+    <string name="location_permission_required">Location permission is required to use this feature</string>
+    <string name="location_prefix">Location: </string>
+
+    <!-- Dialogs -->
+    <string name="unfavorite_title">Remove from Favorites</string>
+    <string name="unfavorite_message_format">Are you sure you want to remove %1$s from your favorites?</string>
+    <string name="unfavorite_positive">Remove</string>
+    <string name="delete_shop_title">Delete Shop</string>
+    <string name="delete_shop_message">Are you sure you want to delete \'%1$s\'? This action cannot be undone and will also delete all products associated with this shop.\n\nPlease enter your password to confirm:</string>
+    <string name="delete_product_message">Are you sure you want to delete %1$s?</string>
+    <string name="messages_clients_title">Customers\' Messages</string>
+    <string name="messages_mine_title">My Messages</string>
+    <string name="no_conversations_yet">No conversations yet\nYour messages will appear here</string>
+    <string name="tap_to_select_city">Tap to select city</string>
+    <string name="search_in_city">Search in %s...</string>
+    <string name="logged_out">Logged out</string>
+    <string name="unknown_name">Unknown Name</string>
+    <string name="not_available">Not available</string>
+    <string name="please_login_toast">Please login first</string>
+    <string name="no_owner_error">This shop has no owner</string>
+    <string name="region_not_specified">Region not specified</string>
+    <string name="city_not_specified">City not specified</string>
+    <string name="init_error">Error during initialization</string>
+    <string name="rating_saved">Rating saved!</string>
+    <string name="rating_error">Error saving rating</string>
+    <string name="no_favorite_shops">No favorite shops found</string>
+    <string name="no_favorite_products">No favorite products found</string>
+    <string name="shop_open_error">Error opening shop</string>
+    <string name="login_required_like">You must be logged in to like</string>
+    <string name="like_update_error">Error updating like</string>
+
+    <!-- Search Toasts & Messages -->
+    <string name="likes_reset_msg">All likes have been reset (%1$d shops)</string>
+    <string name="reset_error_msg">Error during reset: %1$s</string>
+    <string name="added_to_favorites_msg">%1$s added to favorites</string>
+    <string name="removed_from_favorites_msg">%1$s removed from favorites</string>
+    <string name="login_to_like_msg">You must be logged in to like</string>
+    <string name="no_shops_found_category">No shops found for: %1$s</string>
+    <string name="shops_found_count_category">%1$d shop(s) - %2$s</string>
+    <string name="no_shops_found_city">No shops found in %1$s</string>
+    <string name="shops_found_count_city">%1$d shop(s) in %2$s</string>
+    <string name="search_error_msg">Error during search: %1$s</string>
+    <string name="no_promos_found">No shops in promotion currently</string>
+    <string name="shops_found_promo">%1$d shop(s) in promotion</string>
+    <string name="top_rated_shops_msg">Top %1$d best rated shops</string>
+    <string name="sorted_by_trending">Sorted by: Trending</string>
+    <string name="no_delivery_found">No shops with delivery available</string>
+    <string name="shops_found_delivery">%1$d shop(s) with delivery</string>
+    <string name="sorted_by_newest">Sorted by: Newest → Oldest</string>
+    <string name="sorted_by_oldest">Sorted by: Oldest → Newest</string>
+    <string name="filters_reset_msg">Filters reset</string>
+
+    <!-- Dialog Additional Strings -->
+    <string name="sort_by_date_dialog_title">Sort by date</string>
+    <string name="sort_recent">Recent</string>
+    <string name="sort_oldest">Oldest</string>
+    <string name="edit_cover_photo_dialog_title">Edit Cover Photo</string>
+    <string name="change_cover_photo_option">Change Cover Photo</string>
+    <string name="remove_cover_photo_option">Remove Cover Photo</string>
+
+    <!-- Error Messages -->
+    <string name="error_incorrect_password">Incorrect password. Please try again.</string>
+    <string name="error_auth_failed">Authentication failed. Please try again.</string>
+    <string name="error_not_logged_in">User not logged in. Please sign in again.</string>
+    <string name="id_format">ID: #%1$s</string>
+    <string name="edit_shop_cover_photo_title">Edit Shop Cover Photo</string>
+    <string name="add_shop_cover_photo_title">Add Shop Cover Photo</string>
+    <string name="add_cover_photo_option">Add Cover Photo</string>
+    <string name="login_failed">Login failed: %1$s</string>
+    <string name="signup_failed">Signup failed: %1$s</string>
+    <string name="profile_update_failed">Profile update failed: %1$s</string>
+    <string name="password_update_success">Password updated successfully</string>
+    <string name="password_update_failed">Password update failed: %1$s</string>
+    <string name="current_password_incorrect">Current password incorrect: %1$s</string>
+    <string name="signed_out_success">Signed out successfully</string>
+    <string name="reset_email_sent">Password reset email sent</string>
+    <string name="verification_email_sent">Verification email sent to %1$s. Please check your inbox and click the verification link to complete the email change.</string>
+    <string name="email_already_registered">This email address is already registered. Please use a different email address.</string>
+    <string name="email_invalid_format">Invalid email address format. Please enter a valid email.</string>
+    <string name="email_updated_success">Email updated successfully to %1$s</string>
+    <string name="user_not_found">User not found</string>
+    <string name="no_user_auth">No user authenticated</string>
+    <string name="reauth_failed">Re-authentication failed: %1$s</string>
+    <string name="profile_creation_failed">Failed to create profile: %1$s</string>
+    <string name="verification_pending">Please verify your previous email change before making another change.</string>
+
+    <!-- Shop Categories -->
+    <string name="cat_textile_tapestry">Textile &amp; Tapestry</string>
+    <string name="cat_gourmet_foods">Gourmet &amp; Local Foods</string>
+    <string name="cat_pottery_ceramics">Pottery &amp; Ceramics</string>
+    <string name="cat_traditional_wear">Traditional Wear</string>
+    <string name="cat_leather_crafts">Leather Crafts</string>
+    <string name="cat_wellness_products">Natural Wellness Products</string>
+    <string name="cat_jewelry_accessories">Jewelry &amp; Accessories</string>
+    <string name="cat_metal_brass">Metal &amp; Brass Crafts</string>
+    <string name="cat_painting_calligraphy">Painting &amp; Calligraphy</string>
+    <string name="cat_woodwork">Woodwork</string>
+
+    <!-- Cities -->
+    <string name="city_casablanca">Casablanca</string>
+    <string name="city_rabat">Rabat</string>
+    <string name="city_marrakech">Marrakech</string>
+    <string name="city_fes">Fès</string>
+    <string name="city_tangier">Tangier</string>
+    <string name="city_agadir">Agadir</string>
+    <string name="city_oujda">Oujda</string>
+    <string name="city_meknes">Meknès</string>
+
+    <!-- Product Detail -->
+    <string name="inquiry_subject">Inquiry about product: %1$s</string>
+    <string name="unknown_product">Unknown Product</string>
+
+    <!-- Search & Shared -->
+    <string name="share_shop_prefix">Check out this shop: %1$s - %2$s</string>
+    <string name="share_via">Share via</string>
+    <string name="liked_success_format">You liked! (%1$d like%2$s)</string>
+    <string name="unliked_success_format">Like removed (%1$d like%2$s)</string>
+    <string name="firebase_update_success">Update successful</string>
+    <string name="like_plural_suffix">s</string>
+    <string name="connection_error_prefix">Connection error: </string>
+
+    <!-- Restored Missing Resources -->
+    <string name="category_pottery">Pottery &amp; Ceramics</string>
+    <string name="category_textile">Textile &amp; Tapestry</string>
+    <string name="category_food">Gourmet &amp; Local Foods</string>
+    <string name="category_wellness">Natural Wellness Products</string>
+    <string name="category_jewelry">Jewelry &amp; Accessories</string>
+    <string name="category_metal">Metal &amp; Brass Crafts</string>
+    <string name="category_painting">Painting &amp; Calligraphy</string>
+    <string name="category_woodwork">Woodwork</string>
+    <string name="tapestry">Textiles &amp; Tapestry</string>
+    <string name="food">Gourmet &amp; Local Foods</string>
+    <string name="pottery">Pottery &amp; Ceramics</string>
+    <string name="traditional_wear">Traditional Wear</string>
+    <string name="naturalProducts">Natural Wellness Products</string>
+    <string name="jewellery">Jewelry &amp; Accessories</string>
+    <string name="metal">Metal &amp; Brass Crafts</string>
+    <string name="paintings">Painting &amp; Calligraphy</string>
+
+    <string name="storage_permission_msg">Storage permission is required to upload profile photos</string>
+    <string name="location_text">Location</string>
+    <string name="location_label_en">Location</string>
 
 </resources>

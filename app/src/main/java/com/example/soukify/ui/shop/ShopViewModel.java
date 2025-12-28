@@ -185,7 +185,7 @@ public class ShopViewModel extends AndroidViewModel {
             for (RegionModel region : currentRegions) {
                 if (region.getRegionId().equals(regionId) || 
                     region.getRegionId().equals(String.valueOf(regionId))) {
-                    String regionName = region.getName();
+                    String regionName = region.getLocalizedName();
                     android.util.Log.d("ShopViewModel", "Found region name: " + regionName + " for regionId: " + regionId);
                     loadCitiesByRegion(regionName);
                     return;
@@ -205,7 +205,7 @@ public class ShopViewModel extends AndroidViewModel {
                         for (RegionModel region : regions) {
                             if (region.getRegionId().equals(regionId) || 
                                 region.getRegionId().equals(String.valueOf(regionId))) {
-                                String regionName = region.getName();
+                                String regionName = region.getLocalizedName();
                                 android.util.Log.d("ShopViewModel", "Found region name: " + regionName + " for regionId: " + regionId);
                                 loadCitiesByRegion(regionName);
                                 return;
@@ -362,7 +362,7 @@ public class ShopViewModel extends AndroidViewModel {
         List<RegionModel> regions = locationRepository.getRegions().getValue();
         if (regions != null) {
             for (RegionModel region : regions) {
-                if (region.getName().equals(regionName)) {
+                if (region.getLocalizedName().equals(regionName) || region.getName().equals(regionName)) {
                     regionId = region.getRegionId();
                     break;
                 }
@@ -373,7 +373,7 @@ public class ShopViewModel extends AndroidViewModel {
         List<CityModel> cities = locationRepository.getCities().getValue();
         if (cities != null) {
             for (CityModel city : cities) {
-                if (city.getName().equals(cityName)) {
+                if (city.getLocalizedName().equals(cityName) || city.getName().equals(cityName)) {
                     cityId = city.getCityId();
                     break;
                 }
@@ -558,7 +558,7 @@ public class ShopViewModel extends AndroidViewModel {
         }
 
         // Implement product addition using ProductRepository
-        ProductRepository productRepository = new ProductRepository(getApplication());
+        ProductRepository productRepository = ProductRepository.getInstance(getApplication());
 
         // ✅ Obtenir le shopId depuis le shop actuel
         String shopId = currentShopData.getShopId();
@@ -603,7 +603,7 @@ public class ShopViewModel extends AndroidViewModel {
             return;
         }
         
-        ProductRepository productRepository = new ProductRepository(getApplication());
+        ProductRepository productRepository = ProductRepository.getInstance(getApplication());
         
         // Observe errors and success
         productRepository.getErrorMessage().observeForever(error -> {
@@ -630,7 +630,7 @@ public class ShopViewModel extends AndroidViewModel {
             return;
         }
         
-        ProductRepository productRepository = new ProductRepository(getApplication());
+        ProductRepository productRepository = ProductRepository.getInstance(getApplication());
         
         // Observe errors and success
         productRepository.getErrorMessage().observeForever(error -> {

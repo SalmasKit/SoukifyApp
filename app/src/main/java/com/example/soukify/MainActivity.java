@@ -51,15 +51,18 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
             
-            // Sync FCM Token
-            com.google.firebase.messaging.FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
-                if (!task.isSuccessful()) {
-                    android.util.Log.w("MainActivity", "Fetching FCM registration token failed", task.getException());
-                    return;
-                }
-                String token = task.getResult();
-                new com.example.soukify.data.repositories.UserRepository(getApplication()).updateFcmToken(token);
-            });
+
+            
+            // FCM Token Sync is handled here
+            
+            // Link user to OneSignal for Chat
+            String userId = FirebaseAuth.getInstance().getUid();
+            if (userId != null) {
+                // Logout first to avoid "Alias claimed by another user" 409 error if IDs got mixed
+                com.onesignal.OneSignal.logout();
+                com.onesignal.OneSignal.login(userId);
+                android.util.Log.d("MainActivity", "OneSignal user linked: " + userId);
+            }
         }
         
         // Request Notification Permission for Android 13+
@@ -69,9 +72,79 @@ public class MainActivity extends AppCompatActivity {
                 requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101);
             }
         }
+
+        checkNotificationIntent(getIntent());
+        
+
+    }
+    
+    private void checkNotificationIntent(android.content.Intent intent) {
+        if (intent == null) return;
+        
+        String type = intent.getStringExtra("type");
+        if (type == null) return;
+
+        android.util.Log.d("MainActivity", "Notification reçue du type: " + type);
+
+        Bundle args = new Bundle();
+        
+        switch (type.toLowerCase()) {
+            case "message":
+                String conversationId = intent.getStringExtra("conversationId");
+                if (conversationId != null) {
+                    android.content.Intent chatIntent = new android.content.Intent(this, com.example.soukify.ui.chat.ChatActivity.class);
+                    chatIntent.putExtra(com.example.soukify.ui.chat.ChatActivity.EXTRA_CONVERSATION_ID, conversationId);
+                    startActivity(chatIntent);
+                }
+                break;
+
+            case "nouveau produit":
+                String productId = intent.getStringExtra("productId");
+                if (productId != null) {
+                    args.putString("productId", productId);
+                    navController.navigate(R.id.productDetailFragment, args);
+                }
+                break;
+
+            case "promotion":
+                String shopId = intent.getStringExtra("shopId");
+                if (shopId != null) {
+                    args.putString("shopId", shopId);
+                    navController.navigate(R.id.shopHomeFragment, args);
+                }
+                break;
+
+            default:
+                android.util.Log.d("MainActivity", "Type de notification inconnu ou général: " + type);
+                // Fallback handle for GPS if still needed for legacy (unlikely given user's request)
+                if (intent.hasExtra("lat") && intent.hasExtra("lng")) {
+                    String lat = intent.getStringExtra("lat");
+                    String lng = intent.getStringExtra("lng");
+                    android.widget.Toast.makeText(this, "Alerte reçue à: " + lat + ", " + lng, android.widget.Toast.LENGTH_LONG).show();
+                }
+                break;
+        }
+    }
+    
+    @Override
+    protected void onNewIntent(android.content.Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        checkNotificationIntent(intent);
     }
     
     
+    /**
+     * Helper pour simuler ou sauvegarder la position actuelle de l'utilisateur.
+     * Utile pour tester le système de filtrage par distance des notifications.
+     */
+    public void saveCurrentLocation(float lat, float lng) {
+        android.content.SharedPreferences prefs = getSharedPreferences("safe_city_prefs", MODE_PRIVATE);
+        prefs.edit().putFloat("last_lat", lat).putFloat("last_lng", lng).apply();
+    }
+
+
+
     public void navigateToSearch() {
         if (navController != null && binding.navView != null) {
             // Use bottom navigation to navigate, which preserves proper state

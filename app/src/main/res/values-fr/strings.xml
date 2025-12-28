@@ -11,7 +11,10 @@
     <string name="all_fields_required">Tous les champs sont requis</string>
     <string name="all_fields_obligatory">Tous les champs sont obligatoires</string>
     <string name="invalid_email">Email invalide</string>
-    <string name="passwords_do_not_match_fr">Les mots de passe ne correspondent pas</string>
+    <string name="passwords_do_not_match">Les mots de passe ne correspondent pas</string>
+    <string name="invalid_phone_format">Numéro invalide (06 ou 07 + 8 chiffres)</string>
+    <string name="password_too_short">Le mot de passe doit contenir au moins 6 caractères</string>
+    <string name="invalid_phone">Numéro de téléphone invalide</string>
     <string name="error_prefix">Erreur : %1$s</string>
 
     <!-- ==================== NAVIGATION ==================== -->
@@ -29,12 +32,10 @@
     <string name="Sort">Trier</string>
     <string name="Top">Top</string>
     <string name="item_not_found">Article non trouvé</string>
-    <string name="item_not_found_fr">Article non trouvé</string>
 
     <!-- ==================== CATEGORIES ==================== -->
     <string name="category">Catégorie</string>
     <string name="category_label">Catégorie</string>
-    <string name="category_label_en">Catégorie</string>
     <string name="category_pottery">Poterie &amp; Céramique</string>
     <string name="category_textile">Textiles &amp; Tapisserie</string>
     <string name="category_food">Produits Gourmet &amp; Locaux</string>
@@ -146,6 +147,15 @@
     <string name="color_label">Couleur</string>
     <string name="color_placeholder">N/A</string>
     <string name="material_label">Matériau</string>
+    <string name="weight_format">%1$.1f %2$s</string>
+    <string name="dimension_format">%1$.1f %2$s</string>
+    <string name="unit_kg">kg</string>
+    <string name="unit_g">g</string>
+    <string name="unit_mg">mg</string>
+    <string name="unit_cm">cm</string>
+    <string name="unit_km">km</string>
+    <string name="unit_m">m</string>
+    <string name="unit_mm">mm</string>
     <string name="material_placeholder">N/A</string>
     <string name="no_image">Aucune Image</string>
 
@@ -284,8 +294,8 @@
     <string name="choose_stronger_password">Veuillez choisir un mot de passe plus fort</string>
     <string name="password_letters_numbers">Le mot de passe doit contenir des lettres et des chiffres</string>
     <string name="password_required">Le mot de passe est requis</string>
-    <string name="password_too_short">Le mot de passe doit comporter au moins 6 caractères</string>
-    <string name="passwords_do_not_match">Les mots de passe ne correspondent pas</string>
+
+
     <string name="password_updated">Mot de passe mis à jour</string>
 
     <!-- ==================== PROFILE/SETTINGS MESSAGES ==================== -->
@@ -298,97 +308,6 @@
     <string name="error_unable_to_save_settings">Erreur : Impossible d\'enregistrer les paramètres</string>
     <string name="please_select_both_language_and_currency">Veuillez sélectionner la langue et la devise</string>
     <string name="saved_format">Enregistré : %1$s, %2$s</string>
-
-    <!-- ==================== HELP & SUPPORT ==================== -->
-    <string name="help_and_support">Aide &amp; Support</string>
-    <string name="help_support_description">Trouvez des réponses aux questions fréquentes sur l\'utilisation de Soukify ou contactez notre équipe d\'assistance pour obtenir de l\'aide.</string>
-    <string name="frequently_asked_questions">Questions Fréquemment Posées</string>
-    <string name="view_faq">Voir les FAQ</string>
-
-    <!-- FAQ Questions & Answers -->
-    <string name="faq_question1">Comment créer une boutique sur Soukify ?</string>
-    <string name="faq_answer1">Pour créer une boutique, accédez à l\'onglet \"Boutique\" et appuyez sur le bouton \"Créer une Boutique\". Remplissez les détails de votre boutique incluant le nom, la description, la catégorie, la localisation et les informations de contact. Une fois soumis, votre boutique sera visible par les autres utilisateurs.</string>
-
-    <string name="faq_question2">Quelles catégories de produits puis-je vendre ?</string>
-    <string name="faq_answer2">Soukify prend en charge diverses catégories incluant : Poterie &amp; Céramique, Textiles &amp; Tapisserie, Produits Gourmet &amp; Locaux, Produits de Bien-être Naturels, Bijoux &amp; Accessoires, Artisanat Métallique &amp; en Laiton, Peinture &amp; Calligraphie, et Menuiserie.</string>
-
-    <string name="faq_question3">Comment ajouter des produits à ma boutique ?</string>
-    <string name="faq_answer3">Après avoir créé votre boutique, vous pouvez ajouter des produits en allant sur votre page boutique et en appuyant sur le bouton \"Ajouter un Produit\". Entrez les détails du produit comme le nom, la description et le prix. Vous pouvez ajouter plusieurs produits pour présenter votre inventaire.</string>
-
-    <string name="faq_question4">Puis-je modifier les informations de ma boutique après sa création ?</string>
-    <string name="faq_answer4">Oui, vous pouvez modifier les informations de votre boutique à tout moment. Allez sur votre page boutique et cherchez les options de modification. Vous pouvez mettre à jour le nom de votre boutique, la description, les informations de contact et d\'autres détails pour tenir vos clients informés.</string>
-
-    <string name="faq_question5">Comment les clients trouvent-ils et contactent-ils ma boutique ?</string>
-    <string name="faq_answer5">Les clients peuvent découvrir votre boutique en parcourant les catégories, en recherchant par localisation ou en utilisant la fonction de recherche. Ils peuvent voir les détails de votre boutique, vos produits et vous contacter en utilisant les informations que vous fournissez (téléphone, email ou adresse). Assurez-vous que vos informations de contact sont précises et à jour.</string>
-
-    <string name="faq_question6">Soukify est-il gratuit pour les vendeurs ?</string>
-    <string name="faq_answer6">Oui, Soukify est entièrement gratuit pour les vendeurs. Il n\'y a pas de frais d\'installation, de frais mensuels ou de commissions. Vous pouvez créer une boutique, lister des produits et gérer votre entreprise sans aucun coût.</string>
-
-    <string name="faq_question7">Comment gérer les commandes et les paiements ?</string>
-    <string name="faq_answer7">Soukify se concentre sur la mise en relation des acheteurs avec les artisans et commerçants locaux. Lorsque les clients sont intéressés par vos produits, ils peuvent vous contacter directement par téléphone, email ou les informations d\'adresse que vous fournissez. Vous gérez les commandes et paiements directement avec les clients, ce qui vous donne un contrôle total sur vos relations commerciales et transactions.</string>
-
-    <string name="faq_question8">Puis-je vendre des produits dans plusieurs catégories ?</string>
-    <string name="faq_answer8">Oui, vous pouvez lister des produits dans plusieurs catégories tant qu\'ils correspondent aux exigences des catégories. Chaque produit doit être listé dans la catégorie la plus appropriée pour aider les clients à trouver facilement ce qu\'ils recherchent.</string>
-
-    <string name="faq_question9">Comment supprimer ma boutique ou mon compte ?</string>
-    <string name="faq_answer9">Vous pouvez supprimer votre boutique ou votre compte via le menu des paramètres. Allez dans \"Paramètres du Compte\", descendez et sélectionnez \"Supprimer le Compte\" ou \"Fermer la Boutique\". Veuillez noter que cette action est permanente et ne peut pas être annulée.</string>
-
-    <string name="faq_question10">Quelles sont les meilleures pratiques pour vendre avec succès ?</string>
-    <string name="faq_answer10">Pour réussir sur Soukify : 1) Prenez des photos claires et de haute qualité de vos produits, 2) Rédigez des descriptions détaillées incluant dimensions et matériaux, 3) Fixez des prix compétitifs, 4) Répondez rapidement aux demandes des clients, 5) Maintenez de bonnes évaluations en fournissant un excellent service, et 6) Mettez à jour votre inventaire régulièrement.</string>
-
-    <!-- ==================== ABOUT ==================== -->
-    <string name="app_version_placeholder">Version : %1$s</string>
-    <string name="rate_app">Évaluer l\'App</string>
-    <string name="share_app">Partager l\'App</string>
-
-    <!-- ==================== PRIVACY POLICY ==================== -->
-    <string name="privacy_policy">Politique de Confidentialité</string>
-    <string name="privacy_last_updated">Dernière mise à jour : décembre 2025</string>
-
-    <string name="information_we_collect">Informations que Nous Collectons</string>
-    <string name="information_we_collect_desc">Nous collectons les informations que vous nous fournissez directement, comme lorsque vous créez un compte, configurez votre boutique ou nous contactez pour obtenir du support. Cela inclut :\n\n• Informations du compte (nom, email, téléphone)\n• Détails de la boutique (nom, description, localisation)\n• Informations produit (nom, description, prix)\n• Communications avec notre équipe de support</string>
-
-    <string name="how_we_use_information">Comment Nous Utilisons Vos Informations</string>
-    <string name="how_we_use_information_desc">Nous utilisons les informations collectées pour :\n\n• Fournir et maintenir le service Soukify\n• Traiter et gérer vos listes de boutique\n• Vous connecter avec des clients potentiels\n• Répondre à vos questions et demandes de support\n• Améliorer nos services et développer de nouvelles fonctionnalités</string>
-
-    <string name="data_sharing">Partage de Données</string>
-    <string name="data_sharing_desc">Nous ne vendons, n\'échangeons ni ne transférons vos informations personnelles à des tiers sans votre consentement, sauf comme décrit dans cette Politique de Confidentialité. Nous pouvons partager des informations avec :\n\n• Prestataires de services qui nous aident à exploiter notre service\n• Autorités légales lorsque la loi l\'exige\n• Partenaires commerciaux avec votre consentement explicite</string>
-
-    <string name="data_security">Sécurité des Données</string>
-    <string name="data_security_desc">Nous mettons en œuvre des mesures techniques et organisationnelles appropriées pour protéger vos informations personnelles contre l\'accès non autorisé, l\'altération, la divulgation ou la destruction. Cependant, aucune transmission sur Internet n\'est totalement sécurisée.</string>
-
-    <string name="your_rights">Vos Droits</string>
-    <string name="your_rights_desc">Vous avez le droit de :\n\n• Accéder et mettre à jour vos informations personnelles\n• Supprimer votre compte et les données associées\n• Vous désinscrire des communications non essentielles\n• Demander une copie de vos données\n• Nous contacter avec des préoccupations de confidentialité</string>
-
-    <string name="contact_privacy">Nous Contacter à Propos de la Confidentialité</string>
-    <string name="contact_privacy_desc">Si vous avez des questions ou des préoccupations concernant cette Politique de Confidentialité, veuillez nous contacter à bksalma26@gmail.com. Nous répondrons à votre demande dans les plus brefs délais.</string>
-    <string name="contact_privacy_button">Contacter le Support Confidentialité</string>
-
-    <!-- ==================== TERMS OF SERVICE ==================== -->
-    <string name="terms_of_service">Conditions d\'Utilisation</string>
-    <string name="terms_last_updated">Dernière mise à jour : décembre 2025</string>
-
-    <string name="acceptance_of_terms">Acceptation des Conditions</string>
-    <string name="acceptance_of_terms_desc">En téléchargeant, installant ou utilisant Soukify, vous acceptez d\'être lié par ces Conditions d\'Utilisation. Si vous n\'acceptez pas ces conditions, veuillez ne pas utiliser notre service.</string>
-
-    <string name="use_of_service">Utilisation du Service</string>
-    <string name="use_of_service_desc">Soukify fournit une plateforme pour que les artisans et les commerçants présentent leurs produits et se connectent avec les clients. Vous pouvez utiliser notre service uniquement à des fins légales et conformément à ces Conditions.</string>
-
-    <string name="user_responsibilities">Responsabilités de l\'Utilisateur</string>
-    <string name="user_responsibilities_desc">En tant qu\'utilisateur de Soukify, vous acceptez de :\n\n• Fournir des informations exactes et véridiques\n• Ne pas publier de contenu frauduleux ou trompeur\n• Respecter les droits de propriété intellectuelle d\'autrui\n• Ne pas vous engager dans des activités nuisibles ou illégales\n• Maintenir une communication professionnelle avec les autres utilisateurs</string>
-
-    <string name="intellectual_property">Propriété Intellectuelle</string>
-    <string name="intellectual_property_desc">Vous conservez la propriété du contenu que vous publiez sur Soukify. En publiant du contenu, vous nous accordez une licence pour utiliser, afficher et distribuer votre contenu uniquement dans le but d\'exploiter et d\'améliorer notre service.</string>
-
-    <string name="disclaimer">Clause de Non-Responsabilité</string>
-    <string name="disclaimer_desc">Soukify fonctionne comme une plateforme pour connecter acheteurs et vendeurs. Nous ne garantissons pas la qualité, la sécurité ou la légalité des produits ou services offerts via notre plateforme. Toutes les transactions sont à vos risques.</string>
-
-    <string name="termination">Résiliation</string>
-    <string name="termination_desc">Nous nous réservons le droit de suspendre ou de résilier votre compte si vous violez ces Conditions d\'Utilisation. Vous pouvez également fermer votre compte à tout moment via les paramètres de l\'application.</string>
-
-    <string name="contact_terms">Nous Contacter à Propos des Conditions</string>
-    <string name="contact_terms_desc">Si vous avez des questions concernant ces Conditions d\'Utilisation, veuillez nous contacter à bksalma26@gmail.com.</string>
-    <string name="contact_terms_button">Contacter le Support Conditions</string>
 
     <!-- ==================== DIALOGS & COMMON ACTIONS ==================== -->
     <string name="save">Enregistrer</string>
@@ -404,4 +323,341 @@
     <!-- Logout Dialog -->
     <string name="logout_confirm_title">Se déconnecter</string>
     <string name="logout_confirm_message">Êtes-vous sûr de vouloir vous déconnecter ?</string>
+
+    <!-- ==================== NEW EXTRACTED STRINGS ==================== -->
+
+    <!-- Login Activity -->
+    <string name="login_title">Connexion</string>
+    <string name="email_hint_lower">email</string>
+    <string name="password_hint_lower">mot de passe</string>
+    <string name="forgot_password">Mot de passe oublié</string>
+    <string name="dont_have_account">Vous n\'avez pas de compte ?</string>
+    <string name="signup_link">S\'inscrire</string>
+    <string name="or_login_with">ou se connecter avec</string>
+
+    <!-- Sign Activity -->
+    <string name="sign_up_title">S\'inscrire</string>
+    <string name="confirm_password_hint">confirmer</string>
+    <string name="username_hint">nom d\'utilisateur</string>
+    <string name="phone_optional_hint">téléphone (optionnel)</string>
+    <string name="already_have_account">Vous avez déjà un compte ?</string>
+    <string name="login_link">se connecter</string>
+
+    <!-- Settings Fragment -->
+    <string name="messages">Messages</string>
+
+    <!-- Home Fragment -->
+    <string name="home_intro_title">Découvrez les Entreprises Marocaines Authentiques</string>
+    <string name="home_intro_desc">Explorez les boutiques locales, l\'artisanat traditionnel et les produits uniques du Maroc. Soutenez les petites entreprises et découvrez la richesse de la culture marocaine.</string>
+    <string name="select_location_title">Sélectionnez Votre Localisation</string>
+    <string name="find_my_location_desc">Trouver ma localisation</string>
+    <string name="selected_location_label">Localisation Sélectionnée</string>
+    <string name="default_city_casablanca">Casablanca</string>
+    <string name="confirm_button">Confirmer</string>
+
+    <!-- Search Fragment -->
+    <string name="promo_button">Promotion</string>
+    <string name="delivery_button">Livraison</string>
+    <string name="trending_button">Tendance</string>
+
+    <!-- Product Details -->
+    <string name="product_details_title">Détails du Produit</string>
+    <string name="edit_product_desc">Modifier le produit</string>
+    <string name="delete_product_desc">Supprimer le produit</string>
+    <string name="product_type_label">Type</string>
+    <string name="like_product_desc">Aimer le produit</string>
+    <string name="favorite_product_desc">Produit favori</string>
+    <string name="call_seller_desc">Appeler le vendeur</string>
+    <string name="email_seller_desc">Envoyer un email au vendeur</string>
+
+    <!-- Dialog Add Product -->
+    <string name="fill_required_fields">Veuillez remplir tous les champs requis</string>
+    <string name="add_product_media">Ajouter Photo/Vidéo du Produit</string>
+    <string name="tap_to_select_media">Appuyez pour sélectionner des images ou vidéos</string>
+    <string name="multiple_selections">Sélections multiples supportées</string>
+    <string name="one_image_added">1 image ajoutée</string>
+    <string name="add_more">Ajouter Plus</string>
+    <string name="price_label">Prix</string>
+    <string name="unit_label">Unité</string>
+
+
+    <string name="product_details_section">Détails du Produit</string>
+
+    <!-- Shop Home Fragment -->
+    <string name="city_hint">Ville</string>
+    <string name="shop_description_default">La description de la boutique va ici...</string>
+    <string name="loading_contact_short">Chargement des infos de contact...</string>
+    <string name="loading_working_hours">Chargement des heures d\'ouverture...</string>
+    <string name="likes_stat_label">J\'aime</string>
+    <string name="rating_stat_label">Évaluation</string>
+    <string name="default_email_shop">email@boutique.com</string>
+
+    <!-- Notifications Fragment -->
+    <string name="notification_new_messages">Nouveaux Messages</string>
+    <string name="notification_new_products">Nouveaux Produits des Boutiques Aimées</string>
+    <string name="notification_shop_promotions">Promotions des Boutiques Aimées</string>
+
+    <!-- Favorites Fragment -->
+    <string name="shops_filter">Boutiques</string>
+    <string name="products_filter">Produits</string>
+
+    <!-- Dialog Edit Shop -->
+    <string name="change_cover_photo">Changer la Photo de Couverture</string>
+    <string name="shop_status_active">Statut de la Boutique : Active</string>
+    <string name="id_placeholder">ID : #12345</string>
+    <string name="shop_statistics">Statistiques de la Boutique</string>
+    <string name="created_prefix">Créé : </string>
+    <string name="date_placeholder">1er janvier 2024</string>
+    <string name="age_label">Âge</string>
+    <string name="age_placeholder">0j</string>
+
+    <!-- Dialog Edit Product -->
+    <string name="edit_product_info">Modifiez les informations du produit ci-dessous</string>
+    <string name="update_product_media">Mettre à jour Photo/Vidéo du Produit</string>
+    <string name="tap_to_change_media">Appuyez pour changer les images ou vidéos</string>
+
+    <!-- Dialog Password Input -->
+    <string name="enter_password_verify">Entrez votre mot de passe actuel pour vérifier votre identité :</string>
+
+    <!-- Chat Activity -->
+    <string name="chat_title">💬 Chat</string>
+    <string name="no_messages_placeholder">💬\n\nAucun message\nCommencez la conversation !</string>
+    <string name="write_message_hint">Écrivez votre message...</string>
+    <string name="send_content_description">Envoyer</string>
+    <string name="back_content_description">Retour</string>
+
+    <!-- Conversations List -->
+    <string name="my_messages_title">💬 Mes Messages</string>
+    <string name="no_conversations_placeholder">📭\n\nAucune conversation\nCommencez à discuter !</string>
+
+    <!-- Java Strings -->
+    <string name="long_clicked_prefix">Appui long : </string>
+    <string name="error_update_like">Échec de la mise à jour du j\'aime</string>
+    <string name="login_to_like_shops">Veuillez vous connecter pour aimer les boutiques</string>
+    <string name="verifying_password">Vérification du mot de passe...</string>
+    <string name="error_open_link">Impossible d\'ouvrir le lien</string>
+    <string name="error_open_product">Erreur lors de l\'ouverture des détails du produit</string>
+    <string name="product_deleted_success">Produit supprimé</string>
+
+    <!-- Search Fragment -->
+    <string name="login_to_rate">Vous devez être connecté pour évaluer</string>
+    <string name="rating_saved_prefix">Évaluation enregistrée : </string>
+    <string name="rating_error_prefix">Erreur : </string>
+
+    <!-- Login Activity -->
+    <string name="google_result_null">Résultat Google NULL</string>
+    <string name="google_token_ok">Jeton Google OK</string>
+    <string name="google_token_missing">Jeton Google ID manquant</string>
+    <string name="enter_email_reset">Entrez votre email d\'abord</string>
+    <string name="error_x_prefix">❌ </string>
+    <string name="success_email_prefix">📨 </string>
+    <string name="google_error_prefix">Erreur Google : </string>
+    <string name="google_signout_error_prefix">Erreur de déconnexion Google : </string>
+    <string name="reset_password_title">Réinitialiser le Mot de Passe</string>
+    <string name="reset_password_message">Voulez-vous réinitialiser votre mot de passe ? Un email sera envoyé à %s</string>
+
+    <!-- Chat Activity -->
+    <string name="login_required_error">❌ Vous devez être connecté</string>
+    <string name="missing_data_error">❌ Données manquantes</string>
+    <string name="empty_message_warning">⚠️ Message vide</string>
+
+    <!-- Shop Fragment -->
+    <string name="shop_not_found">Boutique non trouvée</string>
+    <string name="error_loading_shop">Erreur lors du chargement de la boutique</string>
+    <string name="create_shop_title">Créer Votre Boutique</string>
+    <string name="create_shop_button">Créer une Boutique</string>
+    <string name="shop_creation_initiated">Création de la boutique initiée !</string>
+    <string name="edit_shop_title">Modifier Votre Boutique</string>
+    <string name="shop_updated_success">Boutique mise à jour avec succès !</string>
+
+    <!-- Product Dialog Helper -->
+    <string name="invalid_price_format">Format de prix invalide</string>
+    <string name="invalid_weight_format">Format de poids invalide</string>
+    <string name="product_updated_success">Produit mis à jour avec succès</string>
+    <string name="product_added_success">Produit ajouté avec succès</string>
+    <string name="media_deleted">Média supprimé</string>
+    <string name="add_product_title">Ajouter un Produit</string>
+    <string name="edit_product_title">Modifier le Produit</string>
+    <string name="add_product_btn">Ajouter un Produit</string>
+    <string name="update_product_btn">Mettre à jour le Produit</string>
+    <string name="select_product_media">Sélectionner Média du Produit</string>
+
+    <!-- Account Settings Fragment -->
+    <string name="change_photo_btn">Changer la Photo</string>
+    <string name="uploading_status">Téléchargement...</string>
+    <plurals name="images_count">
+        <item quantity="one">%d image</item>
+        <item quantity="other">%d images</item>
+    </plurals>
+    <plurals name="videos_count">
+        <item quantity="one">%d vidéo</item>
+        <item quantity="other">%d vidéos</item>
+    </plurals>
+    <string name="image_video_separator">, </string>
+    <string name="saving_status">Enregistrement...</string>
+    <string name="name_required_error">Le nom est requis</string>
+    <string name="email_required_error">L\'email est requis</string>
+    <string name="email_invalid_error">Veuillez entrer un email valide</string>
+    <string name="phone_required_error">Le numéro de téléphone est requis</string>
+    <string name="phone_invalid_error">Veuillez entrer un numéro de téléphone valide</string>
+    <string name="no_changes_to_save">Aucune modification à enregistrer</string>
+    <string name="confirm_changes_title">Confirmer les Modifications</string>
+    <string name="confirm_changes_message">Êtes-vous sûr de vouloir enregistrer ces modifications ?\n\n</string>
+    <string name="change_summary_name">• Nom : </string>
+    <string name="change_summary_email">• Email : </string>
+    <string name="change_summary_phone">• Téléphone : </string>
+    <string name="change_summary_photo">• Photo de profil : Nouvelle photo sélectionnée\n</string>
+    <string name="email_change_verification_title">Vérification du Changement d\'Email</string>
+    <string name="email_change_verification_message">Changer votre email nécessite une vérification. Veuillez entrer votre mot de passe actuel pour continuer.</string>
+    <string name="verify_btn">Vérifier</string>
+    <string name="password_required_error">Le mot de passe est requis</string>
+    <string name="photo_selected">Photo Sélectionnée</string>
+    <string name="change_password_title">Changer le Mot de Passe</string>
+    <string name="change_password_btn">Changer le Mot de Passe</string>
+    <string name="updating_status">Mise à jour...</string>
+    <string name="permission_denied_gallery">Permission refusée pour accéder à la galerie</string>
+    <string name="error_no_user_logged_in">Aucun utilisateur connecté</string>
+    <string name="error_no_user_data">Aucune donnée utilisateur disponible</string>
+    <string name="error_no_image_selected">Aucune image sélectionnée</string>
+    <string name="error_upload_failed">Échec du téléchargement de l\'image : %1$s</string>
+    <string name="login_failed">Échec de la connexion : %1$s</string>
+    <string name="signup_failed">Échec de l\'inscription : %1$s</string>
+
+    <string name="profile_update_failed">Échec de la mise à jour du profil : %1$s</string>
+    <string name="password_update_success">Mot de passe mis à jour avec succès</string>
+    <string name="password_update_failed">Échec de la mise à jour du mot de passe : %1$s</string>
+    <string name="current_password_incorrect">Mot de passe actuel incorrect : %1$s</string>
+    <string name="signed_out_success">Déconnecté avec succès</string>
+    <string name="reset_email_sent">E-mail de réinitialisation du mot de passe envoyé</string>
+    <string name="verification_email_sent">E-mail de vérification envoyé à %1$s. Veuillez vérifier votre boîte de réception et cliquer sur le lien de vérification pour finaliser le changement d\'e-mail.</string>
+    <string name="email_already_registered">Cette adresse e-mail est déjà enregistrée. Veuillez utiliser une autre adresse e-mail.</string>
+    <string name="email_invalid_format">Format d\'adresse e-mail invalide. Veuillez saisir un e-mail valide.</string>
+    <string name="email_updated_success">E-mail mis à jour avec succès vers %1$s</string>
+    <string name="user_not_found">Utilisateur non trouvé</string>
+    <string name="no_user_auth">Aucun utilisateur authentifié</string>
+    <string name="reauth_failed">Échec de la réauthentification : %1$s</string>
+    <string name="profile_creation_failed">Échec de la création du profil : %1$s</string>
+    <string name="verification_pending">Veuillez vérifier votre changement d\'e-mail précédent avant d\'effectuer un autre changement.</string>
+    <string name="unknown_name">Nom inconnu</string>
+
+    <string name="not_available">Non disponible</string>
+    <string name="please_login_toast">Veuillez vous connecter</string>
+    <string name="no_owner_error">Cette boutique n\'a pas de propriétaire</string>
+    <string name="region_not_specified">Région non spécifiée</string>
+    <string name="city_not_specified">Ville non spécifiée</string>
+    <string name="init_error">Erreur lors de l\'initialisation</string>
+    <string name="rating_saved">Évaluation enregistrée !</string>
+    <string name="rating_error">Erreur lors de l\'évaluation</string>
+    <string name="no_favorite_shops">Aucune boutique favorite trouvée</string>
+    <string name="no_favorite_products">Aucun produit favori trouvé</string>
+    <string name="shop_open_error">Erreur lors de l\'ouverture de la boutique</string>
+    <string name="login_required_like">Vous devez être connecté pour liker</string>
+    <string name="like_update_error">Erreur lors de la mise à jour du like</string>
+
+    <!-- Home Fragment -->
+    <string name="getting_location_info">Obtention des informations de localisation...</string>
+    <string name="navigating_to_city_shops">Navigation vers les boutiques de %s...</string>
+    <string name="please_select_city_first">Veuillez d\'abord sélectionner une ville</string>
+    <string name="error_navigating_to_search">Erreur lors de la navigation vers la recherche</string>
+    <string name="finding_your_location">Recherche de votre localisation...</string>
+    <string name="unable_to_get_precise_location">Impossible d\'obtenir une localisation précise. Veuillez vous assurer que le GPS est activé.</string>
+    <string name="your_location_marker">Votre Localisation</string>
+    <string name="permission_granted_tap_gps">Permission accordée ! Appuyez à nouveau sur le bouton GPS.</string>
+    <string name="location_permission_required">La permission de localisation est requise pour utiliser cette fonctionnalité</string>
+    <string name="location_prefix">Localisation : </string>
+
+    <string name="delete_product_title">Supprimer le Produit</string>
+
+    <!-- Dialogs -->
+    <string name="unfavorite_title">Retirer des favoris</string>
+    <string name="unfavorite_message_format">Voulez-vous vraiment retirer %1$s de vos favoris ?</string>
+    <string name="unfavorite_positive">Retirer</string>
+    <string name="delete_shop_title">Supprimer la Boutique</string>
+    <string name="delete_shop_message">Êtes-vous sûr de vouloir supprimer \'%1$s\' ? Cette action est irréversible et supprimera également tous les produits associés à cette boutique.\n\nVeuillez entrer votre mot de passe pour confirmer :</string>
+    <string name="delete_product_message">Voulez-vous vraiment supprimer %1$s ?</string>
+    <string name="messages_clients_title">Messages des Clients</string>
+    <string name="messages_mine_title">Mes messages</string>
+    <string name="no_conversations_yet">Aucune conversation pour le moment\nVos messages apparaîtront ici</string>
+    <string name="tap_to_select_city">Appuyez pour sélectionner la ville</string>
+    <string name="search_in_city">Rechercher à %s...</string>
+    <string name="logged_out">Déconnecté</string>
+    <string name="storage_permission_msg">Permission de stockage requise pour charger les photos de profil</string>
+
+    <!-- Search Toasts & Messages -->
+    <string name="likes_reset_msg">Tous les likes ont été réinitialisés (%1$d boutiques)</string>
+    <string name="reset_error_msg">Erreur lors de la réinitialisation : %1$s</string>
+    <string name="added_to_favorites_msg">%1$s ajouté aux favoris</string>
+    <string name="removed_from_favorites_msg">%1$s retiré des favoris</string>
+    <string name="login_to_like_msg">Vous devez être connecté pour liker</string>
+
+    <string name="no_shops_found_category">Aucune boutique trouvée pour : %1$s</string>
+    <string name="shops_found_count_category">%1$d boutique(s) - %2$s</string>
+    <string name="no_shops_found_city">Aucune boutique trouvée à %1$s</string>
+    <string name="shops_found_count_city">%1$d boutique(s) à %2$s</string>
+    <string name="search_error_msg">Erreur lors de la recherche : %1$s</string>
+    <string name="no_promos_found">Aucune boutique en promotion actuellement</string>
+    <string name="shops_found_promo">%1$d boutique(s) en promotion</string>
+    <string name="top_rated_shops_msg">Top %1$d boutiques les mieux notées</string>
+    <string name="sorted_by_trending">Trié par : Tendance</string>
+    <string name="no_delivery_found">Aucune boutique avec livraison disponible</string>
+    <string name="shops_found_delivery">%1$d boutique(s) avec livraison</string>
+    <string name="sorted_by_newest">Trié par : Récent → Ancien</string>
+    <string name="sorted_by_oldest">Trié par : Ancien → Récent</string>
+    <string name="filters_reset_msg">Filtres réinitialisés</string>
+
+    <!-- Dialog Additional Strings -->
+    <string name="sort_by_date_dialog_title">Trier par date</string>
+    <string name="sort_recent">Récent</string>
+    <string name="sort_oldest">Ancien</string>
+    <string name="edit_cover_photo_dialog_title">Modifier la photo de couverture</string>
+    <string name="change_cover_photo_option">Changer la photo de couverture</string>
+    <string name="remove_cover_photo_option">Supprimer la photo de couverture</string>
+
+    <!-- Error Messages -->
+    <string name="error_incorrect_password">Mot de passe incorrect. Veuillez réessayer.</string>
+    <string name="error_auth_failed">L\'authentification a échoué. Veuillez réessayer.</string>
+    <string name="error_not_logged_in">Utilisateur non connecté. Veuillez vous reconnecter.</string>
+    <string name="id_format">ID : #%1$s</string>
+    <string name="edit_shop_cover_photo_title">Modifier la photo de couverture de la boutique</string>
+    <string name="add_shop_cover_photo_title">Ajouter une photo de couverture</string>
+
+    <string name="email_same_as_current">L\'adresse e-mail est la même que l\'actuelle</string>
+
+    <!-- Shop Categories -->
+    <string name="cat_textile_tapestry">Textiles et Tapisserie</string>
+    <string name="cat_gourmet_foods">Produits du Terroir</string>
+    <string name="cat_pottery_ceramics">Poterie et Céramique</string>
+    <string name="cat_traditional_wear">Habits Traditionnels</string>
+    <string name="cat_leather_crafts">Maroquinerie</string>
+    <string name="cat_wellness_products">Produits de Bien-être Naturels</string>
+    <string name="cat_jewelry_accessories">Bijouterie et Accessoires</string>
+    <string name="cat_metal_brass">Travail des Métaux et Cuivre</string>
+    <string name="cat_painting_calligraphy">Peinture et Calligraphie</string>
+    <string name="cat_woodwork">Menuiserie</string>
+
+    <!-- Cities -->
+    <string name="city_casablanca">Casablanca</string>
+    <string name="city_rabat">Rabat</string>
+    <string name="city_marrakech">Marrakech</string>
+    <string name="city_fes">Fès</string>
+    <string name="city_tangier">Tanger</string>
+    <string name="city_agadir">Agadir</string>
+    <string name="city_oujda">Oujda</string>
+    <string name="city_meknes">Meknès</string>
+
+    <!-- Product Detail -->
+    <string name="inquiry_subject">Demande concernant le produit : %1$s</string>
+    <string name="unknown_product">Produit inconnu</string>
+
+    <!-- Search & Shared -->
+    <string name="share_shop_prefix">Regarde cette boutique : %1$s - %2$s</string>
+    <string name="share_via">Partager via</string>
+    <string name="liked_success_format">Vous avez liké ! (%1$d like%2$s)</string>
+    <string name="unliked_success_format">Like retiré (%1$d like%2$s)</string>
+    <string name="firebase_update_success">Mise à jour réussie</string>
+    <string name="like_plural_suffix">s</string>
+    <string name="connection_error_prefix">Erreur de connexion : </string>
+
+
+
 </resources>

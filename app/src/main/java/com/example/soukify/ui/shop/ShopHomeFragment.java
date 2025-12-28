@@ -21,6 +21,11 @@ import android.widget.LinearLayout;
 import java.io.File;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ImageButton;
+import android.graphics.Color;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -41,6 +46,7 @@ import com.example.soukify.data.models.RegionModel;
 import com.example.soukify.data.models.CityModel;
 import com.example.soukify.data.models.ProductModel;
 import com.example.soukify.data.repositories.LocationRepository;
+import com.example.soukify.data.repositories.FavoritesTableRepository;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
@@ -53,7 +59,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class ShopHomeFragment extends Fragment {
+import com.example.soukify.data.sync.ShopSync;
+
+public class ShopHomeFragment extends Fragment implements ShopSync.SyncListener {
 
     private static final String TAG = "ShopHomeFragment";
     private static final int REQUEST_READ_EXTERNAL_STORAGE = 100;
@@ -80,6 +88,11 @@ public class ShopHomeFragment extends Fragment {
     private ImageView currentImageView;
     private LinearLayout currentImageContainer;
 
+    // Visitor buttons
+    private ImageButton btnLike;
+    private ImageButton btnFavorite;
+    private LinearLayout visitorActionsLayout;
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.fragment_shop_home, container, false);
@@ -87,6 +100,7 @@ public class ShopHomeFragment extends Fragment {
         // Initialize components first
         initializeComponents();
         initializeProductsUI(); // Initialize product UI components early
+        setupVisitorButtons();
 
         // Check if dialogs should be hidden (when opened from search)
         boolean hideDialogs = false;
@@ -99,8 +113,14 @@ public class ShopHomeFragment extends Fragment {
                 String shopId = args.getString("shopId");
                 if (shopId != null && !shopId.isEmpty()) {
                     android.util.Log.d("ShopHomeFragment", "Loading shop data from database for shopId: " + shopId);
+                    
                     // Load shop data from database to ensure consistency
                     shopViewModel.loadShopById(shopId);
+                    
+                    // 🔥 OPTIMIZATION: Start loading products IMMEDIATELY in parallel
+                    // Don't wait for shop details to load first
+                    android.util.Log.d("ShopHomeFragment", "Optimistic product load for shopId: " + shopId);
+                    productViewModel.loadProductsForShop(shopId);
                 }
             }
         }
@@ -195,6 +215,15 @@ public class ShopHomeFragment extends Fragment {
         androidx.appcompat.widget.Toolbar toolbar = rootView.findViewById(R.id.toolbar);
         if (toolbar != null) {
             toolbar.setNavigationOnClickListener(v -> {
+                // Clear city filter before navigating back to search
+                if (getActivity() != null) {
+                    getActivity().getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
+                            .edit()
+                            .remove("selected_city")
+                            .remove("pending_city_filter")
+                            .apply();
+                }
+                
                 // Use NavController for proper navigation
                 try {
                     NavController navController = Navigation.findNavController(requireView());
@@ -214,6 +243,51 @@ public class ShopHomeFragment extends Fragment {
                             Log.e("ShopHomeFragment", "All navigation methods failed", ex);
                         }
                     }
+                }
+            });
+            
+            // Add location button to toolbar if we have a selected city
+            setupToolbarLocationButton(toolbar);
+        }
+    }
+    
+    private void setupToolbarLocationButton(androidx.appcompat.widget.Toolbar toolbar) {
+        // Check if we have a selected city from SharedPreferences
+        if (getActivity() == null || rootView == null) return;
+        
+        String selectedCity = getActivity()
+                .getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
+                .getString("selected_city", null);
+        
+        // Find the location button from the toolbar (if it exists in XML)
+        LinearLayout locationButton = rootView.findViewById(R.id.toolbar_location_button);
+        TextView cityText = rootView.findViewById(R.id.toolbar_city_text);
+        
+        if (selectedCity != null && !selectedCity.isEmpty() && locationButton != null) {
+            // Set city text
+            if (cityText != null) {
+                cityText.setText(selectedCity);
+            }
+            
+            // Show the location button
+            locationButton.setVisibility(View.VISIBLE);
+            
+            // Set click listener to navigate to search WITHOUT city filter
+            locationButton.setOnClickListener(v -> {
+                try {
+                    // Clear the city filter before navigating
+                    if (getActivity() != null) {
+                        getActivity().getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
+                                .edit()
+                                .remove("selected_city")
+                                .remove("pending_city_filter")
+                                .apply();
+                    }
+                    
+                    NavController navController = Navigation.findNavController(requireView());
+                    navController.navigate(R.id.navigation_search);
+                } catch (Exception e) {
+                    Log.e("ShopHomeFragment", "Error navigating to search", e);
                 }
             });
         }
@@ -310,7 +384,19 @@ public class ShopHomeFragment extends Fragment {
 
                 @Override
                 public void onProductLongClick(ProductModel product) {
-                    Toast.makeText(getContext(), "Long clicked: " + product.getName(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), getString(R.string.long_clicked_prefix) + product.getName(), Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onFavoriteClick(ProductModel product, int position) {
+                    // Similar logic to SearchFragment/FavoritesFragment if we want confirmation
+                    // For now, let's keep it consistent with the sync utility
+                    boolean newFavorite = !product.isFavoriteByUser();
+                    product.setFavoriteByUser(newFavorite);
+                    com.example.soukify.data.sync.ProductSync.FavoriteSync.update(product.getProductId(), newFavorite);
+                    if (productViewModel != null) {
+                        productViewModel.toggleFavoriteProduct(product.getProductId());
+                    }
                 }
             });
         }
@@ -340,7 +426,12 @@ public class ShopHomeFragment extends Fragment {
                 if (productViewModel != null) {
                     productViewModel.loadProductsForShop(shop.getShopId());
                 }
-                
+
+                // Initialize ProductManager with the current shop ID for product addition/editing
+                if (productManager != null) {
+                    productManager.loadProductsForShop(shop.getShopId());
+                }
+
                 updateShopUI(shop);
                 refreshButtonVisibility(); // Re-evaluate ownership buttons when data arrives
                 hasHandledDeletion = false;
@@ -368,6 +459,142 @@ public class ShopHomeFragment extends Fragment {
                 }
             }
         });
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        ShopSync.LikeSync.register(this);
+        ShopSync.FavoriteSync.register(this);
+    }
+
+    @Override
+    public void onStop() {
+        ShopSync.LikeSync.unregister(this);
+        ShopSync.FavoriteSync.unregister(this);
+        super.onStop();
+    }
+
+    @Override
+    public void onShopSyncUpdate(String shopId, Bundle payload) {
+        ShopModel currentShop = shopViewModel.getShop().getValue();
+        if (currentShop != null && shopId.equals(currentShop.getShopId())) {
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    if (payload.containsKey("isLiked")) {
+                        boolean liked = payload.getBoolean("isLiked");
+                        int count = payload.getInt("likesCount", currentShop.getLikesCount());
+                        currentShop.setLiked(liked);
+                        currentShop.setLikesCount(count);
+                        updateLikeUI(liked, count);
+                    }
+                    if (payload.containsKey("isFavorite")) {
+                        boolean fav = payload.getBoolean("isFavorite");
+                        currentShop.setFavorite(fav);
+                        updateFavoriteUI(fav);
+                    }
+                });
+            }
+        }
+    }
+
+    private void updateLikeUI(boolean liked, int count) {
+        if (btnLike != null) {
+            btnLike.setImageResource(liked ? R.drawable.ic_heart_filled : R.drawable.ic_heart_outline);
+            btnLike.setColorFilter(liked ? Color.parseColor("#E8574D") : Color.GRAY);
+        }
+        
+        TextView likesCountText = rootView != null ? rootView.findViewById(R.id.likesCount) : null;
+        if (likesCountText != null) {
+            likesCountText.setText(String.valueOf(count));
+        }
+    }
+
+    private void updateFavoriteUI(boolean fav) {
+        if (btnFavorite != null) {
+            btnFavorite.setImageResource(fav ? R.drawable.ic_star_filled : R.drawable.ic_star_outline);
+            btnFavorite.setColorFilter(fav ? Color.parseColor("#FFC107") : Color.GRAY);
+        }
+    }
+
+    private void setupVisitorButtons() {
+        if (rootView == null) return;
+        btnLike = rootView.findViewById(R.id.btnLike);
+        btnFavorite = rootView.findViewById(R.id.btnFavorite);
+        visitorActionsLayout = rootView.findViewById(R.id.visitorActionsLayout);
+
+        if (btnLike != null) {
+            btnLike.setOnClickListener(v -> {
+                ShopModel shop = shopViewModel.getShop().getValue();
+                String currentUserId = shopViewModel.getCurrentUserId();
+                
+                if (shop != null && currentUserId != null) {
+                    boolean wasLiked = shop.isLiked();
+                    boolean newLiked = !wasLiked;
+                    int newCount = newLiked ? shop.getLikesCount() + 1 : Math.max(0, shop.getLikesCount() - 1);
+                    
+                    // Optimistic update
+                    shop.setLiked(newLiked);
+                    shop.setLikesCount(newCount);
+                    ShopSync.LikeSync.update(shop.getShopId(), newLiked, newCount);
+                    updateLikeUI(newLiked, newCount); // Force local update immediately
+                    
+                    // Update in Firestore
+                    FirebaseFirestore.getInstance().collection("shops").document(shop.getShopId())
+                        .update("likesCount", newCount, "likedByUserIds", 
+                            newLiked ? com.google.firebase.firestore.FieldValue.arrayUnion(currentUserId) 
+                                     : com.google.firebase.firestore.FieldValue.arrayRemove(currentUserId))
+                        .addOnFailureListener(e -> {
+                            // Rollback on failure
+                            if (getContext() != null) {
+                                Toast.makeText(getContext(), getString(R.string.error_update_like), Toast.LENGTH_SHORT).show();
+                            }
+                            shop.setLiked(wasLiked);
+                            shop.setLikesCount(shop.getLikesCount() + (wasLiked ? 1 : -1));
+                            ShopSync.LikeSync.update(shop.getShopId(), wasLiked, shop.getLikesCount());
+                            updateLikeUI(wasLiked, shop.getLikesCount());
+                        });
+                } else if (currentUserId == null) {
+                   Toast.makeText(requireContext(), getString(R.string.login_to_like_shops), Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        if (btnFavorite != null) {
+            btnFavorite.setOnClickListener(v -> {
+                ShopModel shop = shopViewModel.getShop().getValue();
+                if (shop != null) {
+                    boolean isCurrentlyFavorite = shop.isFavorite();
+                    if (isCurrentlyFavorite) {
+                        // Show confirmation before unfavoriting
+                        new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                                .setTitle(R.string.unfavorite_title)
+                                .setMessage(getString(R.string.unfavorite_message_format, shop.getName()))
+                                .setPositiveButton(R.string.unfavorite_positive, (dialog, which) -> {
+                                    performFavoriteToggle(shop, false);
+                                })
+                                .setNegativeButton(R.string.cancel, null)
+                                .show();
+                    } else {
+                        // Favorite immediately
+                        performFavoriteToggle(shop, true);
+                    }
+                }
+            });
+        }
+    }
+
+    private void performFavoriteToggle(ShopModel shop, boolean newFav) {
+        shop.setFavorite(newFav);
+        ShopSync.FavoriteSync.update(shop.getShopId(), newFav);
+        updateFavoriteUI(newFav);
+        
+        FavoritesTableRepository repo = FavoritesTableRepository.getInstance(requireActivity().getApplication());
+        if (newFav) {
+            repo.addShopToFavorites(shop);
+        } else {
+            repo.removeShopFromFavorites(shop.getShopId());
+        }
     }
 
     private void setupClickListeners() {
@@ -467,6 +694,26 @@ public class ShopHomeFragment extends Fragment {
             hideDialogElements();
         } else {
             showDialogElements();
+        }
+
+        if (visitorActionsLayout != null) {
+            // Show visitor actions (Like/Favorite) for everyone to allow owners to test liking
+            visitorActionsLayout.setVisibility(View.VISIBLE);
+            
+            // Initial UI sync
+            ShopModel shop = shopViewModel.getShop().getValue();
+            if (shop != null) {
+                android.app.Application app = requireActivity().getApplication();
+                ShopSync.LikeSync.LikeState ls = ShopSync.LikeSync.getState(shop.getShopId(), app);
+                boolean liked = ls != null ? ls.isLiked : shop.isLiked();
+                int count = ls != null ? ls.count : shop.getLikesCount();
+                
+                ShopSync.FavoriteSync.FavoriteState fs = ShopSync.FavoriteSync.getState(shop.getShopId(), app);
+                boolean fav = fs != null ? fs.isFavorite : shop.isFavorite();
+                
+                updateLikeUI(liked, count);
+                updateFavoriteUI(fav);
+            }
         }
     }
 
@@ -1003,7 +1250,7 @@ public class ShopHomeFragment extends Fragment {
             }
         });
 
-        tvShopId.setText("ID: #" + shop.getShopId().substring(0, Math.min(8, shop.getShopId().length())));
+        tvShopId.setText(getString(R.string.id_format, shop.getShopId().substring(0, Math.min(8, shop.getShopId().length()))));
 
         if (shop.getCreatedAtString() != null) {
             tvCreationDate.setText(formatDate(shop.getCreatedAtTimestamp()));
@@ -1016,15 +1263,24 @@ public class ShopHomeFragment extends Fragment {
         tvShopRating.setText(String.format("%.1f", shop.getRating()));
 
         List<String> categories = Arrays.asList(
-                "Textile & Tapestry", "Gourmet & Local Foods", "Pottery & Ceramics","Traditional Wear","Leather Crafts",
-                "Natural Wellness Products", "Jewelry & Accessories", "Metal & Brass Crafts",
-                "Painting & Calligraphy", "Woodwork"
+                getString(R.string.cat_textile_tapestry),
+                getString(R.string.cat_gourmet_foods),
+                getString(R.string.cat_pottery_ceramics),
+                getString(R.string.cat_traditional_wear),
+                getString(R.string.cat_leather_crafts),
+                getString(R.string.cat_wellness_products),
+                getString(R.string.cat_jewelry_accessories),
+                getString(R.string.cat_metal_brass),
+                getString(R.string.cat_painting_calligraphy),
+                getString(R.string.cat_woodwork)
         );
 
         final String[] selectedCategory = {shop.getCategory()};
 
         setupCategoryDropdown(etShopCategory, categories, selectedCategory);
-        etShopCategory.setText(shop.getCategory(), false);
+        if (shop.getCategory() != null) {
+            etShopCategory.setText(com.example.soukify.utils.CategoryUtils.getLocalizedCategory(requireContext(), shop.getCategory()), false);
+        }
 
         // Setup working hours and PRE-FILL DATA
         prefillWorkingHoursData(dialogView, shop);
@@ -1036,14 +1292,14 @@ public class ShopHomeFragment extends Fragment {
 
         handleShopImage(shop, ivShopPreview, imageContainer);
 
-        AlertDialog dialog = builder.setTitle("Edit Your Shop")
+        AlertDialog dialog = builder.setTitle(getString(R.string.edit_shop_title))
                 .setIcon(R.drawable.ic_store)
-                .setPositiveButton("Save Changes", (dialogInterface, which) -> {
+                .setPositiveButton(getString(R.string.save_changes), (dialogInterface, which) -> {
                     saveShopChanges(dialogView, shop, etShopName, etShopDescription, etShopPhone, etShopEmail,
                             etShopAddress, etShopInstagram, etShopFacebook, etShopWebsite,
                             etShopCategory, etShopRegion, etShopCity, selectedCategory, switchPromotion, switchDelivery);
                 })
-                .setNegativeButton("Cancel", (dialogInterface, which) -> {
+                .setNegativeButton(getString(R.string.cancel), (dialogInterface, which) -> {
                     selectedShopImageUri = null;
                 })
                 .create();
@@ -1104,8 +1360,9 @@ public class ShopHomeFragment extends Fragment {
         etShopCategory.setAdapter(categoryAdapter);
 
         etShopCategory.setOnItemClickListener((parent, view, position, id) -> {
-            selectedCategory[0] = (String) parent.getItemAtPosition(position);
-            etShopCategory.setText(selectedCategory[0], false);
+            String selectedLocalizedName = (String) parent.getItemAtPosition(position);
+            selectedCategory[0] = com.example.soukify.utils.CategoryUtils.getCategoryKey(requireContext(), selectedLocalizedName);
+            etShopCategory.setText(selectedLocalizedName, false);
         });
     }
 
@@ -1123,7 +1380,7 @@ public class ShopHomeFragment extends Fragment {
             if (regionsList != null) {
                 List<String> regionNames = new ArrayList<>();
                 for (RegionModel region : regionsList) {
-                    regionNames.add(region.getName());
+                    regionNames.add(region.getLocalizedName());
                 }
                 ArrayAdapter<String> regionAdapter = new ArrayAdapter<>(requireContext(),
                         R.layout.dropdown_item, R.id.dropdown_text, regionNames);
@@ -1133,7 +1390,7 @@ public class ShopHomeFragment extends Fragment {
                 if (shop.getRegionId() != null) {
                     for (RegionModel region : regionsList) {
                         if (region.getRegionId().equals(shop.getRegionId())) {
-                            etShopRegion.setText(region.getName(), false);
+                            etShopRegion.setText(region.getLocalizedName(), false);
                             break;
                         }
                     }
@@ -1153,7 +1410,7 @@ public class ShopHomeFragment extends Fragment {
                                 if (citiesList != null) {
                                     List<String> cityNames = new ArrayList<>();
                                     for (CityModel city : citiesList) {
-                                        cityNames.add(city.getName());
+                                        cityNames.add(city.getLocalizedName());
                                     }
                                     java.util.Collections.sort(cityNames);
                                     ArrayAdapter<String> cityAdapter = new ArrayAdapter<>(requireContext(),
@@ -1175,7 +1432,7 @@ public class ShopHomeFragment extends Fragment {
                 if (citiesList != null) {
                     for (CityModel city : citiesList) {
                         if (city.getCityId().equals(shop.getCityId())) {
-                            etShopCity.setText(city.getName(), false);
+                            etShopCity.setText(city.getLocalizedName(), false);
                             break;
                         }
                     }
@@ -1344,10 +1601,14 @@ public class ShopHomeFragment extends Fragment {
         currentImageView = imageView;
         currentImageContainer = imageContainer;
         isSelectingShopImage = true;
-        String[] options = {"Change Cover Photo", "Remove Cover Photo", "Cancel"};
+        String[] options = {
+            getString(R.string.change_cover_photo_option),
+            getString(R.string.remove_cover_photo_option),
+            getString(R.string.cancel)
+        };
 
         new MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Edit Cover Photo")
+                .setTitle(getString(R.string.edit_cover_photo_dialog_title))
                 .setItems(options, (dialog, which) -> {
                     switch (which) {
                         case 0: // Change Photo
@@ -1363,7 +1624,7 @@ public class ShopHomeFragment extends Fragment {
                                 shopViewModel.updateShopImage("");
                             }
 
-                            Toast.makeText(requireContext(), "Cover photo removed", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(requireContext(), getString(R.string.cover_photo_removed), Toast.LENGTH_SHORT).show();
                             break;
                         case 2: // Cancel
                             dialog.dismiss();
@@ -1379,12 +1640,12 @@ public class ShopHomeFragment extends Fragment {
         TextView errorText = dialogView.findViewById(R.id.errorText);
 
         AlertDialog dialog = new MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Delete Shop")
-                .setMessage("Are you sure you want to delete '" + shop.getName() + "'? This action cannot be undone and will also delete all products associated with this shop.\n\nPlease enter your password to confirm:")
+                .setTitle(R.string.delete_shop_title)
+                .setMessage(getString(R.string.delete_shop_message, shop.getName()))
                 .setView(dialogView)
                 .setIcon(android.R.drawable.ic_dialog_alert)
-                .setPositiveButton("Delete", null)
-                .setNegativeButton("Cancel", (dialogInterface, which) -> {
+                .setPositiveButton(R.string.delete, null)
+                .setNegativeButton(R.string.cancel, (dialogInterface, which) -> {
                     dialogInterface.dismiss();
                 })
                 .create();
@@ -1393,13 +1654,13 @@ public class ShopHomeFragment extends Fragment {
             shopViewModel.getErrorMessage().observe(getViewLifecycleOwner(), errorMsg -> {
                 if (errorMsg != null) {
                     if (errorMsg.contains("Incorrect password")) {
-                        errorText.setText("Incorrect password. Please try again.");
+                        errorText.setText(R.string.error_incorrect_password);
                         errorText.setVisibility(View.VISIBLE);
                     } else if (errorMsg.contains("Shop deletion cancelled")) {
-                        errorText.setText("Authentication failed. Please try again.");
+                        errorText.setText(R.string.error_auth_failed);
                         errorText.setVisibility(View.VISIBLE);
                     } else if (errorMsg.contains("No user logged in")) {
-                        errorText.setText("User not logged in. Please sign in again.");
+                        errorText.setText(R.string.error_not_logged_in);
                         errorText.setVisibility(View.VISIBLE);
                     }
                     shopViewModel.clearErrorMessage();
@@ -1419,14 +1680,14 @@ public class ShopHomeFragment extends Fragment {
                 String password = passwordInput.getText().toString().trim();
 
                 if (password.isEmpty()) {
-                    errorText.setText("Password is required");
+                    errorText.setText(R.string.password_required_error);
                     errorText.setVisibility(View.VISIBLE);
                     return;
                 }
 
                 errorText.setVisibility(View.GONE);
                 shopViewModel.deleteShop(shop.getShopId(), password);
-                Toast.makeText(requireContext(), "Verifying password...", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), getString(R.string.verifying_password), Toast.LENGTH_SHORT).show();
             });
         });
 
@@ -1438,11 +1699,18 @@ public class ShopHomeFragment extends Fragment {
         String title;
 
         if (isEditing) {
-            options = new String[]{"Change Cover Photo", "Remove Cover Photo", "Cancel"};
-            title = "Edit Shop Cover Photo";
+            options = new String[]{
+                getString(R.string.change_cover_photo_option),
+                getString(R.string.remove_cover_photo_option),
+                getString(R.string.cancel)
+            };
+            title = getString(R.string.edit_shop_cover_photo_title);
         } else {
-            options = new String[]{"Add Cover Photo", "Cancel"};
-            title = "Add Shop Cover Photo";
+            options = new String[]{
+                getString(R.string.add_cover_photo_option),
+                getString(R.string.cancel)
+            };
+            title = getString(R.string.add_shop_cover_photo_title);
         }
 
         new MaterialAlertDialogBuilder(requireContext())
@@ -1477,7 +1745,7 @@ public class ShopHomeFragment extends Fragment {
                                 container.setVisibility(View.VISIBLE);
                             }
                             selectedShopImageUri = null;
-                            Toast.makeText(requireContext(), "Cover photo removed", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(requireContext(), getString(R.string.cover_photo_removed), Toast.LENGTH_SHORT).show();
                             break;
                         case 2: // Cancel
                             dialog.dismiss();
@@ -1623,7 +1891,7 @@ public class ShopHomeFragment extends Fragment {
         try {
             startActivity(intent);
         } catch (Exception e) {
-            Toast.makeText(requireContext(), "Unable to open link", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), getString(R.string.error_open_link), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -1635,7 +1903,7 @@ public class ShopHomeFragment extends Fragment {
         try {
             startActivity(intent);
         } catch (Exception e) {
-            Toast.makeText(requireContext(), "Unable to open link", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), getString(R.string.error_open_link), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -1820,11 +2088,11 @@ public class ShopHomeFragment extends Fragment {
                 android.util.Log.d("ShopHomeFragment", "Navigation to product detail successful");
             } else {
                 android.util.Log.e("ShopHomeFragment", "Could not find NavController");
-                Toast.makeText(getContext(), "Error opening product details", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.error_open_product), Toast.LENGTH_SHORT).show();
             }
         } catch (Exception e) {
             android.util.Log.e("ShopHomeFragment", "Error navigating to product detail", e);
-            Toast.makeText(getContext(), "Error opening product details", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getString(R.string.error_open_product), Toast.LENGTH_SHORT).show();
         }
     }
 }

@@ -75,7 +75,9 @@ dependencies {
     implementation("com.google.firebase:firebase-storage")
     implementation("com.google.firebase:firebase-analytics")
     implementation(libs.firebase.crashlytics)
+    // Messaging (FCM for proximity, OneSignal for free chat notifications)
     implementation("com.google.firebase:firebase-messaging")
+    implementation("com.onesignal:OneSignal:[5.0.0, 5.99.99]")
 
     // Google Play Services
     implementation("com.google.android.gms:play-services-auth:20.7.0")

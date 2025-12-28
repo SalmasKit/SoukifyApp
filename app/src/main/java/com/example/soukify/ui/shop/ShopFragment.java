@@ -135,16 +135,16 @@ public class ShopFragment extends Fragment {
                         showExternalShop(externalShop);
                     } else {
                         android.util.Log.e("ShopFragment", "Failed to parse external shop data");
-                        Toast.makeText(getContext(), "Shop not found", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), getString(R.string.shop_not_found), Toast.LENGTH_SHORT).show();
                     }
                 } else {
                     android.util.Log.e("ShopFragment", "External shop not found: " + shopId);
-                    Toast.makeText(getContext(), "Shop not found", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), getString(R.string.shop_not_found), Toast.LENGTH_SHORT).show();
                 }
             })
             .addOnFailureListener(e -> {
                 android.util.Log.e("ShopFragment", "Error loading external shop: " + e.getMessage(), e);
-                Toast.makeText(getContext(), "Error loading shop", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.error_loading_shop), Toast.LENGTH_SHORT).show();
             });
     }
     
@@ -413,12 +413,12 @@ public class ShopFragment extends Fragment {
             showImageEditDialog(ivShopPreview, shopImageContainer);
         });
         
-        AlertDialog dialog = builder.setTitle("Create Your Shop")
+        AlertDialog dialog = builder.setTitle(getString(R.string.create_shop_title))
             .setIcon(R.drawable.ic_store)
-            .setPositiveButton("Create Shop", (dialogInterface, which) -> {
+            .setPositiveButton(getString(R.string.create_shop_button), (dialogInterface, which) -> {
                 if (etShopName.getText().toString().trim().isEmpty() || 
                     etShopDescription.getText().toString().trim().isEmpty()) {
-                    Toast.makeText(requireContext(), "Please fill all required fields", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), getString(R.string.fill_required_fields), Toast.LENGTH_SHORT).show();
                     return;
                 }
                 
@@ -445,10 +445,10 @@ public class ShopFragment extends Fragment {
                     switchDelivery.isChecked()
                 );
                 
-                Toast.makeText(requireContext(), "Shop creation initiated!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), getString(R.string.shop_creation_initiated), Toast.LENGTH_SHORT).show();
                 selectedImageUri = null;
             })
-            .setNegativeButton("Cancel", (dialogInterface, which) -> {
+            .setNegativeButton(getString(R.string.cancel), (dialogInterface, which) -> {
                 selectedImageUri = null;
             })
             .create();
@@ -564,7 +564,7 @@ public class ShopFragment extends Fragment {
         android.util.Log.d("ShopFragment", "Final toggle states - Promotion: " + switchPromotion.isChecked() + ", Delivery: " + switchDelivery.isChecked());
         android.util.Log.d("ShopFragment", "Dialog will now show with these toggle states");
         
-        tvShopId.setText("ID: #" + shop.getShopId().substring(0, Math.min(8, shop.getShopId().length())));
+        tvShopId.setText(getString(R.string.id_format, shop.getShopId().substring(0, Math.min(8, shop.getShopId().length()))));
         if (shop.getCreatedAtString() != null) {
             tvCreationDate.setText(formatDate(shop.getCreatedAtTimestamp()));
             tvShopAge.setText(calculateShopAge(shop.getCreatedAtTimestamp()));
@@ -641,9 +641,9 @@ public class ShopFragment extends Fragment {
             showImageEditDialog(ivShopPreview, imageContainer);
         });
         
-        AlertDialog dialog = builder.setTitle("Edit Your Shop")
+        AlertDialog dialog = builder.setTitle(getString(R.string.edit_shop_title))
             .setIcon(R.drawable.ic_store)
-            .setPositiveButton("Save Changes", (dialogInterface, which) -> {
+            .setPositiveButton(getString(R.string.save_changes), (dialogInterface, which) -> {
                 String imageUrl = selectedImageUri != null ? selectedImageUri.toString() : shop.getImageUrl();
                 String selectedCategoryText = selectedCategory[0] != null && !selectedCategory[0].isEmpty() ? selectedCategory[0] : shop.getCategory();
                 
@@ -697,10 +697,10 @@ public class ShopFragment extends Fragment {
                 shop.setLocation(shop.getAddress() + ", " + etShopCity.getText().toString() + ", " + etShopRegion.getText().toString());
                 
                 shopViewModel.updateShop(shop);
-                Toast.makeText(requireContext(), "Shop updated successfully!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), getString(R.string.shop_updated_success), Toast.LENGTH_SHORT).show();
                 selectedImageUri = null;
             })
-            .setNegativeButton("Cancel", (dialogInterface, which) -> {
+            .setNegativeButton(getString(R.string.cancel), (dialogInterface, which) -> {
                 selectedImageUri = null;
             })
             .create();
@@ -713,9 +713,16 @@ public class ShopFragment extends Fragment {
 
     private void setupCategoryDropdown(AutoCompleteTextView etShopCategory, String[] selectedCategory) {
         List<String> categories = Arrays.asList(
-            "Textile & Tapestry", "Gourmet & Local Foods", "Pottery & Ceramics","Traditional Wear", "Leather Crafts",
-            "Natural Wellness Products", "Jewelry & Accessories", "Metal & Brass Crafts",
-            "Painting & Calligraphy", "Woodwork"
+            getString(R.string.cat_textile_tapestry),
+            getString(R.string.cat_gourmet_foods),
+            getString(R.string.cat_pottery_ceramics),
+            getString(R.string.cat_traditional_wear),
+            getString(R.string.cat_leather_crafts),
+            getString(R.string.cat_wellness_products),
+            getString(R.string.cat_jewelry_accessories),
+            getString(R.string.cat_metal_brass),
+            getString(R.string.cat_painting_calligraphy),
+            getString(R.string.cat_woodwork)
         );
         
         etShopCategory.setThreshold(0);
@@ -727,8 +734,9 @@ public class ShopFragment extends Fragment {
         etShopCategory.setAdapter(categoryAdapter);
         
         etShopCategory.setOnItemClickListener((parent, view, position, id) -> {
-            selectedCategory[0] = (String) parent.getItemAtPosition(position);
-            etShopCategory.setText(selectedCategory[0], false);
+            String selectedLocalizedName = (String) parent.getItemAtPosition(position);
+            selectedCategory[0] = com.example.soukify.utils.CategoryUtils.getCategoryKey(requireContext(), selectedLocalizedName);
+            etShopCategory.setText(selectedLocalizedName, false);
         });
     }
 
@@ -745,7 +753,7 @@ public class ShopFragment extends Fragment {
             if (regionsList != null) {
                 List<String> regionNames = new ArrayList<>();
                 for (RegionModel region : regionsList) {
-                    regionNames.add(region.getName());
+                    regionNames.add(region.getLocalizedName());
                 }
                 ArrayAdapter<String> regionAdapter = new ArrayAdapter<>(requireContext(), 
                     R.layout.dropdown_item, R.id.dropdown_text, regionNames);
@@ -764,7 +772,7 @@ public class ShopFragment extends Fragment {
                                 if (citiesList != null) {
                                     List<String> cityNames = new ArrayList<>();
                                     for (CityModel city : citiesList) {
-                                        cityNames.add(city.getName());
+                                        cityNames.add(city.getLocalizedName());
                                     }
                                     java.util.Collections.sort(cityNames);
                                     ArrayAdapter<String> cityAdapter = new ArrayAdapter<>(requireContext(),
@@ -868,10 +876,14 @@ public class ShopFragment extends Fragment {
     private void showImageEditDialog(ImageView imageView, LinearLayout imageContainer) {
         currentImageView = imageView;
         currentImageContainer = imageContainer;
-        String[] options = {"Change Cover Photo", "Remove Cover Photo", "Cancel"};
+        String[] options = {
+            getString(R.string.change_cover_photo_option),
+            getString(R.string.remove_cover_photo_option),
+            getString(R.string.cancel)
+        };
         
         new MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Edit Cover Photo")
+            .setTitle(getString(R.string.edit_cover_photo_dialog_title))
             .setItems(options, (dialog, which) -> {
                 switch (which) {
                     case 0:
@@ -881,7 +893,7 @@ public class ShopFragment extends Fragment {
                         imageView.setVisibility(View.GONE);
                         imageContainer.setVisibility(View.VISIBLE);
                         selectedImageUri = null;
-                        Toast.makeText(requireContext(), "Cover photo removed", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), getString(R.string.cover_photo_removed), Toast.LENGTH_SHORT).show();
                         break;
                     case 2:
                         dialog.dismiss();

@@ -27,7 +27,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Edit product information below"
+                android:text="@string/edit_product_info"
                 android:textSize="14sp"
                 android:textColor="@color/text_secondary"
                 android:layout_marginBottom="16dp"
@@ -91,7 +91,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Update Product Photo/Video"
+                            android:text="@string/update_product_media"
                             android:textSize="17sp"
                             android:textStyle="bold"
                             android:textColor="@color/colorPrimaryDark" />
@@ -99,7 +99,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Tap to change images or videos"
+                            android:text="@string/tap_to_change_media"
                             android:layout_marginTop="4dp"
                             android:textSize="13sp"
                             android:textColor="@color/text_secondary" />
@@ -107,7 +107,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Multiple selections supported"
+                            android:text="@string/multiple_selections"
                             android:layout_marginTop="4dp"
                             android:textSize="12sp"
                             android:textColor="@color/text_secondary"
@@ -136,7 +136,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="1 image added"
+                    android:text="@string/one_image_added"
                     android:textSize="14sp"
                     android:textColor="@color/text_primary"
                     android:textStyle="bold"
@@ -146,7 +146,7 @@
                     android:id="@+id/btnAddMoreImages"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Add More"
+                    android:text="@string/add_more"
                     android:textSize="12sp"
                     android:minHeight="36dp"
                     android:backgroundTint="@color/colorPrimary"
@@ -163,7 +163,7 @@
 
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/EnhancedInput"
-                    android:hint="Product Name"
+                    android:hint="@string/product_name_placeholder"
                     app:startIconDrawable="@drawable/ic_baseline_info_24"
                     app:startIconTint="@color/colorPrimary">
 
@@ -176,7 +176,7 @@
 
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/EnhancedInput"
-                    android:hint="Description"
+                    android:hint="@string/description"
                     app:startIconDrawable="@drawable/ic_baseline_description_24"
                     app:startIconTint="@color/colorPrimary">
 
@@ -190,7 +190,7 @@
 
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/EnhancedInput"
-                    android:hint="Price"
+                    android:hint="@string/price_label"
                     app:startIconDrawable="@drawable/ic_store_24dp"
                     app:startIconTint="@color/colorPrimary">
 
@@ -205,7 +205,7 @@
                     style="@style/EnhancedSpinner"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Currency"
+                    android:hint="@string/currency"
                     app:startIconDrawable="@drawable/ic_store_24dp"
                     app:startIconTint="@color/colorPrimary"
                     app:endIconMode="dropdown_menu">
@@ -219,7 +219,7 @@
                         android:focusableInTouchMode="true"
                         android:padding="16dp"
                         android:textSize="16sp"
-                        android:text="MAD" />
+                        android:text="@string/currency_mad" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Product Type Input -->
@@ -228,7 +228,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:hint="Product Type"
+                    android:hint="@string/product_type_placeholder"
                     app:startIconDrawable="@drawable/ic_category_grid_24"
                     app:startIconTint="@color/colorPrimary">
 
@@ -243,7 +243,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Product Details"
+                android:text="@string/product_details_section"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="@color/colorPrimary"
@@ -262,7 +262,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:hint="Weight"
+                    android:hint="@string/weight_label"
                     app:startIconDrawable="@drawable/ic_baseline_scale_24"
                     app:startIconTint="@color/colorPrimary">
 
@@ -278,7 +278,7 @@
                     android:layout_width="120dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:hint="Unit"
+                    android:hint="@string/unit_label"
                     app:endIconMode="dropdown_menu">
 
                     <AutoCompleteTextView
@@ -290,7 +290,7 @@
                         android:focusableInTouchMode="true"
                         android:padding="16dp"
                         android:textSize="16sp"
-                        android:text="kg"
+                        android:text="@string/unit_kg"
                         android:dropDownVerticalOffset="0dp"
                         android:dropDownHeight="200dp" />
                 </com.google.android.material.textfield.TextInputLayout>
@@ -308,7 +308,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:hint="Length"
+                    android:hint="@string/length_label"
                     app:startIconDrawable="@drawable/ic_baseline_straighten_24"
                     app:startIconTint="@color/colorPrimary">
 
@@ -324,7 +324,7 @@
                     android:layout_width="120dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:hint="Unit"
+                    android:hint="@string/unit_label"
                     app:endIconMode="dropdown_menu">
 
                     <AutoCompleteTextView
@@ -336,7 +336,7 @@
                         android:focusableInTouchMode="true"
                         android:padding="16dp"
                         android:textSize="16sp"
-                        android:text="cm"
+                        android:text="@string/unit_cm"
                         android:dropDownVerticalOffset="0dp"
                         android:dropDownHeight="200dp" />
                 </com.google.android.material.textfield.TextInputLayout>
@@ -354,7 +354,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:hint="Width"
+                    android:hint="@string/width_label"
                     app:startIconDrawable="@drawable/ic_baseline_straighten_24"
                     app:startIconTint="@color/colorPrimary">
 
@@ -370,7 +370,7 @@
                     android:layout_width="120dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:hint="Unit"
+                    android:hint="@string/unit_label"
                     app:endIconMode="dropdown_menu">
 
                     <AutoCompleteTextView
@@ -382,7 +382,7 @@
                         android:focusableInTouchMode="true"
                         android:padding="16dp"
                         android:textSize="16sp"
-                        android:text="cm"
+                        android:text="@string/unit_cm"
                         android:dropDownVerticalOffset="0dp"
                         android:dropDownHeight="200dp" />
                 </com.google.android.material.textfield.TextInputLayout>
@@ -400,7 +400,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:hint="Height"
+                    android:hint="@string/height_label"
                     app:startIconDrawable="@drawable/ic_baseline_straighten_24"
                     app:startIconTint="@color/colorPrimary">
 
@@ -416,7 +416,7 @@
                     android:layout_width="120dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:hint="Unit"
+                    android:hint="@string/unit_label"
                     app:endIconMode="dropdown_menu">
 
                     <AutoCompleteTextView
@@ -428,7 +428,7 @@
                         android:focusableInTouchMode="true"
                         android:padding="16dp"
                         android:textSize="16sp"
-                        android:text="cm"
+                        android:text="@string/unit_cm"
                         android:dropDownVerticalOffset="0dp"
                         android:dropDownHeight="200dp" />
                 </com.google.android.material.textfield.TextInputLayout>
@@ -437,7 +437,7 @@
             <!-- Color -->
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/EnhancedInput"
-                android:hint="Color"
+                android:hint="@string/color_label"
                 app:startIconDrawable="@drawable/ic_baseline_palette_24"
                 app:startIconTint="@color/colorPrimary">
 
@@ -451,7 +451,7 @@
             <!-- Material -->
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/EnhancedInput"
-                android:hint="Material"
+                android:hint="@string/material_label"
                 app:startIconDrawable="@drawable/ic_baseline_texture_24"
                 app:startIconTint="@color/colorPrimary">
 

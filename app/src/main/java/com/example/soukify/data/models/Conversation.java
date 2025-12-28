@@ -14,6 +14,7 @@ public class Conversation {
     private Long lastMessageTimestamp;
     private int unreadCountBuyer;
     private int unreadCountSeller;
+    private String buyerImage; // 🔥 Photo de profil de l'acheteur
 
     // ✅ NOUVEAU : Champ createdAt pour Firebase
     @ServerTimestamp
@@ -26,12 +27,14 @@ public class Conversation {
 
     // ✅ Constructeur complet
     public Conversation(String buyerId, String sellerId, String shopId,
-                        String shopName, String shopImage) {
+                        String shopName, String shopImage, String buyerName, String buyerImage) {
         this.buyerId = buyerId;
         this.sellerId = sellerId;
         this.shopId = shopId;
         this.shopName = shopName;
         this.shopImage = shopImage;
+        this.buyerName = buyerName;
+        this.buyerImage = buyerImage;
         this.lastMessage = "";
         this.lastMessageTimestamp = System.currentTimeMillis();
         this.unreadCountBuyer = 0;
@@ -143,6 +146,14 @@ public class Conversation {
 
     public void setBuyerName(String buyerName) {
         this.buyerName = buyerName;
+    }
+
+    public String getBuyerImage() {
+        return buyerImage;
+    }
+
+    public void setBuyerImage(String buyerImage) {
+        this.buyerImage = buyerImage;
     }
 
 }

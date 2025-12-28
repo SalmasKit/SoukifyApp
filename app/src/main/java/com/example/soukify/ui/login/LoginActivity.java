@@ -41,7 +41,7 @@ public class LoginActivity extends AppCompatActivity {
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
 
                 if (result.getData() == null) {
-                    Toast.makeText(this, "Google result NULL", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, getString(R.string.google_result_null), Toast.LENGTH_LONG).show();
                     return;
                 }
 
@@ -51,15 +51,15 @@ public class LoginActivity extends AppCompatActivity {
                             .getResult(ApiException.class);
 
                     if (account != null && account.getIdToken() != null) {
-                        Toast.makeText(this, "Google Token OK", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, getString(R.string.google_token_ok), Toast.LENGTH_SHORT).show();
                         loginViewModel.signInWithGoogle(account.getIdToken());
                     } else {
-                        Toast.makeText(this, "Google ID Token manquant", Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, getString(R.string.google_token_missing), Toast.LENGTH_LONG).show();
                     }
 
                 } catch (ApiException e) {
                     Toast.makeText(this,
-                            "Erreur Google: " + e.getStatusCode(),
+                            getString(R.string.google_error_prefix) + e.getStatusCode(),
                             Toast.LENGTH_LONG).show();
                 }
             });
@@ -124,12 +124,19 @@ public class LoginActivity extends AppCompatActivity {
             String email = emailEdit.getText().toString().trim();
 
             if (email.isEmpty()) {
-                Toast.makeText(this, "Entrez votre email d'abord", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.enter_email_reset), Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            forgotPassword.setEnabled(false);
-            loginViewModel.resetPassword(email);
+            new androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle(R.string.reset_password_title)
+                    .setMessage(getString(R.string.reset_password_message, email))
+                    .setPositiveButton(R.string.yes, (dialog, which) -> {
+                        forgotPassword.setEnabled(false);
+                        loginViewModel.resetPassword(email);
+                    })
+                    .setNegativeButton(R.string.cancel, null)
+                    .show();
         });
 
         // SHOW / HIDE PASSWORD
@@ -165,7 +172,7 @@ public class LoginActivity extends AppCompatActivity {
                                 googleLauncher.launch(googleClient.getSignInIntent()))
                         .addOnFailureListener(e ->
                                 Toast.makeText(this,
-                                        "Erreur Google SignOut: " + e.getMessage(),
+                                        getString(R.string.google_signout_error_prefix) + e.getMessage(),
                                         Toast.LENGTH_SHORT).show())
         );
     }
@@ -183,21 +190,21 @@ public class LoginActivity extends AppCompatActivity {
 
         loginViewModel.getErrorMessage().observe(this, msg -> {
             if (msg != null && !msg.isEmpty()) {
-                Toast.makeText(this, "❌ " + msg, Toast.LENGTH_LONG).show();
+                Toast.makeText(this, getString(R.string.error_x_prefix) + msg, Toast.LENGTH_LONG).show();
                 forgotPassword.setEnabled(true);
             }
         });
 
         loginViewModel.getSuccessMessage().observe(this, msg -> {
             if (msg != null && !msg.isEmpty()) {
-                Toast.makeText(this, "📨 " + msg, Toast.LENGTH_LONG).show();
+                Toast.makeText(this, getString(R.string.success_email_prefix) + msg, Toast.LENGTH_LONG).show();
                 forgotPassword.setEnabled(true);
             }
         });
 
         loginViewModel.getPhoneAuthError().observe(this, error -> {
             if (error != null && !error.isEmpty()) {
-                Toast.makeText(this, "❌ " + error, Toast.LENGTH_LONG).show();
+                Toast.makeText(this, getString(R.string.error_x_prefix) + error, Toast.LENGTH_LONG).show();
             }
         });
 

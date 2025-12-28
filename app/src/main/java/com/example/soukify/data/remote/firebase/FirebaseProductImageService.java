@@ -119,10 +119,11 @@ public class FirebaseProductImageService {
             return com.google.android.gms.tasks.Tasks.forResult(null);
         }
         
-        // Check if imageId is a URL (Cloudinary) or Firestore document ID
-        if (imageId.startsWith("http://") || imageId.startsWith("https://")) {
-            // This is a Cloudinary URL, no Firestore document to delete
-            // The actual media deletion should be handled by caller
+        // Check if imageId is a URL (Cloudinary) or local file/content URI
+        if (imageId.startsWith("http://") || imageId.startsWith("https://") || 
+            imageId.startsWith("content://") || imageId.startsWith("file://")) {
+            // This is not a Firestore document ID, so there's nothing to delete in Firestore
+            // The actual media deletion (e.g. from Cloudinary) is handled by the caller
             return com.google.android.gms.tasks.Tasks.forResult(null);
         }
         

@@ -115,20 +115,24 @@ public class SettingsViewModel extends AndroidViewModel {
                 break;
         }
         
-        // Update backend
+        // Update backend - only if userId is valid
         String uid = userRepository.getCurrentUserId();
         if (uid == null) {
             uid = getCurrentUserId().getValue();
         }
         
-        if (uid != null) {
+        // Only update Firebase if we have a valid userId
+        if (uid != null && !uid.isEmpty() && !uid.equals("user_settings")) {
             userSettingRepository.updateTheme(uid, theme);
+        } else {
+            Log.w("SettingsViewModel", "Cannot update theme in Firebase: userId is null or invalid");
         }
     }
 
     public void logout() {
         userRepository.signOut();
         sessionRepository.logout();
+        currentUser.setValue(null);
     }
 
     public LiveData<UserModel> getCurrentUser() { return currentUser; }
@@ -147,7 +151,8 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     private void loadCurrentUser() {
-        Log.d("SettingsViewModel", "Loading user profile");
+        String uid = userRepository.getCurrentUserId();
+        Log.d("SettingsViewModel", "Loading user profile for ID: " + uid);
         userRepository.loadUserProfile();
     }
 
@@ -162,23 +167,23 @@ public class SettingsViewModel extends AndroidViewModel {
 
         UserModel currentUserModel = currentUser.getValue();
         if (currentUserModel == null) {
-            operationResult.setValue("No user logged in");
+            operationResult.setValue(getApplication().getString(R.string.error_no_user_logged_in));
             return;
         }
 
         // Validate inputs
         if (name == null || name.trim().isEmpty()) {
-            operationResult.setValue("Name is required");
+            operationResult.setValue(getApplication().getString(R.string.name_required_error));
             return;
         }
 
         if (email != null && !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            operationResult.setValue("Invalid email format");
+            operationResult.setValue(getApplication().getString(R.string.email_invalid_error));
             return;
         }
 
         if (phone == null || phone.trim().isEmpty()) {
-            operationResult.setValue("Phone number is required");
+            operationResult.setValue(getApplication().getString(R.string.phone_required_error));
             return;
         }
 
@@ -252,12 +257,12 @@ public class SettingsViewModel extends AndroidViewModel {
 
         UserModel user = currentUser.getValue();
         if (user == null) {
-            operationResult.postValue("No user data available");
+            operationResult.postValue(getApplication().getString(R.string.error_no_user_data));
             return;
         }
 
         if (imageUri == null || imageUri.isEmpty()) {
-            operationResult.postValue("No image selected");
+            operationResult.postValue(getApplication().getString(R.string.error_no_image_selected));
             return;
         }
 
@@ -273,36 +278,39 @@ public class SettingsViewModel extends AndroidViewModel {
             public void onSuccess(String mediaUrl) {
                 Log.d("SettingsViewModel", "✅ Profile image uploaded successfully: " + mediaUrl);
 
-                // Update user model with new image URL
+                // ✅ FIX: Verify user ID before update and SELF-HEAL if corrupted
+                String currentUid = userRepository.getCurrentUserId();
+                if (currentUid == null) {
+                    Log.e("SettingsViewModel", "CRITICAL: No authenticated user found during upload.");
+                    operationResult.postValue(getApplication().getString(R.string.error_not_logged_in));
+                    isUploadingImage = false;
+                    isLoading.postValue(false);
+                    return;
+                }
+
+                if (!currentUid.equals(user.getUserId())) {
+                    Log.w("SettingsViewModel", "ID Mismatch detected. Repairing... Auth: " + currentUid + ", Model: " + user.getUserId());
+                    // We continue, using currentUid as the source of truth
+                }
+
+                // ✅ FIX: Update in Firestore IMMEDIATELY using the AUTH ID
+                 // Update user model with new image URL
                 UserModel updatedUser = new UserModel(
                         user.getFullName(),
                         user.getEmail(),
                         user.getPhoneNumber(),
                         user.getPasswordHash()
                 );
-                updatedUser.setUserId(user.getUserId());
+                updatedUser.setUserId(currentUid); // FORCE CORRECT ID
                 updatedUser.setProfileImage(mediaUrl);
 
-                // ✅ FIX: Update in Firestore IMMEDIATELY
                 userRepository.updateProfile(updatedUser, null, null);
 
                 // Delete old image in background (non-blocking) - don't wait for this
                 if (user.getProfileImage() != null && !user.getProfileImage().isEmpty()) {
                     String oldPublicId = extractPublicIdFromUrl(user.getProfileImage());
                     if (oldPublicId != null && !oldPublicId.equals(publicId)) {
-                        new Thread(() -> {
-                            cloudinaryService.deleteMedia(oldPublicId, new CloudinaryImageService.MediaDeleteCallback() {
-                                @Override
-                                public void onSuccess() {
-                                    Log.d("SettingsViewModel", "Old profile image deleted");
-                                }
-
-                                @Override
-                                public void onError(String error) {
-                                    Log.w("SettingsViewModel", "Failed to delete old image: " + error);
-                                }
-                            });
-                        }).start();
+                        newThreadToDeleteImage(oldPublicId);
                     }
                 }
 
@@ -314,9 +322,25 @@ public class SettingsViewModel extends AndroidViewModel {
             @Override
             public void onError(String error) {
                 Log.e("SettingsViewModel", "❌ Failed to upload profile image: " + error);
-                operationResult.postValue("Failed to upload image: " + error);
+                operationResult.postValue(getApplication().getString(R.string.error_upload_failed, error));
                 isUploadingImage = false;
                 isLoading.postValue(false);
+            }
+
+            private void newThreadToDeleteImage(String oldPublicId) {
+                new Thread(() -> {
+                    cloudinaryService.deleteMedia(oldPublicId, new CloudinaryImageService.MediaDeleteCallback() {
+                        @Override
+                        public void onSuccess() {
+                            Log.d("SettingsViewModel", "Old profile image deleted");
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            Log.w("SettingsViewModel", "Failed to delete old image: " + error);
+                        }
+                    });
+                }).start();
             }
 
             @Override
@@ -343,7 +367,10 @@ public class SettingsViewModel extends AndroidViewModel {
     @Override
     protected void onCleared() {
         super.onCleared();
-        Log.d("SettingsViewModel", "ViewModel cleared");
+        if (userRepository != null) {
+            userRepository.cleanup();
+        }
+        Log.d("SettingsViewModel", "ViewModel cleared and repository cleaned up");
     }
 
     private String extractPublicIdFromUrl(String cloudinaryUrl) {

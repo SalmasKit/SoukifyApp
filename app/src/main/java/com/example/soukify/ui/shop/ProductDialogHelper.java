@@ -77,7 +77,7 @@ public class ProductDialogHelper {
         LinearLayout mainContainer = createDialogContainer(context);
         View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_add_product, null);
 
-        mainContainer.addView(createDialogHeader(context, "Add Product", R.drawable.ic_baseline_add_24));
+        mainContainer.addView(createDialogHeader(context, context.getString(R.string.add_product_title), R.drawable.ic_baseline_add_24));
         mainContainer.addView(dialogView);
 
         builder.setView(mainContainer);
@@ -89,11 +89,11 @@ public class ProductDialogHelper {
         selectedProductImageUris.clear();
 
         builder
-            .setPositiveButton("Add Product", (dialogInterface, which) -> {
+            .setPositiveButton(context.getString(R.string.add_product_btn), (dialogInterface, which) -> {
                 
                 handleAddProduct(dialogView);
             })
-            .setNegativeButton("Cancel", (dialogInterface, which) -> {
+            .setNegativeButton(context.getString(R.string.cancel), (dialogInterface, which) -> {
                 selectedProductImageUris.clear();
             });
 
@@ -143,7 +143,7 @@ public class ProductDialogHelper {
         intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
 
-        imagePickerLauncher.launch(Intent.createChooser(intent, "Select Product Media"));
+        imagePickerLauncher.launch(Intent.createChooser(intent, fragment.getString(R.string.select_product_media)));
     }
 
     /**
@@ -189,7 +189,7 @@ public class ProductDialogHelper {
         LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(
             (int)(24 * density), (int)(24 * density)
         );
-        iconParams.setMargins(0, 0, (int)(12 * density), 0);
+        iconParams.setMarginEnd((int)(12 * density));
         headerIcon.setLayoutParams(iconParams);
         headerContainer.addView(headerIcon);
 
@@ -235,11 +235,15 @@ public class ProductDialogHelper {
         // Weight unit dropdown (kg, g, mg)
         AutoCompleteTextView weightUnitSpinner = dialogView.findViewById(R.id.etWeightUnit);
         if (weightUnitSpinner != null) {
-            String[] weightUnits = {"kg", "g", "mg"};
+            String[] weightUnits = {
+                com.example.soukify.utils.UnitUtils.getLocalizedUnit(fragment.requireContext(), "kg"),
+                com.example.soukify.utils.UnitUtils.getLocalizedUnit(fragment.requireContext(), "g"),
+                com.example.soukify.utils.UnitUtils.getLocalizedUnit(fragment.requireContext(), "mg")
+            };
             ArrayAdapter<String> weightAdapter = new ArrayAdapter<>(fragment.requireContext(),
                     R.layout.dropdown_item, R.id.dropdown_text, weightUnits);
             weightUnitSpinner.setAdapter(weightAdapter);
-            weightUnitSpinner.setText("kg", false);
+            weightUnitSpinner.setText(com.example.soukify.utils.UnitUtils.getLocalizedUnit(fragment.requireContext(), "kg"), false);
             weightUnitSpinner.setOnItemClickListener((parent, view, position, id) -> {
                 String selectedUnit = (String) parent.getItemAtPosition(position);
                 weightUnitSpinner.setText(selectedUnit, false);
@@ -249,11 +253,16 @@ public class ProductDialogHelper {
         // Length unit dropdown (km, m, cm, mm)
         AutoCompleteTextView lengthUnitSpinner = dialogView.findViewById(R.id.etLengthUnit);
         if (lengthUnitSpinner != null) {
-            String[] lengthUnits = {"km", "m", "cm", "mm"};
+            String[] lengthUnits = {
+                com.example.soukify.utils.UnitUtils.getLocalizedUnit(fragment.requireContext(), "km"),
+                com.example.soukify.utils.UnitUtils.getLocalizedUnit(fragment.requireContext(), "m"),
+                com.example.soukify.utils.UnitUtils.getLocalizedUnit(fragment.requireContext(), "cm"),
+                com.example.soukify.utils.UnitUtils.getLocalizedUnit(fragment.requireContext(), "mm")
+            };
             ArrayAdapter<String> lengthAdapter = new ArrayAdapter<>(fragment.requireContext(),
                     R.layout.dropdown_item, R.id.dropdown_text, lengthUnits);
             lengthUnitSpinner.setAdapter(lengthAdapter);
-            lengthUnitSpinner.setText("cm", false);
+            lengthUnitSpinner.setText(com.example.soukify.utils.UnitUtils.getLocalizedUnit(fragment.requireContext(), "cm"), false);
             lengthUnitSpinner.setOnItemClickListener((parent, view, position, id) -> {
                 String selectedUnit = (String) parent.getItemAtPosition(position);
                 lengthUnitSpinner.setText(selectedUnit, false);
@@ -263,11 +272,16 @@ public class ProductDialogHelper {
         // Width unit dropdown (km, m, cm, mm)
         AutoCompleteTextView widthUnitSpinner = dialogView.findViewById(R.id.etWidthUnit);
         if (widthUnitSpinner != null) {
-            String[] widthUnits = {"km", "m", "cm", "mm"};
+            String[] widthUnits = {
+                com.example.soukify.utils.UnitUtils.getLocalizedUnit(fragment.requireContext(), "km"),
+                com.example.soukify.utils.UnitUtils.getLocalizedUnit(fragment.requireContext(), "m"),
+                com.example.soukify.utils.UnitUtils.getLocalizedUnit(fragment.requireContext(), "cm"),
+                com.example.soukify.utils.UnitUtils.getLocalizedUnit(fragment.requireContext(), "mm")
+            };
             ArrayAdapter<String> widthAdapter = new ArrayAdapter<>(fragment.requireContext(),
                     R.layout.dropdown_item, R.id.dropdown_text, widthUnits);
             widthUnitSpinner.setAdapter(widthAdapter);
-            widthUnitSpinner.setText("cm", false);
+            widthUnitSpinner.setText(com.example.soukify.utils.UnitUtils.getLocalizedUnit(fragment.requireContext(), "cm"), false);
             widthUnitSpinner.setOnItemClickListener((parent, view, position, id) -> {
                 String selectedUnit = (String) parent.getItemAtPosition(position);
                 widthUnitSpinner.setText(selectedUnit, false);
@@ -277,11 +291,16 @@ public class ProductDialogHelper {
         // Height unit dropdown (km, m, cm, mm)
         AutoCompleteTextView heightUnitSpinner = dialogView.findViewById(R.id.etHeightUnit);
         if (heightUnitSpinner != null) {
-            String[] heightUnits = {"km", "m", "cm", "mm"};
+            String[] heightUnits = {
+                com.example.soukify.utils.UnitUtils.getLocalizedUnit(fragment.requireContext(), "km"),
+                com.example.soukify.utils.UnitUtils.getLocalizedUnit(fragment.requireContext(), "m"),
+                com.example.soukify.utils.UnitUtils.getLocalizedUnit(fragment.requireContext(), "cm"),
+                com.example.soukify.utils.UnitUtils.getLocalizedUnit(fragment.requireContext(), "mm")
+            };
             ArrayAdapter<String> heightAdapter = new ArrayAdapter<>(fragment.requireContext(),
                     R.layout.dropdown_item, R.id.dropdown_text, heightUnits);
             heightUnitSpinner.setAdapter(heightAdapter);
-            heightUnitSpinner.setText("cm", false);
+            heightUnitSpinner.setText(com.example.soukify.utils.UnitUtils.getLocalizedUnit(fragment.requireContext(), "cm"), false);
             heightUnitSpinner.setOnItemClickListener((parent, view, position, id) -> {
                 String selectedUnit = (String) parent.getItemAtPosition(position);
                 heightUnitSpinner.setText(selectedUnit, false);
@@ -324,7 +343,7 @@ public class ProductDialogHelper {
         LinearLayout mainContainer = createDialogContainer(context);
         View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_edit_product, null);
 
-        mainContainer.addView(createDialogHeader(context, "Edit Product", R.drawable.ic_edit));
+        mainContainer.addView(createDialogHeader(context, context.getString(R.string.edit_product_title), R.drawable.ic_edit));
         mainContainer.addView(dialogView);
 
         builder.setView(mainContainer);
@@ -336,10 +355,10 @@ public class ProductDialogHelper {
         prefillProductData(dialogView, product);
 
         builder
-            .setPositiveButton("Update Product", (dialogInterface, which) -> {
+            .setPositiveButton(context.getString(R.string.update_product_btn), (dialogInterface, which) -> {
                 handleEditProduct(dialogView, product);
             })
-            .setNegativeButton("Cancel", (dialogInterface, which) -> {
+            .setNegativeButton(context.getString(R.string.cancel), (dialogInterface, which) -> {
                 selectedProductImageUris.clear();
             });
 
@@ -404,26 +423,26 @@ public class ProductDialogHelper {
         if (etProductWeight != null && product.getWeight() != null) {
             double weightInKg = product.getWeight();
             etProductWeight.setText(String.valueOf(weightInKg));
-            if (etWeightUnit != null) etWeightUnit.setText("kg", false);
+            if (etWeightUnit != null) etWeightUnit.setText(com.example.soukify.utils.UnitUtils.getLocalizedUnit(fragment.requireContext(), "kg"), false);
         }
 
         // Set values and units for dimensions (default to cm)
         if (etProductLength != null && product.getLength() != null) {
             double lengthInCm = product.getLength();
             etProductLength.setText(String.valueOf(lengthInCm));
-            if (etLengthUnit != null) etLengthUnit.setText("cm", false);
+            if (etLengthUnit != null) etLengthUnit.setText(com.example.soukify.utils.UnitUtils.getLocalizedUnit(fragment.requireContext(), "cm"), false);
         }
 
         if (etProductWidth != null && product.getWidth() != null) {
             double widthInCm = product.getWidth();
             etProductWidth.setText(String.valueOf(widthInCm));
-            if (etWidthUnit != null) etWidthUnit.setText("cm", false);
+            if (etWidthUnit != null) etWidthUnit.setText(com.example.soukify.utils.UnitUtils.getLocalizedUnit(fragment.requireContext(), "cm"), false);
         }
 
         if (etProductHeight != null && product.getHeight() != null) {
             double heightInCm = product.getHeight();
             etProductHeight.setText(String.valueOf(heightInCm));
-            if (etHeightUnit != null) etHeightUnit.setText("cm", false);
+            if (etHeightUnit != null) etHeightUnit.setText(com.example.soukify.utils.UnitUtils.getLocalizedUnit(fragment.requireContext(), "cm"), false);
         }
 
         // Set color and material
@@ -531,7 +550,7 @@ public class ProductDialogHelper {
         try {
             price = Double.parseDouble(priceStr);
         } catch (NumberFormatException e) {
-            Toast.makeText(fragment.requireContext(), "Invalid price format", Toast.LENGTH_SHORT).show();
+            Toast.makeText(fragment.requireContext(), fragment.getString(R.string.invalid_price_format), Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -549,10 +568,11 @@ public class ProductDialogHelper {
             if (!weightText.isEmpty()) {
                 try {
                     double weightValue = Double.parseDouble(weightText);
-                    String weightUnit = etWeightUnit != null ? etWeightUnit.getText().toString().trim() : "kg";
+                    String localizedUnit = etWeightUnit != null ? etWeightUnit.getText().toString().trim() : com.example.soukify.utils.UnitUtils.getLocalizedUnit(fragment.requireContext(), "kg");
+                    String weightUnitKey = com.example.soukify.utils.UnitUtils.getUnitKey(fragment.requireContext(), localizedUnit);
 
                     // Convert to base unit (kg) for storage
-                    switch (weightUnit.toLowerCase()) {
+                    switch (weightUnitKey) {
                         case "g":
                             weight = weightValue / 1000.0; // g to kg
                             break;
@@ -565,7 +585,7 @@ public class ProductDialogHelper {
                             break;
                     }
                 } catch (NumberFormatException e) {
-                    Toast.makeText(fragment.requireContext(), "Invalid weight format", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(fragment.requireContext(), fragment.getString(R.string.invalid_weight_format), Toast.LENGTH_SHORT).show();
                     return;
                 }
             }
@@ -613,11 +633,11 @@ public class ProductDialogHelper {
             shopViewModel.updateProduct(product);
 
             // Show success message
-            Toast.makeText(fragment.requireContext(), "Product updated successfully", Toast.LENGTH_SHORT).show();
+            Toast.makeText(fragment.requireContext(), fragment.getString(R.string.product_updated_success), Toast.LENGTH_SHORT).show();
         } else {
             // Fallback to ProductManager
             productManager.updateProduct(product);
-            Toast.makeText(fragment.requireContext(), "Product updated successfully", Toast.LENGTH_SHORT).show();
+            Toast.makeText(fragment.requireContext(), fragment.getString(R.string.product_updated_success), Toast.LENGTH_SHORT).show();
         }
 
         selectedProductImageUris.clear();
@@ -633,10 +653,11 @@ public class ProductDialogHelper {
 
         try {
             double value = Double.parseDouble(text);
-            String unit = unitView != null ? unitView.getText().toString().trim() : "cm";
+            String localizedUnit = unitView != null ? unitView.getText().toString().trim() : com.example.soukify.utils.UnitUtils.getLocalizedUnit(fragment.requireContext(), "cm");
+            String unitKey = com.example.soukify.utils.UnitUtils.getUnitKey(fragment.requireContext(), localizedUnit);
 
             // Convert to base unit (cm) for storage
-            switch (unit.toLowerCase()) {
+            switch (unitKey) {
                 case "km":
                     return value * 100000.0; // km to cm
                 case "m":
@@ -683,7 +704,7 @@ public class ProductDialogHelper {
         try {
             price = Double.parseDouble(priceStr);
         } catch (NumberFormatException e) {
-            Toast.makeText(fragment.requireContext(), "Invalid price format", Toast.LENGTH_SHORT).show();
+            Toast.makeText(fragment.requireContext(), fragment.getString(R.string.invalid_price_format), Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -717,7 +738,7 @@ public class ProductDialogHelper {
                             break;
                     }
                 } catch (NumberFormatException e) {
-                    Toast.makeText(fragment.requireContext(), "Invalid weight format", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(fragment.requireContext(), fragment.getString(R.string.invalid_weight_format), Toast.LENGTH_SHORT).show();
                     return;
                 }
             }
@@ -748,7 +769,7 @@ public class ProductDialogHelper {
         selectedProductImageUris.clear();
 
         // Show success message
-        Toast.makeText(fragment.requireContext(), "Product added successfully", Toast.LENGTH_SHORT).show();
+        Toast.makeText(fragment.requireContext(), fragment.getString(R.string.product_added_success), Toast.LENGTH_SHORT).show();
     }
 
     private void updateProductImagePreview() {
@@ -787,7 +808,7 @@ public class ProductDialogHelper {
                         if (position >= 0 && position < selectedProductImageUris.size()) {
                             selectedProductImageUris.remove(position);
                             updateProductImagePreview();
-                            Toast.makeText(fragment.requireContext(), "Media deleted", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(fragment.requireContext(), fragment.getString(R.string.media_deleted), Toast.LENGTH_SHORT).show();
                         }
                     });
                 });
@@ -807,13 +828,15 @@ public class ProductDialogHelper {
                 }
 
                 String countText;
-                if (videoCount > 0 && imageCount > 0) {
-                    countText = imageCount + " image" + (imageCount == 1 ? "" : "s") +
-                               ", " + videoCount + " video" + (videoCount == 1 ? "" : "s");
-                } else if (videoCount > 0) {
-                    countText = videoCount + " video" + (videoCount == 1 ? "" : "s");
+                String imagePart = imageCount > 0 ? fragment.getResources().getQuantityString(R.plurals.images_count, imageCount, imageCount) : "";
+                String videoPart = videoCount > 0 ? fragment.getResources().getQuantityString(R.plurals.videos_count, videoCount, videoCount) : "";
+
+                if (imageCount > 0 && videoCount > 0) {
+                    countText = imagePart + fragment.getString(R.string.image_video_separator) + videoPart;
+                } else if (imageCount > 0) {
+                    countText = imagePart;
                 } else {
-                    countText = imageCount + " image" + (imageCount == 1 ? "" : "s");
+                    countText = videoPart;
                 }
                 currentImageCountTextView.setText(countText);
             }
