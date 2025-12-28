@@ -11,9 +11,9 @@ public class CloudinaryConfig {
     public static Cloudinary getInstance() {
         if (cloudinary == null) {
             Map<String, Object> config = new HashMap<>();
-            config.put("cloud_name", "duewphf56");
-            config.put("api_key", "757982559184685");
-            config.put("api_secret", "9cr_yctKQOeJbQ5ceOJ8UfnvA7A");
+            config.put("cloud_name", BuildConfig.CLOUDINARY_CLOUD_NAME);
+            config.put("api_key", BuildConfig.CLOUDINARY_API_KEY);
+            config.put("api_secret", BuildConfig.CLOUDINARY_API_SECRET);
             config.put("secure", true);
             
             cloudinary = new Cloudinary(config);

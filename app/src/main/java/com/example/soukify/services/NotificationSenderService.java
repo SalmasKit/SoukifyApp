@@ -18,13 +18,14 @@ import java.util.concurrent.Executors;
  * Client-side notification sender using OneSignal API
  * Replaces legacy FCM implementation to ensure reliable delivery
  */
+
 public class NotificationSenderService {
 
     private static final String TAG = "NotificationSender";
     
     // OneSignal Configuration
     private static final String ONESIGNAL_APP_ID = "3e5e2256-41bb-473c-ae7b-a2e35cbfad9a";
-    private static final String ONESIGNAL_API_KEY = "os_v2_app_hzpcevsbxndtzlt3ulrvzp5ntkfgqjnaatvej4ua7rsvokacos2oihlklta2aw3tk3tzvha2oh4h6xqmkvqj7cio3b3p2vpi6pjyqdi";
+    private static final String ONESIGNAL_API_KEY = "os_v2_app_hzpcevsbxndtzlt3ulrvzp5ntk3q7xx5cxceqwnr6szn5m7e4aoqvee5wftnwj2gmcgshzbok35u7bm7k2xjuqpt5jvb4tac6a4su7q";
     private static final String ONESIGNAL_API_URL = "https://onesignal.com/api/v1/notifications";
     
     private final FirebaseFirestore db;
@@ -43,10 +44,6 @@ public class NotificationSenderService {
         if (recipientId == null || recipientId.isEmpty()) return;
 
         executor.execute(() -> {
-            // Check preferences logic is handled in ChatRepository usually, 
-            // but we can double check or just send if called directly.
-            // For now, we assume the caller has decided to send.
-            
             sendOneSignalNotification(
                 recipientId,
                 "New message from " + senderName,
@@ -59,9 +56,6 @@ public class NotificationSenderService {
         });
     }
 
-    /**
-     * Send new product notification to all users who liked the shop
-     */
     /**
      * Send new product notification to all users who liked the shop
      */
@@ -78,20 +72,8 @@ public class NotificationSenderService {
 
                     List<String> followers = (List<String>) shopDoc.get("likedByUserIds");
                     
-                    // DEBUG: If no followers, send to current user (Owner) for verification
                     if (followers == null || followers.isEmpty()) {
-                        Log.d(TAG, "No followers found in 'likedByUserIds' for shop: " + shopId + ". Sending to owner for testing.");
-                        String currentUserId = com.google.firebase.auth.FirebaseAuth.getInstance().getUid();
-                        if (currentUserId != null) {
-                            checkPreferencesAndSend(currentUserId, "newProducts",
-                                "New product at " + shopName,
-                                "(Test to Owner) " + (productTitle != null ? productTitle : "Check out the latest addition!"),
-                                "nouveau produit",
-                                null,
-                                shopId,
-                                productId
-                            );
-                        }
+                        Log.d(TAG, "No followers found in 'likedByUserIds' for shop: " + shopId);
                         return;
                     }
 
@@ -128,20 +110,8 @@ public class NotificationSenderService {
 
                     List<String> followers = (List<String>) shopDoc.get("likedByUserIds");
 
-                    // DEBUG: If no followers, send to current user (Owner) for verification
                     if (followers == null || followers.isEmpty()) {
-                        Log.d(TAG, "No followers found in 'likedByUserIds' for shop: " + shopId + ". Sending to owner for testing.");
-                        String currentUserId = com.google.firebase.auth.FirebaseAuth.getInstance().getUid();
-                        if (currentUserId != null) {
-                            checkPreferencesAndSend(currentUserId, "shopPromotions",
-                                "🎉 " + shopName + " has a promotion!",
-                                "(Test to Owner) " + (promotionMessage != null ? promotionMessage : "Special offers available now!"),
-                                "promotion",
-                                null,
-                                shopId,
-                                null
-                            );
-                        }
+                        Log.d(TAG, "No followers found in 'likedByUserIds' for shop: " + shopId);
                         return;
                     }
 
@@ -176,40 +146,22 @@ public class NotificationSenderService {
                         @SuppressWarnings("unchecked")
                         Map<String, Object> notifPrefs = (Map<String, Object>) notifPrefsObj;
                         
-                        // Check if push is enabled
                         Boolean pushEnabled = (Boolean) notifPrefs.get("push");
-                        if (pushEnabled != null && !pushEnabled) {
-                            Log.d(TAG, "Push notifications disabled for user: " + userId);
-                            return;
-                        }
+                        if (pushEnabled != null && !pushEnabled) return;
 
-                        // Check specific preference
                         Boolean prefEnabled = (Boolean) notifPrefs.get(prefKey);
-                        if (prefEnabled != null && !prefEnabled) {
-                            Log.d(TAG, prefKey + " notifications disabled for user: " + userId);
-                            return;
-                        }
+                        if (prefEnabled != null && !prefEnabled) return;
 
-                        // Check quiet hours
-                        if (isInQuietHours(notifPrefs)) {
-                            Log.d(TAG, "User " + userId + " is in quiet hours");
-                            return;
-                        }
+                        if (isInQuietHours(notifPrefs)) return;
                     }
                 }
-
-                // Send notification
                 sendOneSignalNotification(userId, title, body, type, conversationId, shopId, productId);
             })
             .addOnFailureListener(e -> {
-                Log.e(TAG, "Failed to check preferences, sending anyway", e);
                 sendOneSignalNotification(userId, title, body, type, conversationId, shopId, productId);
             });
     }
 
-    /**
-     * Send OneSignal notification via REST API
-     */
     private void sendOneSignalNotification(String userId, String title, String body, String type, 
                                            String conversationId, String shopId, String productId) {
         executor.execute(() -> {
@@ -217,17 +169,20 @@ public class NotificationSenderService {
                 URL url = new URL(ONESIGNAL_API_URL);
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("POST");
-                conn.setRequestProperty("Authorization", "Basic " + ONESIGNAL_API_KEY);
+                conn.setRequestProperty("Authorization", "Key " + ONESIGNAL_API_KEY);
                 conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
                 conn.setDoOutput(true);
 
                 JSONObject json = new JSONObject();
                 json.put("app_id", ONESIGNAL_APP_ID);
                 
-                // Target specific user
-                JSONArray includeExternalUserIds = new JSONArray();
-                includeExternalUserIds.put(userId);
-                json.put("include_external_user_ids", includeExternalUserIds);
+                // Target specific user using Aliases (OneSignal v5+)
+                JSONObject aliases = new JSONObject();
+                JSONArray externalIds = new JSONArray();
+                externalIds.put(userId);
+                aliases.put("external_id", externalIds);
+                json.put("include_aliases", aliases);
+                json.put("target_channel", "push");
 
                 // Content
                 JSONObject contents = new JSONObject();
@@ -249,7 +204,7 @@ public class NotificationSenderService {
                 // Android Specifics (High Priority & Visibility)
                 json.put("priority", 10);
                 json.put("android_visibility", 1); // Public
-                json.put("android_channel_id", getChannelId(type)); // Optional: Map to local channels if OneSignal allows mapping via Dashboard
+                json.put("android_channel_id", getChannelId(type)); // Optional
 
                 OutputStream os = conn.getOutputStream();
                 os.write(json.toString().getBytes("UTF-8"));
@@ -260,7 +215,16 @@ public class NotificationSenderService {
                     Log.d(TAG, "✅ Notification sent successfully to " + userId + " (Type: " + type + ")");
                 } else {
                     Log.e(TAG, "❌ Failed to send notification: " + responseCode);
-                    // Read error stream if possible
+                    // Read error stream
+                    try (java.io.BufferedReader br = new java.io.BufferedReader(
+                            new java.io.InputStreamReader(conn.getErrorStream(), "utf-8"))) {
+                        StringBuilder response = new StringBuilder();
+                        String responseLine = null;
+                        while ((responseLine = br.readLine()) != null) {
+                            response.append(responseLine.trim());
+                        }
+                        Log.e(TAG, "Error Response: " + response.toString());
+                    }
                 }
 
             } catch (Exception e) {

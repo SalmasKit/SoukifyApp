@@ -38,7 +38,7 @@ public class SoukifyApplication extends Application {
             OneSignal.getDebug().setLogLevel(LogLevel.VERBOSE);
             
             // Initialize OneSignal for push notifications (used for Chat)
-            OneSignal.initWithContext(this, "3e5e2256-41bb-473c-ae7b-a2e35cbfad9a");
+            OneSignal.initWithContext(this, BuildConfig.ONESIGNAL_APP_ID);
             
             // Demande de permission avec un callback vide pour OneSignal 5.x
             OneSignal.getNotifications().requestPermission(true, com.onesignal.Continue.none());

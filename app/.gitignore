@@ -1,1 +1,3 @@
-/build
+# Build artifacts are covered by root .gitignore
+
+.idea

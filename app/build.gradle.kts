@@ -8,6 +8,11 @@ android {
     namespace = "com.example.soukify"
     compileSdk = 36
 
+    buildFeatures {
+        viewBinding = true
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId = "com.example.soukify"
         minSdk = 24
@@ -16,6 +21,18 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Move secrets to BuildConfig from local.properties
+        val localProperties = java.util.Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localProperties.load(java.io.FileInputStream(localPropertiesFile))
+        }
+
+        buildConfigField("String", "CLOUDINARY_CLOUD_NAME", "\"${localProperties.getProperty("CLOUDINARY_CLOUD_NAME") ?: ""}\"")
+        buildConfigField("String", "CLOUDINARY_API_KEY", "\"${localProperties.getProperty("CLOUDINARY_API_KEY") ?: ""}\"")
+        buildConfigField("String", "CLOUDINARY_API_SECRET", "\"${localProperties.getProperty("CLOUDINARY_API_SECRET") ?: ""}\"")
+        buildConfigField("String", "ONESIGNAL_APP_ID", "\"${localProperties.getProperty("ONESIGNAL_APP_ID") ?: ""}\"")
 
         // Configure ABI filtering for universal APK compatibility
         ndk {
@@ -27,7 +44,7 @@ android {
             ))
         }
     }
-
+    
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -41,10 +58,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    buildFeatures {
-        viewBinding = true
     }
 
     // Disable APK splits to ensure compatibility with all devices
