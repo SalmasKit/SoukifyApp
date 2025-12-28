@@ -37,7 +37,7 @@
     <string name="Pro">Pro</string>
     <string name="Type">Type</string>
     <string name="Sort">Sort</string>
-    <string name="Top">Top</string>
+    <string name="Top">Most Rated</string>
     <string name="item_not_found">Item not found</string>
 
     <!-- ==================== CATEGORIES ==================== -->
@@ -436,7 +436,7 @@
     <string name="sign_up_title">Sign Up</string>
     <string name="confirm_password_hint">confirm</string>
     <string name="username_hint">username</string>
-    <string name="phone_optional_hint">phone (optional)</string>
+    <string name="phone_optional_hint">Phone Number (Optional)</string>
     <string name="sign_up_button" translatable="false">sign up</string>
     <string name="already_have_account">Already have on account?</string>
     <string name="login_link">log in</string>
@@ -457,7 +457,7 @@
     <!-- Search Fragment -->
     <string name="promo_button">Promotion</string>
     <string name="delivery_button">Delivery</string>
-    <string name="trending_button">Tendance</string>
+    <string name="trending_button">Trending</string>
 
     <!-- Product Details -->
     <string name="product_details_title">Product Details</string>

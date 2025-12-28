@@ -95,10 +95,9 @@ public class ShopViewModel extends AndroidViewModel {
             if (shops != null && !shops.isEmpty()) {
                 android.util.Log.d("ShopViewModel", "User has shops, setting hasShop to true");
                 hasShop.postValue(true);
-                if (currentShop.getValue() == null) {
-                    currentShop.postValue(shops.get(0));
-                    android.util.Log.d("ShopViewModel", "Set current shop to: " + shops.get(0).getName());
-                }
+                // Always update to the user's shop (first one) when user shops are loaded
+                currentShop.postValue(shops.get(0));
+                android.util.Log.d("ShopViewModel", "Set current shop to: " + shops.get(0).getName());
             } else {
                 android.util.Log.d("ShopViewModel", "User has no shops, setting hasShop to false");
                 hasShop.postValue(false);
@@ -248,7 +247,7 @@ public class ShopViewModel extends AndroidViewModel {
         loadUserShops();
     }
     
-    private void loadUserShops() {
+    public void loadUserShops() {
         android.util.Log.d("ShopViewModel", "loadUserShops called");
         isLoading.postValue(true);
         shopRepository.loadUserShops();

@@ -120,8 +120,7 @@ public class FirebaseShopService {
     
     public Task<Void> toggleLike(String shopId, boolean isLiked, int likesCount) {
         return firestore.collection(SHOPS_COLLECTION).document(shopId)
-                .update("liked", isLiked, 
-                        "likesCount", likesCount,
+                .update("likesCount", likesCount,
                         "updatedAt", System.currentTimeMillis());
     }
 }

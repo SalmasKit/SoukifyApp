@@ -52,6 +52,10 @@ public class ShopSync {
             }
         }
 
+        public static void clear() {
+            STATES.clear();
+        }
+
         public static class LikeState {
             public final boolean isLiked;
             public final int count;
@@ -105,6 +109,10 @@ public class ShopSync {
                     l.onShopSyncUpdate(id, payload);
                 }
             }
+        }
+
+        public static void clear() {
+            STATES.clear();
         }
 
         public static class FavoriteState {

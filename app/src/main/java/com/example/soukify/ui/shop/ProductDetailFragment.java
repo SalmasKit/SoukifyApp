@@ -76,8 +76,8 @@ public class ProductDetailFragment extends Fragment implements ProductDialogHelp
     private TextView productCurrency;
     private TextView productDescription;
     private Toolbar toolbar;
-    private ImageButton editButton;
-    private ImageButton deleteButton;
+    private ImageView editButton;
+    private ImageView deleteButton;
     private ImageButton callButton;
     private ImageButton emailButton;
     private ImageButton likeButton;

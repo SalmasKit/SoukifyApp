@@ -124,7 +124,7 @@
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/phone_number">
+                    android:hint="@string/phone_optional_hint">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/phoneEditText"

@@ -183,18 +183,22 @@ public class ShopModel {
         this.imageUrl = imageUrl;
     }
 
+    @com.google.firebase.firestore.Exclude
     public boolean isFavorite() {
         return favorite;
     }
 
+    @com.google.firebase.firestore.Exclude
     public void setFavorite(boolean favorite) {
         this.favorite = favorite;
     }
 
+    @com.google.firebase.firestore.Exclude
     public boolean isLiked() {
         return liked;
     }
 
+    @com.google.firebase.firestore.Exclude
     public void setLiked(boolean liked) {
         this.liked = liked;
     }
@@ -298,6 +302,7 @@ public class ShopModel {
     public void calculateAverageRating() {
         if (userRatings == null || userRatings.isEmpty()) {
             this.rating = 0.0;
+            this.reviews = 0;
             return;
         }
 
@@ -310,6 +315,7 @@ public class ShopModel {
             }
         }
 
-        this.rating = count > 0 ? sum / count : 0.0;
+        this.rating = count > 0 ? (double) sum / count : 0.0;
+        this.reviews = count;
     }
 }

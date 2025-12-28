@@ -117,6 +117,12 @@ public class SettingsFragment extends Fragment {
                     .setMessage(R.string.logout_confirm_message)
                     .setNegativeButton(R.string.cancel, (d, w) -> d.dismiss())
                     .setPositiveButton(R.string.logout, (d, w) -> {
+                        // Clear sync states to prevent leakage to next user session
+                        com.example.soukify.data.sync.ProductSync.LikeSync.clear();
+                        com.example.soukify.data.sync.ProductSync.FavoriteSync.clear();
+                        com.example.soukify.data.sync.ShopSync.LikeSync.clear();
+                        com.example.soukify.data.sync.ShopSync.FavoriteSync.clear();
+
                         settingsViewModel.logout();
                         FirebaseAuth.getInstance().signOut();
                         performLogout();
@@ -133,29 +139,31 @@ public class SettingsFragment extends Fragment {
 
         openShopButton.setOnSettingClickListener(v -> {
             Log.d("SettingsFragment", "Open Shop button clicked!");
+            
+            // Force refresh to load ONLY the current user's shop
+            shopViewModel.loadUserShops();
+            
+            // Navigate to ShopHomeFragment (not ShopFragment which is for creation)
             Bundle args = new Bundle();
             args.putBoolean("hideDialogs", false); // Show dialogs from settings
+            args.putBoolean("loadUserShop", true); // Flag to load current user's shop
             
-            // Pass the current shop ID if available to speed up loading in ShopHomeFragment
-            if (shopViewModel.getShop().getValue() != null) {
-                args.putString("shopId", shopViewModel.getShop().getValue().getShopId());
+            try {
+                NavController navController = Navigation.findNavController(v);
+                navController.navigate(R.id.navigation_shop, args);
+            } catch (Exception e) {
+                Log.e("SettingsFragment", "Navigation failed", e);
+                Toast.makeText(requireContext(), "Failed to open shop", Toast.LENGTH_SHORT).show();
             }
-            
-            Navigation.findNavController(v).navigate(R.id.action_navigation_settings_to_navigation_shop, args);
         });
 
-        // Observe shop status to enable/disable button
+        // Observe shop status to optionally update UI, but keep button enabled
         shopViewModel.getHasShop().observe(getViewLifecycleOwner(), hasShop -> {
             boolean enabled = hasShop != null && hasShop;
             Log.d("SettingsFragment", "Shop status updated: hasShop=" + enabled);
-            openShopButton.setEnabled(enabled);
-            
-            // Optionally update title if no shop
-            if (!enabled) {
-                openShopButton.setAlpha(0.5f);
-            } else {
-                openShopButton.setAlpha(1.0f);
-            }
+            // Button is always enabled now to allow showing NoShopFragment
+            openShopButton.setEnabled(true);
+            openShopButton.setAlpha(1.0f);
         });
     }
 

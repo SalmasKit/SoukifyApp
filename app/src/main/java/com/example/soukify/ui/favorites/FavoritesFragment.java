@@ -201,7 +201,9 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
                 if (productId.equals(favoriteProducts.get(i).getProductId())) {
                     if (payload.containsKey("isFavorite") && !payload.getBoolean("isFavorite")) {
                         favoriteProducts.remove(i);
-                        if (productAdapter != null) productAdapter.notifyItemRemoved(i);
+                        if (productAdapter != null) {
+                            productAdapter.updateProducts(new ArrayList<>(favoriteProducts));
+                        }
                     } else {
                         if (productAdapter != null) productAdapter.notifyItemChanged(i, payload);
                     }
@@ -335,30 +337,43 @@ public class FavoritesFragment extends Fragment implements ShopAdapter.OnShopCli
 
     @Override
     public void onRatingChanged(ShopModel shop, float newRating, int position) {
-        // 1. Récupérer l'ID de l'utilisateur connecté
+        if (shop == null || FirebaseAuth.getInstance().getCurrentUser() == null) return;
+
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        // 2. Mettre à jour la Map des évaluations
+        // Mettre à jour la Map des évaluations
         Map<String, Float> userRatings = shop.getUserRatings();
+        if (userRatings == null) {
+            userRatings = new java.util.HashMap<>();
+            shop.setUserRatings(userRatings);
+        }
+        
         userRatings.put(currentUserId, newRating);
 
-        // 3. Recalculer la moyenne
+        // Recalculer la moyenne et mettre à jour le nombre d'avis
         shop.calculateAverageRating();
 
-        // 4. Mettre à jour dans Firebase
+        // Préparer les mises à jour pour Firebase
+        Map<String, Object> updates = new java.util.HashMap<>();
+        updates.put("userRatings", userRatings);
+        updates.put("rating", shop.getRating());
+        updates.put("reviews", shop.getReviews());
+
+        // Mettre à jour dans Firebase
         FirebaseFirestore.getInstance()
                 .collection("shops")
                 .document(shop.getShopId())
-                .update("userRatings", userRatings,
-                        "rating", shop.getRating(),
-                        "reviews", shop.getReviews())
+                .update(updates)
                 .addOnSuccessListener(aVoid -> {
-                    // Mise à jour réussie
-                    shopAdapter.notifyItemChanged(position);
-                    Toast.makeText(getContext(), R.string.rating_saved, Toast.LENGTH_SHORT).show();
+                    if (isAdded() && shopAdapter != null) {
+                        shopAdapter.notifyItemChanged(position);
+                        Toast.makeText(getContext(), R.string.rating_saved, Toast.LENGTH_SHORT).show();
+                    }
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), R.string.rating_error, Toast.LENGTH_SHORT).show();
+                    if (isAdded()) {
+                        Toast.makeText(getContext(), R.string.rating_error, Toast.LENGTH_SHORT).show();
+                    }
                 });
     }
 

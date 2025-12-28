@@ -241,7 +241,19 @@ public class ShopAdapter extends RecyclerView.Adapter<ShopAdapter.ShopViewHolder
             Float rating = shop.getUserRatings().get(currentUserId);
             if (rating != null) userRating = rating;
         }
+        holder.ratingBar.setOnRatingBarChangeListener(null);
         holder.ratingBar.setRating(userRating);
+        holder.ratingBar.setOnRatingBarChangeListener((ratingBar, rating, fromUser) -> {
+            if (fromUser) {
+                int pos = holder.getAdapterPosition();
+                if (pos != RecyclerView.NO_POSITION) {
+                    ShopModel clickedShop = shopList.get(pos);
+                    if (listener != null) {
+                        listener.onRatingChanged(clickedShop, rating, pos);
+                    }
+                }
+            }
+        });
 
         holder.phoneText.setText("📞 " + (shop.getPhone() != null ? shop.getPhone() : context.getString(R.string.not_available)));
         holder.emailText.setText("✉️ " + (shop.getEmail() != null ? shop.getEmail() : context.getString(R.string.not_available)));

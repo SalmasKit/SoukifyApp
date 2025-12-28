@@ -268,10 +268,7 @@ public class AccountSettingsFragment extends Fragment {
             binding.emailLayout.setError(null);
         }
 
-        if (phone.isEmpty()) {
-            binding.phoneLayout.setError(getString(R.string.phone_required_error));
-            isValid = false;
-        } else if (phone.length() < 8) {
+        if (!phone.isEmpty() && phone.length() < 8) {
             binding.phoneLayout.setError(getString(R.string.phone_invalid_error));
             isValid = false;
         } else {

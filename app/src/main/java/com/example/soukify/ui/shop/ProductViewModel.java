@@ -152,13 +152,8 @@ public class ProductViewModel extends AndroidViewModel {
         Log.d(TAG, "❤️ toggleLikeProduct called for product: " + productId);
 
         FirebaseUser currentUser = firebaseAuth.getCurrentUser();
-        if (currentUser == null) {
-            Log.e(TAG, "❌ User not logged in");
-            errorMessage.postValue("Please log in to like products");
-            return;
-        }
-
-        String userId = currentUser.getUid();
+        // Note: Repository handles anonymous users using device unique ID
+        String userId = currentUser != null ? currentUser.getUid() : null;
 
         // Trouver le produit dans la liste ou le produit courant
         ProductModel product = findProductById(productId);
@@ -322,11 +317,7 @@ public class ProductViewModel extends AndroidViewModel {
             return;
         }
 
-        FirebaseUser currentUser = firebaseAuth.getCurrentUser();
-        if (currentUser == null) {
-            currentProduct.postValue(product);
-            return;
-        }
+        // Note: Repository handles anonymous users internally
 
         String productId = product.getProductId();
 
@@ -352,11 +343,7 @@ public class ProductViewModel extends AndroidViewModel {
             return;
         }
 
-        FirebaseUser currentUser = firebaseAuth.getCurrentUser();
-        if (currentUser == null) {
-            products.postValue(productList);
-            return;
-        }
+        // Note: Repository handles anonymous users internally
 
         // Create a new list to avoid concurrent modification issues
         // and to serve as the source of truth for the adapter

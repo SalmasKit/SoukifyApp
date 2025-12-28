@@ -30,7 +30,7 @@
     <string name="Pro">Pro</string>
     <string name="Type">Type</string>
     <string name="Sort">Trier</string>
-    <string name="Top">Top</string>
+    <string name="Top">Mieux Notés</string>
     <string name="item_not_found">Article non trouvé</string>
 
     <!-- ==================== CATEGORIES ==================== -->
@@ -339,7 +339,7 @@
     <string name="sign_up_title">S\'inscrire</string>
     <string name="confirm_password_hint">confirmer</string>
     <string name="username_hint">nom d\'utilisateur</string>
-    <string name="phone_optional_hint">téléphone (optionnel)</string>
+    <string name="phone_optional_hint">Téléphone (Optionnel)</string>
     <string name="already_have_account">Vous avez déjà un compte ?</string>
     <string name="login_link">se connecter</string>
 

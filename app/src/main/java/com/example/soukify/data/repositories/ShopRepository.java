@@ -473,9 +473,6 @@ import com.google.firebase.auth.FirebaseAuth;
          if (document.contains("favorite")) {
              shop.setFavorite(document.getBoolean("favorite"));
          }
-         if (document.contains("liked")) {
-             shop.setLiked(document.getBoolean("liked"));
-         }
          
          // Handle likedByUserIds
          if (document.contains("likedByUserIds")) {

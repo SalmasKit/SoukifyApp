@@ -92,6 +92,9 @@ public class ShopHomeFragment extends Fragment implements ShopSync.SyncListener 
     private ImageButton btnLike;
     private ImageButton btnFavorite;
     private LinearLayout visitorActionsLayout;
+    
+    // Track loaded shop to prevent duplicate product loads
+    private String lastLoadedShopId = null;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -108,8 +111,42 @@ public class ShopHomeFragment extends Fragment implements ShopSync.SyncListener 
         if (args != null) {
             hideDialogs = args.getBoolean("hideDialogs", false);
             
-            // If shop data is passed from search, load the full shop data from database using shopId
-            if (args.containsKey("shopId")) {
+            // Check if we should load the current user's shop (from Settings)
+            boolean loadUserShop = args.getBoolean("loadUserShop", false);
+            
+            if (loadUserShop) {
+                // Load current user's shop from repository
+                android.util.Log.d("ShopHomeFragment", "Loading current user's shop from Settings");
+                shopViewModel.loadUserShops();
+                
+                // Check if shop data already exists in ViewModel
+                ShopModel existingShop = shopViewModel.getShop().getValue();
+                if (existingShop != null) {
+                    // Shop data already available, load products immediately
+                    android.util.Log.d("ShopHomeFragment", "Shop data already exists, loading products immediately for: " + existingShop.getShopId());
+                    if (productViewModel != null) {
+                        productViewModel.loadProductsForShop(existingShop.getShopId());
+                    }
+                } else {
+                    // Shop data not yet available, set up a one-time observer
+                    android.util.Log.d("ShopHomeFragment", "Shop data not yet available, setting up observer");
+                    shopViewModel.getShop().observe(getViewLifecycleOwner(), new androidx.lifecycle.Observer<ShopModel>() {
+                        @Override
+                        public void onChanged(ShopModel shop) {
+                            if (shop != null) {
+                                android.util.Log.d("ShopHomeFragment", "User shop loaded via observer, loading products for: " + shop.getShopId());
+                                // Remove this observer after first trigger
+                                shopViewModel.getShop().removeObserver(this);
+                                // Load products immediately
+                                if (productViewModel != null) {
+                                    productViewModel.loadProductsForShop(shop.getShopId());
+                                }
+                            }
+                        }
+                    });
+                }
+            } else if (args.containsKey("shopId")) {
+                // If shop data is passed from search/favorites, load the specific shop
                 String shopId = args.getString("shopId");
                 if (shopId != null && !shopId.isEmpty()) {
                     android.util.Log.d("ShopHomeFragment", "Loading shop data from database for shopId: " + shopId);
@@ -408,9 +445,11 @@ public class ShopHomeFragment extends Fragment implements ShopSync.SyncListener 
         shopViewModel.getShop().observe(getViewLifecycleOwner(), shop -> {
             android.util.Log.d("ShopHomeFragment", "Shop data received: " + (shop != null ? "EXISTS" : "NULL"));
             if (shop != null) {
-                // Ensure we only display the requested shop
+                // Ensure we only display the requested shop (unless we're loading user's shop from Settings)
                 Bundle args = getArguments();
-                if (args != null && args.containsKey("shopId")) {
+                boolean loadUserShop = args != null && args.getBoolean("loadUserShop", false);
+                
+                if (args != null && args.containsKey("shopId") && !loadUserShop) {
                     String requestedId = args.getString("shopId");
                     if (requestedId != null && !requestedId.isEmpty() && !requestedId.equals(shop.getShopId())) {
                         android.util.Log.w("ShopHomeFragment", "Ignoring shop update. Requested: " + requestedId + ", Received: " + shop.getShopId());
@@ -421,10 +460,15 @@ public class ShopHomeFragment extends Fragment implements ShopSync.SyncListener 
                 android.util.Log.d("ShopHomeFragment", "Shop name: " + shop.getName());
                 android.util.Log.d("ShopHomeFragment", "Shop image URL: " + shop.getImageUrl());
                 
-                // Load products using the verified shop ID
-                android.util.Log.d("ShopHomeFragment", "Loading products for shop: " + shop.getShopId());
-                if (productViewModel != null) {
-                    productViewModel.loadProductsForShop(shop.getShopId());
+                // Load products using the verified shop ID (only if not already loaded)
+                if (lastLoadedShopId == null || !lastLoadedShopId.equals(shop.getShopId())) {
+                    android.util.Log.d("ShopHomeFragment", "Loading products for shop: " + shop.getShopId());
+                    lastLoadedShopId = shop.getShopId();
+                    if (productViewModel != null) {
+                        productViewModel.loadProductsForShop(shop.getShopId());
+                    }
+                } else {
+                    android.util.Log.d("ShopHomeFragment", "Products already loaded for shop: " + shop.getShopId());
                 }
 
                 // Initialize ProductManager with the current shop ID for product addition/editing
@@ -684,7 +728,8 @@ public class ShopHomeFragment extends Fragment implements ShopSync.SyncListener 
         boolean fromFavorites = args != null && "favorites".equals(args.getString("source"));
         boolean isOwner = isShopOwner();
         
-        boolean shouldHideDialogs = fromSearch || fromFavorites || !isOwner;
+        // If user is owner, ALWAYS show controls, regardless of where they came from (Search/Favorites)
+        boolean shouldHideDialogs = !isOwner;
         
         android.util.Log.d("ShopHomeFragment", "refreshButtonVisibility - isOwner: " + isOwner + 
                           ", fromSearch: " + fromSearch + ", fromFavorites: " + fromFavorites + 

@@ -182,11 +182,6 @@ public class SettingsViewModel extends AndroidViewModel {
             return;
         }
 
-        if (phone == null || phone.trim().isEmpty()) {
-            operationResult.setValue(getApplication().getString(R.string.phone_required_error));
-            return;
-        }
-
         // Create updated user model
         UserModel updatedUser = new UserModel(
                 name,

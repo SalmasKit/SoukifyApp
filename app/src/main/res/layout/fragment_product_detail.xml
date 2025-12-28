@@ -32,30 +32,37 @@
             <!-- Action Buttons in Toolbar -->
             <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:layout_gravity="end">
 
-                <ImageButton
+                <ImageView
                     android:id="@+id/editButton"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
                     android:layout_marginEnd="8dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
                     android:src="@drawable/ic_edit"
+                    android:background="@drawable/circle_background"
+                    android:padding="6dp"
                     android:tint="#E85F4C"
                     android:contentDescription="@string/edit_product_desc"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:visibility="gone" />
 
-                <ImageButton
+                <ImageView
                     android:id="@+id/deleteButton"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginEnd="8dp"
                     android:src="@drawable/ic_baseline_delete_24"
-                    android:tint="#E85F4C"
+                    android:background="@drawable/circle_background"
+                    android:padding="6dp"
+                    android:tint="#D32F2F"
                     android:contentDescription="@string/delete_product_desc"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:visibility="gone" />
 
             </LinearLayout>
