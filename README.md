@@ -58,6 +58,9 @@ Explore the richness of Morocco through specialized categories:
 ## 📱 Screenshots
 
 <p align="center">
+  <img src="screenshots/banner.png" width="95%" alt="Soukify Banner" />
+</p>
+<p align="center">
   <img src="screenshots/login.png" width="30%" alt="Login Screen" />
   <img src="screenshots/homepage.png" width="30%" alt="Home Screen" />
   <img src="screenshots/searchpage.png" width="30%" alt="Search Results" />

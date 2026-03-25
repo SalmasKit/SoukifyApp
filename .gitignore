@@ -1,6 +1,9 @@
 # IDE
 .vscode/
 
+# Generated files
+lint-baseline.xml
+
 # Sensitive Config
 app/google-services.json
 *.jks
