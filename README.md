@@ -1,6 +1,6 @@
 # 🏷️ Soukify: Discover Authentic Moroccan Businesses
 
-![Soukify Banner](banner.png)
+![Soukify Banner](screenshots/banner.png)
 
 [![Android](https://img.shields.io/badge/Platform-Android-3DDC84?logo=android&logoColor=white)](https://developer.android.com/android)
 [![Firebase](https://img.shields.io/badge/Backend-Firebase-FFCA28?logo=firebase&logoColor=black)](https://firebase.google.com/)
